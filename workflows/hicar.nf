@@ -15,7 +15,19 @@ def checkPathParamList = [ params.input, params.multiqc_config, params.fasta ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
-if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+if (params.input) { ch_input = Channel.fromPath("${params.input}").splitCsv(header: true, sep:",") } else { exit 1, 'Input samplesheet not specified!' }
+
+// set the restriction_sites
+def RE_cutsite = [
+    "mboi": "^GATC",
+    "dpnii": "^GATC",
+    "bglii": "^GATCT",
+    "hindiii": "^AGCTT",
+    "cviqi": "^TAC"]
+if (!params.enzyme.toLowerCase() in RE_cutsite){
+    exit 1, "Not supported yet!"
+}
+params.restriction_sites = RE_cutsite[params.enzyme.toLowerCase()]
 
 /*
 ========================================================================================
@@ -35,15 +47,31 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
+// Extract parameters from params.modules
+def getParam(modules, module) {
+    return modules[module]?:[:]
+}
+def getSubWorkFlowParam(modules, mods) {
+    def Map options = [:]
+    mods.each{
+      val ->
+        options[val] = modules[val]?:[:]
+    }
+    return options
+}
+
 //
 // MODULE: Local to the pipeline
 //
-include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
+include { GET_SOFTWARE_VERSIONS  } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
+include { CHECKSUMS              } from '../modules/local/checksums' addParams( options: [:] )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( options: [:] )
+include { PREPARE_GENOME         } from '../subworkflows/local/preparegenome' addParams ( options: getSubWorkFlowParam(modules, ['gunzip', 'gtf2bed', 'chromsizes', 'genomefilter', 'bwa_index', 'gffread', 'digest_genome']) )
+include { BAM_STAT               } from '../subworkflows/local/bam_stats' addParams(options: getSubWorkFlowParam(modules, ['samtools_sort', 'samtools_index', 'samtools_stats', 'samtools_flagstat', 'samtools_idxstats']))
+include { PAIRTOOLS_PAIRE        } from '../subworkflows/local/pairtools' addParams(options: getSubWorkFlowParam(modules, ['paritools_dedup', 'pairtools_flip', 'pairtools_parse', 'pairtools_restrict', 'pairtools_select', 'pairtools_select_long', 'pairtools_sort', 'pairix', 'reads_stat', 'reads_summary', 'pairsqc', 'pairsplot']))
 
 /*
 ========================================================================================
@@ -58,6 +86,8 @@ multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"
 // MODULE: Installed directly from nf-core/modules
 //
 include { FASTQC  } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
+include { CUTADAPT } from '../modules/nf-core/modules/cutadapt/main' addParams(options: getParam(modules, 'cutadapt'))
+include { BWA_MEM  } from '../modules/nf-core/modules/bwa/mem/main'  addParams(options: getParam(modules, 'bwa_mem'))
 include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
 
 /*
@@ -69,25 +99,145 @@ include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( op
 // Info required for completion email and summary
 def multiqc_report = []
 
+// Parse input
+ch_reads = ch_input.map{
+  row ->
+      if(!row.group) { exit 1, 'Input samplesheet must contain 'group' column!' }
+      if(!row.replicate) { exit 1, 'Input samplesheet must contain 'replicate' column!' }
+      if(!row.fastq_1) { exit 1, 'Input samplesheet must contain 'fastq_1' column!' }
+      if(!row.fastq_2) { exit 1, 'Input samplesheet must contain 'fastq_2' column!' }
+      if(row.id) { exit 1, 'Input samplesheet can not contain 'id' column!' }
+      fastq1 = file(row.remove("fastq_1"), checkIfExists: true)
+      fastq2 = file(row.remove("fastq_2"), checkIfExists: true)
+      meta = row
+      meta.id = row.group + "_REP" + row.replicate
+      [meta, [fastq1, fastq2]]
+}
+//ch_reads.view()
+cool_bin = Channel.fromList(params.cool_bin.tokenize('_'))
+
 workflow HICAR {
 
     ch_software_versions = Channel.empty()
 
     //
-    // SUBWORKFLOW: Read in samplesheet, validate and stage input files
+    // check the input fastq files are correct and produce checksum for GEO submission
     //
-    INPUT_CHECK (
-        ch_input
-    )
+    CHECKSUMS( ch_reads )
+
+    //
+    // SUBWORKFLOW: Prepare genome
+    //
+    PREPARE_GENOME()
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.version.ifEmpty(null))
 
     //
     // MODULE: Run FastQC
     //
-    FASTQC (
-        INPUT_CHECK.out.reads
-    )
-    ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
+    if(!params.skip_fastqc){
+      FASTQC (
+          ch_reads
+      )
+      ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
+    }
 
+    //
+    // MODULE: trimming
+    //
+    CUTADAPT(
+      ch_reads
+    )
+    ch_software_versions = ch_software_versions.mix(CUTADAPT.out.version.ifEmpty(null))
+
+    //
+    // MODULE: mapping
+    //
+    BWA_MEM(
+      CUTADAPT.out.reads,
+      PREPARE_GENOME.out.bwa_index
+    )
+    ch_software_versions = ch_software_versions.mix(BWA_MEM.out.version.ifEmpty(null))
+
+    //
+    // MODULE: mapping stats
+    //
+    BAM_STAT(BWA_MEM.out.bam)
+    ch_software_versions = ch_software_versions.mix(BAM_STAT.out.version.ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: filter reads, output pair (like hic pair), raw (pair), and stats
+    //
+    PAIRTOOLS_PAIRE(
+      BWA_MEM.out.bam,
+      PREPARE_GENOME.out.chrom_sizes,
+      PREPARE_GENOME.out.digest_genome
+    )
+    ch_software_versions = ch_software_versions.mix(PAIRTOOLS_PAIRE.out.version.ifEmpty(null))
+/*
+    //
+    // combine bin_size and create cooler file, and dump long_bedpe
+    //
+    cool_bin.combine(PAIRTOOLS_PAIRE.out.pair)
+            .map{bin, meta, pair, px -> [meta, bin, pair, px]}
+            .set{cool_input}
+    COOLER(
+      cool_input,
+      PREPARE_GENOME.out.chrom_sizes
+    )
+    ch_software_versions = ch_software_versions.mix(COOLER.out.version.ifEmpty(null))
+
+    //
+    // calling ATAC peaks, output ATAC narrowPeak and reads in peak
+    //
+    ATAC_PEAK(
+      PAIRTOOLS_PAIRE.out.raw
+    )
+    ch_software_versions = ch_software_versions.mix(ATAC_PEAK.out.version.ifEmpty(null))
+
+    //
+    // calling distal peaks: [ meta, bin_size, path(macs2), path(long_bedpe), path(short_bed), path(background) ]
+    //
+    background = MAPS_MULTIENZYME(PREPARE_GENOME.out.fasta, cool_bin, PREPARE_GENOME.out.chrom_sizes).bin_feature
+    ch_software_versions = ch_software_versions.mix(MAPS_MULTIENZYME.out.version.ifEmpty(null))
+    reads_peak   = ATAC_PEAK.out.reads
+                          .map{ meta, reads ->
+                                  [meta.id, reads]} // here id is group
+                          .combine(ATAC_PEAK.out.mergedpeak)// group, reads, peaks
+                          .cross(COOLER.out.bedpe.map{[it[0].id, it[0].bin, it[1]]})// group, bin, bedpe
+                          .map{ short_bed, long_bedpe -> //[bin_size, group, macs2, long_bedpe, short_bed]
+                                  [long_bedpe[1], short_bed[0], short_bed[2], long_bedpe[2], short_bed[1]]}
+    background.cross(reads_peak)
+                .map{ background, reads -> //[group, bin_size, macs2, long_bedpe, short_bed, background]
+                      [[id:reads[1]], background[0], reads[2], reads[3], reads[4], background[1]]}
+                .set{ maps_input }
+    //maps_input.view()
+    MAPS_PEAK(maps_input)
+    ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.version.ifEmpty(null))
+
+    //
+    // Differential analysis
+    //
+    if(!params.skip_diff_analysis){
+      MAPS_PEAK.out.peak //[]
+               .map{meta, bin_size, peak -> [bin_size, peak]}
+               .groupTuple()
+               .cross(COOLER.out.samplebedpe.map{[it[0].bin, it[1]]}.groupTuple())
+               .map{ peak, long_bedpe -> [peak[0], peak[1].flatten(), long_bedpe[1].flatten()] }//bin_size, meta, peak, long_bedpe
+               .groupTuple()
+               .map{[it[0], it[1].flatten().unique(), it[2].flatten()]}
+               .set{ch_diffhicar}
+      //ch_diffhicar.view()
+      DIFFHICAR(ch_diffhicar)
+      ch_software_versions = ch_software_versions.mix(DIFFHICAR.out.version.ifEmpty(null))
+      //annotation
+      if(!params.skip_peak_annotation){
+          BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
+          ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.version.ifEmpty(null))
+          BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno)
+          ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.version.ifEmpty(null))
+      }
+    }
+*/
     //
     // MODULE: Pipeline reporting
     //

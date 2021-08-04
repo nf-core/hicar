@@ -1,3 +1,5 @@
-sample,fastq_1,fastq_2
-SAMPLE_PAIRED_END,/path/to/fastq/files/AEG588A1_S1_L002_R1_001.fastq.gz,/path/to/fastq/files/AEG588A1_S1_L002_R2_001.fastq.gz
-SAMPLE_SINGLE_END,/path/to/fastq/files/AEG588A4_S4_L003_R1_001.fastq.gz,
+group,replicate,fastq_1,fastq_2,md5_1,md5_2
+WT,1,https://raw.githubusercontent.com/jianhong/hicar_tools/main/assets/test/WT_rep1_R1.fastq.gz,https://raw.githubusercontent.com/jianhong/hicar_tools/main/assets/test/WT_rep1_R2.fastq.gz,,
+WT,2,https://raw.githubusercontent.com/jianhong/hicar_tools/main/assets/test/WT_rep2_R1.fastq.gz,https://raw.githubusercontent.com/jianhong/hicar_tools/main/assets/test/WT_rep2_R2.fastq.gz,,
+KD,1,https://raw.githubusercontent.com/jianhong/hicar_tools/main/assets/test/KD_rep1_R1.fastq.gz,https://raw.githubusercontent.com/jianhong/hicar_tools/main/assets/test/KD_rep1_R2.fastq.gz,,
+KD,2,https://raw.githubusercontent.com/jianhong/hicar_tools/main/assets/test/KD_rep2_R1.fastq.gz,https://raw.githubusercontent.com/jianhong/hicar_tools/main/assets/test/KD_rep2_R2.fastq.gz,,
