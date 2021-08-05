@@ -11,6 +11,7 @@ include {
     GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../modules/nf-core/modules/gunzip/main'               addParams( options: params.options.gunzip        )
 include { GTF2BED                     } from '../../modules/local/gtf2bed'                             addParams( options: params.options.gtf2bed       )
 include { CHROMSIZES                  } from '../../modules/local/genome/chromsizes'                   addParams( options: params.options.chromsizes    )
+include { GENOMESIZE                  } from '../../modules/local/genome/genomesize'
 include { GENOME_FILTER               } from '../../modules/local/genome/filter'                       addParams( options: params.options.genomefilter  )
 include { COOLER_DIGEST               } from '../../modules/nf-core/modules/cooler/digest/main'        addParams( options: params.options.digest_genome )
 include { GFFREAD                     } from '../../modules/nf-core/modules/gffread/main'              addParams( options: params.options.gffread       )
@@ -69,6 +70,26 @@ workflow PREPARE_GENOME {
      */
     ch_chrom_sizes = CHROMSIZES ( ch_fasta ).sizes
 
+    /*
+     * Calculate effective genome sizes
+     */
+     gs = 0.0
+     if (params.macs2_gsize) {
+         gs = params.macs2_gsize
+     } else {
+         //genome size remove all N then * 78%
+         ch_fasta.withReader{
+             String line
+             while( line = it.readLine() ){
+                 if( ! line =~ /^>/ ){
+                     l = line.toLowerCase()
+                     gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
+                 }
+             }
+         }
+         gs *= 0.78
+     }
+
     if (params.blacklist) {
         ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true)
     } else { ch_blacklist = Channel.empty() }
@@ -83,7 +104,7 @@ workflow PREPARE_GENOME {
     /*
      * Create digest genome file for PAIRTOOLS_PAIRE
      */
-     digest_genome_bed = COOLER_DIGEST (
+    digest_genome_bed = COOLER_DIGEST (
         ch_fasta,
         ch_chrom_sizes,
         params.enzyme
@@ -98,11 +119,12 @@ workflow PREPARE_GENOME {
     emit:
     fasta             = ch_fasta                       // path: genome.fasta,
     gtf               = ch_gtf                         // path: genome.gtf,
-    gene_bed          = ch_gene_bed                    //           path: gene.bed,
-    chrom_sizes       = ch_chrom_sizes                 //           path: genome.sizes,
-    blacklist         = ch_blacklist                   //           path: blacklist.bed,
-    bed               = filtered_bed                   //           path: *.bed,
-    digest_genome     = digest_genome_bed              //           path: bed
-    bwa_index         = ch_bwa_index                   //           path: fasta
-    version           = ch_version                       // path: *.version.txt
+    gene_bed          = ch_gene_bed                    // path: gene.bed,
+    chrom_sizes       = ch_chrom_sizes                 // path: genome.sizes,
+    blacklist         = ch_blacklist                   // path: blacklist.bed,
+    bed               = filtered_bed                   // path: *.bed,
+    digest_genome     = digest_genome_bed              // path: bed
+    bwa_index         = ch_bwa_index                   // path: bwt,amb,sa,ann,pac
+    gsize             = gs                             // value: macs2 genome size
+    version           = ch_version                     // path: *.version.txt
 }

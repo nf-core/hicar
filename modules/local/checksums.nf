@@ -32,11 +32,11 @@ process CHECKSUMS {
     def os_md5 = params.md5sum
     def os_md5_post = ""
     if (!params.md5sum){
-      def osinfo = System.properties['os.name'].toLowerCase()
-      os_md5 = osinfo.contains('mac')?'md5 -q':osinfo.contains('windows')?'certutil -hashfile':'md5sum'
-      if(osinfo.contains('windows')){
-        os_md5_post = 'MD5 | find /i /v `"md5`" | find /i /v `"certutil`"'
-      }
+        def osinfo = System.properties['os.name'].toLowerCase()
+        os_md5 = osinfo.contains('mac')?'md5 -q':osinfo.contains('windows')?'certutil -hashfile':'md5sum'
+        if(osinfo.contains('windows')){
+            os_md5_post = 'MD5 | find /i /v `"md5`" | find /i /v `"certutil`"'
+        }
     }
     """
     touch md5.${prefix}.txt

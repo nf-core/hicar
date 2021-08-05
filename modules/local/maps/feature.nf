@@ -12,7 +12,7 @@ process MAPS_FEATURE {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) },
         enabled: options.publish
 
-    conda (params.conda ? "bioconda::samtools=1.10" : null)
+    conda (params.enable_conda ? "bioconda::samtools=1.10" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2"
     } else {

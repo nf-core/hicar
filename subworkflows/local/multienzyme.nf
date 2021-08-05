@@ -1,20 +1,19 @@
 /*
  * Createing Genomic Features Files
  */
-include { initOptions } from './functions'
 params.options = [:]
-options        = initOptions(params.options)
 
-include { MAPS_CUT                     } from '../maps/cut'                     addParams(options: options.maps_cut)
-include { MAPS_FEND                    } from '../maps/fend'                    addParams(options: options.maps_fend)
-include { GENMAP_MAPPABILITY           } from '../genmap/mappability'           addParams(options: options.genmap_mappability)
-include { SEQLEVELS_STYLE              } from '../bioc/seqlevelsstyle'
+include { MAPS_CUT                     } from '../../modules/local/maps/cut'                     addParams(options: params.options.maps_cut)
+include { MAPS_FEND                    } from '../../modules/local/maps/fend'                    addParams(options: params.options.maps_fend)
+include { GENMAP_INDEX                 } from '../../modules/nf-core/modules/genmap/index/main'           addParams(options: params.options.genmap_mappability)
+include { GENMAP_MAPPABILITY           } from '../../modules/nf-core/modules/genmap/mappability/main'           addParams(options: params.options.genmap_mappability)
+include { SEQLEVELS_STYLE              } from '../../modules/local/bioc/seqlevelsstyle'
 include { ENSEMBL_UCSC_CONVERT
-    ENSEMBL_UCSC_CONVERT as ENSEMBL_UCSC_CONVERT2       } from '../bioc/ensembl_ucsc_convert'        addParams(options: [args: "toUCSC", publish_dir:''])
-include { UCSC_WIGTOBIGWIG             } from '../ucsc/wigtobigwig'             addParams(options: options.ucsc_wigtobigwig)
-include { UCSC_BIGWIGAVERAGEOVERBED    } from '../ucsc/bigwigaverageoverbed'    addParams(options: options.maps_mapability)
-include { MAPS_MERGE                   } from '../maps/merge'                   addParams(options: options.maps_merge)
-include { MAPS_FEATURE                 } from '../maps/feature'                 addParams(options: options.maps_feature)
+    ENSEMBL_UCSC_CONVERT as ENSEMBL_UCSC_CONVERT2       } from '../../modules/local/bioc/ensembl_ucsc_convert'        addParams(options: [args: "toUCSC", publish_dir:''])
+include { UCSC_WIGTOBIGWIG             } from '../../modules/nf-core/modules/ucsc/wigtobigwig/main'             addParams(options: params.options.ucsc_wigtobigwig)
+include { UCSC_BIGWIGAVERAGEOVERBED    } from '../../modules/nf-core/modules/ucsc/bigwigaverageoverbed/main'    addParams(options: params.options.maps_mapability)
+include { MAPS_MERGE                   } from '../../modules/local/maps/merge'                   addParams(options: params.options.maps_merge)
+include { MAPS_FEATURE                 } from '../../modules/local/maps/feature'                 addParams(options: params.options.maps_feature)
 
 workflow MAPS_MULTIENZYME {
     take:
@@ -26,7 +25,7 @@ workflow MAPS_MULTIENZYME {
     ch_version = MAPS_CUT(fasta, cool_bin).version
     MAPS_FEND(MAPS_CUT.out.cut, chromsizes)
     if(!params.mappability){
-        GENMAP_MAPPABILITY(fasta)
+        GENMAP_INDEX(fasta).index | GENMAP_MAPPABILITY
         ch_version = ch_version.mix(GENMAP_MAPPABILITY.out.version)
         mappability = UCSC_WIGTOBIGWIG(GENMAP_MAPPABILITY.out.wig, chromsizes).bw
         ch_version = ch_version.mix(UCSC_WIGTOBIGWIG.out.version)

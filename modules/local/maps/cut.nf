@@ -12,7 +12,7 @@ process MAPS_CUT {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) },
         enabled: options.publish
 
-    conda (params.conda ? "bioconda::biopython=1.70" : null)
+    conda (params.enable_conda ? "conda-forge::biopython=1.70" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/biopython:1.70--np112py36_1"
     } else {

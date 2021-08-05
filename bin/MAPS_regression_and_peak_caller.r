@@ -120,7 +120,7 @@ pospoisson_regression <- function(mm, dataset_length) {
     fit <- vglm(count ~  loggc + logm + logdist + logShortCount, family = pospoisson(), data = m1)
     coeff<-round(coef(fit),10)
     # mm$expected2 <- round(exp(coeff[1] + coeff[2]*mm$logl + coeff[3]*mm$loggc + coeff[4]*mm$logm + coeff[5]*mm$logdist + coeff[6]*mm$logShortCount), 10)
-	mm$expected2 <- round(exp(coeff[1]  + coeff[2]*mm$loggc + coeff[3]*mm$logm + coeff[4]*mm$logdist + coeff[5]*mm$logShortCount), 10)
+    mm$expected2 <- round(exp(coeff[1]  + coeff[2]*mm$loggc + coeff[3]*mm$logm + coeff[4]*mm$logdist + coeff[5]*mm$logShortCount), 10)
     mm$expected2 <- mm$expected2 /(1-exp(-mm$expected2))
     mm$ratio2 <- mm$count / mm$expected2
     mm$p_val_reg2 = ppois(mm$count, mm$expected2, lower.tail = FALSE, log.p = FALSE) / ppois(0, mm$expected2, lower.tail = FALSE, log.p = FALSE)
@@ -142,7 +142,7 @@ negbinom_regression <- function(mm, dataset_length) {
     coeff<-round(fit$coefficients,10)
     sze = fit$theta
     #mm$expected2 <- round(exp(coeff[1] + coeff[2]*mm$logl + coeff[3]*mm$loggc + coeff[4]*mm$logm + coeff[5]*mm$logdist + coeff[6]*mm$logShortCount), 10) ## mu parameter
-	mm$expected2 <- round(exp(coeff[1]  + coeff[2]*mm$loggc + coeff[3]*mm$logm + coeff[4]*mm$logdist + coeff[5]*mm$logShortCount), 10) ## mu parameter
+    mm$expected2 <- round(exp(coeff[1]  + coeff[2]*mm$loggc + coeff[3]*mm$logm + coeff[4]*mm$logdist + coeff[5]*mm$logShortCount), 10) ## mu parameter
     mm$ratio2 <- mm$count / mm$expected2
     mm$p_val_reg2 = pnbinom(mm$count, mu = mm$expected2, size = sze, lower.tail = FALSE)
     mm$p_bonferroni = mm$p_val_reg2 * dataset_length
@@ -182,8 +182,8 @@ label_peaks <- function(df) {
         y$p_val_reg2[ y$p_val_reg2 == 0 ] = 1111111
         y$p_val_reg2[ y$p_val_reg2 == 1111111 ] = min(y$p_val_reg2)
         for(i in 1:nrow(y)) {
-             z <- y[ abs(y$bin1_mid - y$bin1_mid[i])<=GAP & abs(y$bin2_mid - y$bin2_mid[i])<=GAP,]
-             y$CountNei[i] <- nrow(z)
+              z <- y[ abs(y$bin1_mid - y$bin1_mid[i])<=GAP & abs(y$bin2_mid - y$bin2_mid[i])<=GAP,]
+              y$CountNei[i] <- nrow(z)
         }
         u <- y[ y$CountNei == 1 ,] # singletons
         v <- y[ y$CountNei >= 2 ,] # peak cluster: sharp peak + broad peak

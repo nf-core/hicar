@@ -11,7 +11,7 @@ process READS_SUMMARY {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) },
         enabled: options.publish
 
-    conda (params.enable_conda ? "bioconda::r-magrittr=1.5" : null)
+    conda (params.enable_conda ? "r::r-magrittr=1.5" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/r-magrittr:1.5--r3.2.2_0"
     } else {

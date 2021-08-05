@@ -41,13 +41,13 @@ def find_re_sites(filename, sequences, offset):
                 # If this is not the first chromosome, find the indices and append
                 # them to the list
                 if chr_id is not None:
-                     for rs in range(len(sequences)):
-                         pattern = "(?={})".format(sequences[rs].lower())
-                         indices += [m.start() + offset[rs]\
-                         for m in re.finditer(pattern, big_str)]
-                     indices.sort()
-                     all_indices.append(indices)
-                     indices = []
+                    for rs in range(len(sequences)):
+                        pattern = "(?={})".format(sequences[rs].lower())
+                        indices += [m.start() + offset[rs]\
+                        for m in re.finditer(pattern, big_str)]
+                    indices.sort()
+                    all_indices.append(indices)
+                    indices = []
 
                 # This is a new chromosome. Empty the sequence string, and add the
                 # correct chrom id
@@ -112,9 +112,9 @@ if __name__ == "__main__":
                         dest='res_sites',
                         nargs='+',
                         help=("The cutting position has to be specified using "
-                              "'^'. For instance, -r A^AGCTT for HindIII "
-                              "digestion. Several restriction enzyme can be "
-                              "specified."))
+                            "'^'. For instance, -r A^AGCTT for HindIII "
+                            "digestion. Several restriction enzyme can be "
+                            "specified."))
     parser.add_argument('-o', '--out', default=None)
     args = parser.parse_args()
 
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         offpos = int(cseq.find('^'))
         if offpos == -1:
             print("Unable to detect offset for {}. Please, use '^' to specify the cutting position,\
-                   i.e A^GATCT for HindIII digestion.".format(cseq))
+                    i.e A^GATCT for HindIII digestion.".format(cseq))
             sys.exit(-1)
 
         for nuc in list(set(cseq)):
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     for i, indices in enumerate(all_indices):
         valid_fragments_chr = np.concatenate(
             [np.concatenate([[0], indices])[:, np.newaxis],
-             np.concatenate([indices, [lengths[i]]])[:, np.newaxis]],
+                np.concatenate([indices, [lengths[i]]])[:, np.newaxis]],
             axis=1)
         valid_fragments.append(valid_fragments_chr)
 

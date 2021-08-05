@@ -171,12 +171,12 @@ def init(p):
                 count_data.reset_index(inplace=True)
                 count_data_and = count_data[(count_data['bin1_mid'].isin(MACS2_peak_ranges_list)) & (count_data['bin2_mid'].isin(MACS2_peak_ranges_list))].copy()
                 count_data_and = count_data_and[(np.abs(count_data_and['bin1_mid'] - count_data_and['bin2_mid']) <= params['BIN_RANGE'])
-                           & (np.abs(count_data_and['bin1_mid'] - count_data_and['bin2_mid']) >= 1)]
+                            & (np.abs(count_data_and['bin1_mid'] - count_data_and['bin2_mid']) >= 1)]
                 count_data_and['1D_peak_bin1'] = 1
                 count_data_and['1D_peak_bin2'] = 1
                 count_data_xor = count_data[(count_data.bin1_mid.isin(MACS2_peak_ranges_list)) ^ (count_data.bin2_mid.isin(MACS2_peak_ranges_list))]
                 count_data_xor = count_data_xor[(np.abs(count_data_xor['bin1_mid'] - count_data_xor['bin2_mid']) <= params['BIN_RANGE'])
-                           & (np.abs(count_data_xor['bin1_mid'] - count_data_xor['bin2_mid']) >= 1)]
+                            & (np.abs(count_data_xor['bin1_mid'] - count_data_xor['bin2_mid']) >= 1)]
                 count_data_xor_bin1 = count_data_xor[(count_data_xor.bin1_mid.isin(MACS2_peak_ranges_list))].copy()
                 count_data_xor_bin1['1D_peak_bin1'] = 1
                 count_data_xor_bin1['1D_peak_bin2'] = 0
@@ -198,13 +198,13 @@ def init(p):
                 metadata['short_count'] = metadata['short_count'].fillna(0)
                 print('-- attaching genome features atributes to AND set')
                 reg_and = pd.merge(count_data_and, metadata[['bin1_mid','effective_length','gc','mappability','short_count']],
-                           on='bin1_mid')
+                            on='bin1_mid')
                 reg_and.rename(columns={'effective_length':'effective_length1','gc':'gc1','mappability':'mappability1',
-                           'short_count':'short_count1'},inplace=True)
+                            'short_count':'short_count1'},inplace=True)
                 reg_and = pd.merge(reg_and, metadata[['bin2_mid','effective_length','gc','mappability','short_count']],
-                           on='bin2_mid')
+                            on='bin2_mid')
                 reg_and.rename(columns={'effective_length':'effective_length2','gc':'gc2','mappability':'mappability2',
-                           'short_count':'short_count2'},inplace=True)
+                            'short_count':'short_count2'},inplace=True)
                 reg_and = reg_and[(reg_and['effective_length1'] > 0) & (reg_and['effective_length2'] > 0)]
                 reg_and['dist'] = pd.to_numeric(np.abs(reg_and['bin1_mid'] - reg_and['bin2_mid']))
                 reg_and['logl'] = np.log((reg_and['effective_length1'] + 1.0) * (reg_and['effective_length2'] + 1.0) / (params['BIN_SIZE'] * params['BIN_SIZE']))
@@ -219,13 +219,13 @@ def init(p):
                 reg_and['bin2_mid'] = reg_and['bin2_mid'] * params['BIN_SIZE']
                 print('-- attaching genome features atributes to XOR set')
                 reg_xor = pd.merge(count_data_xor, metadata[['bin1_mid','effective_length','gc','mappability','short_count']],
-                           on='bin1_mid')
+                            on='bin1_mid')
                 reg_xor.rename(columns={'effective_length':'effective_length1','gc':'gc1','mappability':'mappability1',
-                           'short_count':'short_count1'},inplace=True)
+                            'short_count':'short_count1'},inplace=True)
                 reg_xor = pd.merge(reg_xor, metadata[['bin2_mid','effective_length','gc','mappability','short_count']],
-                           on='bin2_mid')
+                            on='bin2_mid')
                 reg_xor.rename(columns={'effective_length':'effective_length2','gc':'gc2','mappability':'mappability2',
-                           'short_count':'short_count2'},inplace=True)
+                            'short_count':'short_count2'},inplace=True)
                 reg_xor = reg_xor[(reg_xor['effective_length1'] > 0) & (reg_xor['effective_length2'] > 0)]
                 reg_xor['dist'] = pd.to_numeric(np.abs(reg_xor['bin1_mid'] - reg_xor['bin2_mid']))
                 reg_xor['logl'] = np.log((reg_xor['effective_length1'] + 1.0) * (reg_xor['effective_length2'] + 1.0) / (params['BIN_SIZE'] * params['BIN_SIZE']))
