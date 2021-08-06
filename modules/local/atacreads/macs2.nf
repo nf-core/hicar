@@ -9,10 +9,9 @@ process MACS2_CALLPEAK {
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) },
-        enabled: options.publish
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    conda (params.conda ? "bioconda::macs2=2.2.7.1" : null)
+    conda (params.enable_conda ? "bioconda::macs2=2.2.7.1" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/macs2:2.2.7.1--py38h0213d0e_1"
     } else {
@@ -21,7 +20,7 @@ process MACS2_CALLPEAK {
 
     input:
     tuple val(meta), path(bed)
-    val   macs2_gsize
+    val   macs_gsize
 
     output:
     tuple val(meta), path("*.{narrowPeak,broadPeak}"), emit: peak
@@ -40,7 +39,7 @@ process MACS2_CALLPEAK {
     macs2 \\
         callpeak \\
         $options.args \\
-        --gsize $macs2_gsize \\
+        --gsize $macs_gsize \\
         --format $format \\
         --name $prefix \\
         --treatment $bed

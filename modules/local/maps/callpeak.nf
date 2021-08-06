@@ -12,7 +12,7 @@ process MAPS_CALLPEAK {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) },
         enabled: options.publish
 
-    conda (params.enable_conda ? "bioconda::r-vgam=1.0_2" : null)
+    conda (params.enable_conda ? "conda-forge::r-vgam=1.1_5" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/r-vgam:1.0_2--r3.3.2_0"
     } else {
@@ -35,9 +35,9 @@ process MAPS_CALLPEAK {
     def filter   = "None"
     """
     resolution=\$(bc<<<"$bin_size/1000")
-    install_packages.r VGAM
+    install_packages.r VGAM MASS
     mv maps_out ${meta.id}_${bin_size}
-    MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id}.\${resolution}k $bin_size $params.autosomal$sex_chr $filter "${meta.id}_${bin_size}/" $cutoff $model
+    MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id}.\${resolution}k $bin_size 0$sex_chr $filter "${meta.id}_${bin_size}/" $cutoff $model
     echo '1.1.0' > ${software}.version.txt
     """
 }

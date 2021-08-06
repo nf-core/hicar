@@ -38,8 +38,8 @@ def validate_input_data(input_data):
         params['SHORT_PATH'] = input_data['SHORT_PATH'][1]
     if 'SHORT_FORMAT' in input_data:
         params['SHORT_FORMAT'] = input_data['SHORT_FORMAT'][1]
-    if 'N_CHROMS' in input_data:
-        params['N_CHROMS'] = input_data['N_CHROMS'].astype('int')[1]
+    #if 'N_CHROMS' in input_data:
+    #    params['N_CHROMS'] = input_data['N_CHROMS'].astype('int')[1]
     if 'SEX_CHROMS' in input_data:
         params['SEX_CHROMS'] = input_data['SEX_CHROMS'][1]
     else:

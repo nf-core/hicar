@@ -16,8 +16,7 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Write a 1-2 sentence summary of what data the pipeline is for and what it does -->
-**nf-core/hicar** is a bioinformatics best-practice analysis pipeline for This pipeline analyses data for HiCAR data, a robust and sensitive multi-omic co-assay for simultaneous measurement of transcriptome, chromatin accessibility and cis-regulatory chromatin contacts..
+**nf-core/hicar** is a bioinformatics best-practice analysis pipeline for This pipeline analyses data for HiCAR data, a robust and sensitive multi-omic co-assay for simultaneous measurement of transcriptome, chromatin accessibility and cis-regulatory chromatin contacts.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
@@ -29,7 +28,16 @@ On release, automated continuous integration tests run the pipeline on a full-si
 <!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
 
 1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+2. Trim reads (`[cutadapt](https://cutadapt.readthedocs.io/en/stable/)`)
+3. Map reads (`[bwa mem](http://bio-bwa.sourceforge.net/bwa.shtml)`)
+4. Filter reads (`[pairtools](https://pairtools.readthedocs.io/en/latest/)`)
+5. Quality analysis (`[pairsqc](https://github.com/4dn-dcic/pairsqc)`)
+6. Create cooler files for visualization (`[cooler](https://cooler.readthedocs.io/en/latest/index.html)`)
+7. Call peaks for ATAC reads (R2 reads) (`[MACS2](https://macs3-project.github.io/MACS/)`)
+8. Find TADs and loops (`[MAPS](https://github.com/ijuric/MAPS)`)
+9. Differential analysis (`[edgeR](https://bioconductor.org/packages/edgeR/)`)
+10. Annotation TADs and loops (`[ChIPpeakAnno](https://bioconductor.org/packages/ChIPpeakAnno/)`)
+11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start
 
@@ -52,7 +60,16 @@ On release, automated continuous integration tests run the pipeline on a full-si
     <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
 
     ```console
-    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> --input samplesheet.csv --genome GRCh37
+    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> --input samplesheet.csv --genome GRCh38
+    ```
+
+    Run it on cluster.
+
+    First prepare a profile config file named as [profile.config](https://nf-co.re/hicar/usage) and a [samplesheet](https://nf-co.re/hicar/usage).
+    Then run:
+
+    ```console
+    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> -c profile.config
     ```
 
 ## Documentation

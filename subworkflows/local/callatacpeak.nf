@@ -5,7 +5,7 @@ params.options = [:]
 
 include { PAIRTOOLS_SELECT } from '../../modules/nf-core/modules/pairtools/select/main'           addParams(options: params.options.pairtools_select)
 include { PAIRTOOLS_SELECT
-    as  PAIRTOOLS_SELECT2} from '../../modules/nf-core/modules/pairtools/select/main'           addParams(options: params.options.pairtools_select_short)
+    as  PAIRTOOLS_SELECT_SHORT} from '../../modules/nf-core/modules/pairtools/select/main'           addParams(options: params.options.pairtools_select_short)
 include { SHIFTREADS       } from '../../modules/local/atacreads/shiftreads'       addParams(options: params.options.shift_reads)
 include { MERGEREADS       } from '../../modules/local/atacreads/mergereads'       addParams(options: params.options.merge_reads)
 include { MACS2_CALLPEAK   } from '../../modules/local/atacreads/macs2'            addParams(options: params.options.macs2_atac)
@@ -17,14 +17,14 @@ include { MERGE_PEAK       } from '../../modules/local/atacreads/mergepeak'     
 workflow ATAC_PEAK {
     take:
     raw_pairs  // channel: [ val(meta), [pairs] ]
-    macs2_gsize // channel: value
+    macs_gsize // channel: value
 
     main:
     // extract ATAC reads, split the pairs into longRange_Trans pairs and short pairs
     ch_version = PAIRTOOLS_SELECT(raw_pairs).version
-    PAIRTOOLS_SELECT2(PAIRTOOLS_SELECT.out.selected)
+    PAIRTOOLS_SELECT_SHORT(PAIRTOOLS_SELECT.out.selected)
     // shift Tn5 insertion for longRange_Trans pairs
-    SHIFTREADS(PAIRTOOLS_SELECT2.out.unselected)
+    SHIFTREADS(PAIRTOOLS_SELECT_SHORT.out.unselected)
     ch_version = ch_version.mix(SHIFTREADS.out.version)
 
     // merge the read in same group
@@ -37,7 +37,7 @@ workflow ATAC_PEAK {
     ch_version = ch_version.mix(MERGEREADS.out.version)
 
     // call ATAC narrow peaks for group
-    MACS2_CALLPEAK(MERGEREADS.out.bed, macs2_gsize)
+    MACS2_CALLPEAK(MERGEREADS.out.bed, macs_gsize)
     ch_version = ch_version.mix(MACS2_CALLPEAK.out.version)
 
     // merge peaks

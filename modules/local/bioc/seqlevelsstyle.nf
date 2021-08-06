@@ -9,8 +9,7 @@ process SEQLEVELS_STYLE {
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') },
-        enabled: options.publish
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
     conda (params.enable_conda ? "bioconda::bioconductor-genomeinfodb=1.26.4" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {

@@ -79,6 +79,166 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                },
+                "bwa_index": {
+                    "type": "string",
+                    "fa_icon": "fas fa-font",
+                    "description": "Path to bwa index file.",
+                    "help_text": "If you have no genome reference available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
+                },
+                "gtf": {
+                    "type": "string",
+                    "fa_icon": "fas fa-font",
+                    "description": "Path to annotation gtf file.",
+                    "help_text": "Annotation gtf or gff file is required for annotation and quality control. This parameter is *mandatory* if `--genome` is not specified."
+                },
+                "gff": {
+                    "type": "string",
+                    "fa_icon": "fas fa-font",
+                    "description": "Path to annotation gff file.",
+                    "help_text": "Annotation gff or gff file is required for annotation and quality control. This parameter is *mandatory* if `--genome` is not specified."
+                },
+                "gene_bed": {
+                    "type": "string",
+                    "fa_icon": "fas fa-procedres",
+                    "description": "Path to annotation gene bed file.",
+                    "help_text": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
+                },
+                "mappability": {
+                    "type": "string",
+                    "fa_icon": "fas fa-font",
+                    "description": "Path to genome mappability file.",
+                    "help_text": "If you have no genome mappability available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
+                },
+                "macs_gsize": {
+                    "type": "string",
+                    "description": "Effective genome size parameter required by MACS2.",
+                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "ucscname": {
+                    "type": "string",
+                    "description": "UCSC assembly annotation name.",
+                    "help_text": "[UCSC assembly annotation name](https://genome.ucsc.edu/FAQ/FAQgenes.html)",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "blacklist": {
+                    "type": "string",
+                    "description": "Path to blacklist regions in BED format, used for filtering alignments.",
+                    "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
+                    "fa_icon": "fas fa-book-dead"
+                }
+            }
+        },
+        "experiment_config_options":{
+            "title": "Experiment design options",
+            "type": "object",
+            "fa_icon": "fas fa-cut",
+            "description": "Parameters used to describe the experiment designs.",
+            "properties": {
+                "enzyme": {
+                    "type": "string",
+                    "description": "Specifies that the cutting position has to be using.",
+                    "fa_icon": "fas fa-cut",
+                    "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, and CviQI."
+                },
+                "restriction_sites": {
+                    "type": "string",
+                    "description": "Specifies that the cutting sequence has to be using.",
+                    "fa_icon": "fas fa-cut",
+                    "help_text": "It will be automatically assigned by the enzyme inputed.",
+                    "hidden": true
+                }
+            }
+        },
+        "MACS2_peak_calling_options":{
+            "title": "MACS2 peak calling options",
+            "type": "object",
+            "fa_icon": "fas fa-mountains",
+            "descripton": "Options for MACS2 peak calling options for ATAC-seq reads (R2).",
+            "properties": {
+                "shiftsize":{
+                    "type": "integer",
+                    "description": "shift size for MACS2",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false,
+                    "help_text": "See help from MACS2 documentation"
+                },
+                "smooth_window":{
+                    "type": "integer",
+                    "description": "extsize for MACS2",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false,
+                    "help_text": "See help from MACS2 documentation"
+                },
+                "qval_thresh":{
+                    "type": "number",
+                    "description": "cutoff qvalue",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false,
+                    "help_text": "See help from MACS2 documentation"
+                }
+            }
+        },
+        "Other_options_not_expose_yet":{
+            "title": "Other options not expose",
+            "type": "object",
+            "fa_icon": "fas fa-mountains",
+            "descripton": "Options for peak calling options.",
+            "properties": {
+                "modules":{
+                    "type": "object",
+                    "description": "setting object for modules",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "skip_peak_qc":{
+                    "type": "boolean",
+                    "description": "skip peak QC or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "skip_peak_annotation":{
+                    "type": "boolean",
+                    "description": "skip peak annotation or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false
+                },
+                "skip_diff_analysis":{
+                    "type": "boolean",
+                    "description": "skip differential analysis or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false
+                },
+                "skip_fastqc":{
+                    "type": "boolean",
+                    "description": "skip fastqc or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false
+                },
+                "skip_plot_profile":{
+                    "type": "boolean",
+                    "description": "skip plot profile or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "skip_igv":{
+                    "type": "boolean",
+                    "description": "skip creat IGV files or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "skip_multiqc":{
+                    "type": "boolean",
+                    "description": "skip multiqc or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "skip_trackhub":{
+                    "type": "boolean",
+                    "description": "skip create trackhub files or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
                 }
             }
         },
@@ -133,6 +293,12 @@
                     "description": "Institutional config URL link.",
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
+                },
+                "enable_conda":{
+                    "type": "boolean",
+                    "description": "enable conda or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
                 }
             }
         },
@@ -267,6 +433,11 @@
                     "hidden": true,
                     "fa_icon": "fas fa-toolbox",
                     "help_text": "This may be useful for example if you are unable to directly pull Singularity containers to run the pipeline due to http/https proxy issues."
+                },
+                "md5sum": {
+                    "type": "string",
+                    "description": "The check sum command path.",
+                    "default": "md5sum"
                 }
             }
         }
@@ -279,13 +450,22 @@
             "$ref": "#/definitions/reference_genome_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/definitions/experiment_config_options"
+        },
+        {
+            "$ref": "#/definitions/MACS2_peak_calling_options"
+        },
+        {
+            "$ref": "#/definitions/Other_options_not_expose_yet"
         },
         {
             "$ref": "#/definitions/max_job_request_options"
         },
         {
             "$ref": "#/definitions/generic_options"
+        },
+        {
+            "$ref": "#/definitions/institutional_config_options"
         }
     ]
 }

@@ -10,8 +10,7 @@ process BIOC_CHIPPEAKANNO {
     label 'error_ignore'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) },
-        enabled: options.publish
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.24.1" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {

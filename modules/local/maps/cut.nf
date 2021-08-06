@@ -9,8 +9,7 @@ process MAPS_CUT {
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) },
-        enabled: options.publish
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "conda-forge::biopython=1.70" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -45,7 +44,7 @@ process MAPS_CUT {
         -s ${enzyme.site} \\
         -p ${enzyme.pos} \\
         -b ${bin_size} \\
-        -o ${params.species}_${bin_size}_${params.enzyme}.cut
+        -o ${bin_size}_${params.enzyme}.cut
 
     echo '1.1.0' > ${software}.version.txt
     """

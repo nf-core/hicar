@@ -12,11 +12,11 @@ process MAPS_MAPS{
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) },
         enabled: options.publish
 
-    conda (params.enable_conda ? "bioconda::samtools=1.12" : null)
+    conda (params.enable_conda ? "pandas=1.1.5" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/samtools:1.12--h9aed4be_1"
+        container "https://depot.galaxyproject.org/singularity/pandas:1.1.5"
     } else {
-        container "quay.io/biocontainers/samtools:1.12--h9aed4be_1"
+        container "quay.io/biocontainers/pandas:1.1.5"
     }
 
     input:
@@ -41,7 +41,7 @@ process MAPS_MAPS{
         "long/" \\
         "short/" \\
         $bin_size \\
-        ${params.autosomal} \\
+        0 \\
         "${meta.id}_${bin_size}/" \\
         $sex_chr \\
         ${bin_range}

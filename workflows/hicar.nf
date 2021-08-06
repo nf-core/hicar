@@ -64,7 +64,7 @@ def getSubWorkFlowParam(modules, mods) {
 // MODULE: Local to the pipeline
 //
 include { GET_SOFTWARE_VERSIONS  } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
-include { CHECKSUMS              } from '../modules/local/checksums' addParams( options: [:] )
+include { CHECKSUMS              } from '../modules/local/checksums' addParams( options: getParam(modules, 'checksums') )
 include { DIFFHICAR              } from '../modules/local/bioc/diffhicar' addParams(options: getParam(modules, 'diffhicar'))
 include { BIOC_CHIPPEAKANNO      } from '../modules/local/bioc/chippeakanno' addParams(options: getParam(modules, 'chippeakanno'))
 include { BIOC_ENRICH            } from '../modules/local/bioc/enrich' addParams(options: getParam(modules, 'enrichment'))
@@ -77,7 +77,7 @@ include { BAM_STAT               } from '../subworkflows/local/bam_stats' addPar
 include { PAIRTOOLS_PAIRE        } from '../subworkflows/local/pairtools' addParams(options: getSubWorkFlowParam(modules, ['paritools_dedup', 'pairtools_flip', 'pairtools_parse', 'pairtools_restrict', 'pairtools_select', 'pairtools_select_long', 'pairtools_sort', 'pairix', 'reads_stat', 'reads_summary', 'pairsqc', 'pairsplot']))
 include { COOLER                 } from '../subworkflows/local/cooler' addParams(options: getSubWorkFlowParam(modules, ['cooler_cload', 'cooler_merge', 'cooler_zoomify', 'cooler_dump_per_group', 'cooler_dump_per_sample']))
 include { ATAC_PEAK              } from '../subworkflows/local/callatacpeak' addParams(options: getSubWorkFlowParam(modules, ['pairtools_select', 'pairtools_select_short', 'merge_reads', 'shift_reads', 'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample', 'merge_peak']))
-include { MAPS_MULTIENZYME       } from '../subworkflows/local/multienzyme'   addParams(options: getSubWorkFlowParam(modules, ['maps_cut', 'maps_fend', 'genmap_mappability', 'ucsc_wigtobigwig', 'maps_mapability', 'maps_merge', 'maps_feature']))
+include { MAPS_MULTIENZYME       } from '../subworkflows/local/multienzyme'   addParams(options: getSubWorkFlowParam(modules, ['maps_cut', 'maps_fend', 'genmap_index', 'genmap_mappability', 'ucsc_wigtobigwig', 'maps_mapability', 'maps_merge', 'maps_feature', 'ensembl_ucsc_convert']))
 include { MAPS_PEAK              } from '../subworkflows/local/maps_peak' addParams(options: getSubWorkFlowParam(modules, ['maps_maps', 'maps_callpeak', 'maps_reformat']))
 
 /*
@@ -92,10 +92,11 @@ multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC  } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
-include { CUTADAPT } from '../modules/nf-core/modules/cutadapt/main' addParams(options: getParam(modules, 'cutadapt'))
-include { BWA_MEM  } from '../modules/nf-core/modules/bwa/mem/main'  addParams(options: getParam(modules, 'bwa_mem'))
-include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
+include { FASTQC         } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
+include { CUTADAPT       } from '../modules/nf-core/modules/cutadapt/main' addParams(options: getParam(modules, 'cutadapt'))
+include { BWA_MEM        } from '../modules/nf-core/modules/bwa/mem/main'  addParams(options: getParam(modules, 'bwa_mem'))
+include { SAMTOOLS_MERGE } from '../modules/nf-core/modules/samtools/merge/main'  addParams(options: getParam(modules, 'samtools_merge'))
+include { MULTIQC        } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
 
 /*
 ========================================================================================
@@ -107,7 +108,7 @@ include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( op
 def multiqc_report = []
 
 // Parse input
-ch_reads = ch_input.map{
+ch_fastq = ch_input.map{
   row ->
         if(!row.group) { exit 1, 'Input samplesheet must contain 'group' column!' }
         if(!row.replicate) { exit 1, 'Input samplesheet must contain 'replicate' column!' }
@@ -118,8 +119,22 @@ ch_reads = ch_input.map{
         fastq2 = file(row.remove("fastq_2"), checkIfExists: true)
         meta = row
         meta.id = row.group + "_REP" + row.replicate
-        [meta, [fastq1, fastq2]]
+        [meta.id, meta, [fastq1, fastq2]]
 }
+// rename the input if there are technique duplicates
+ch_fastq.groupTuple(by:[0])
+        .map{
+            id, meta, fq ->
+                meta.eachWithIndex{
+                    entry, index ->
+                        entry.id = entry.id + "_T" + index
+                        entry
+            }
+            [id, meta, fq]
+        }.transpose()
+        .map{[it[1], it[2]]}
+        .set{ ch_reads }
+
 //ch_reads.view()
 cool_bin = Channel.fromList(params.cool_bin.tokenize('_'))
 
@@ -166,16 +181,32 @@ workflow HICAR {
     ch_software_versions = ch_software_versions.mix(BWA_MEM.out.version.ifEmpty(null))
 
     //
+    // Pool the technique replicates
+    //
+    BWA_MEM.out.bam
+                .map{
+                    meta, bam ->
+                        meta.id = meta.group + "_REP" + meta.replicate
+                        [meta.id, meta, bam]
+                }
+                .groupTuple(by: [0])
+                .map{[it[1][0], it[2].flatten()]}
+                .set{ mapped_bam }
+    //mapped_bam.view()//no branch to multiple and single, need to rename the bam files
+    SAMTOOLS_MERGE(mapped_bam)
+    ch_software_versions = ch_software_versions.mix(SAMTOOLS_MERGE.out.version.ifEmpty(null))
+
+    //
     // MODULE: mapping stats
     //
-    BAM_STAT(BWA_MEM.out.bam)
+    BAM_STAT(SAMTOOLS_MERGE.out.bam)
     ch_software_versions = ch_software_versions.mix(BAM_STAT.out.version.ifEmpty(null))
 
     //
     // SUBWORKFLOW: filter reads, output pair (like hic pair), raw (pair), and stats
     //
     PAIRTOOLS_PAIRE(
-        BWA_MEM.out.bam,
+        SAMTOOLS_MERGE.out.bam,
         PREPARE_GENOME.out.chrom_sizes,
         PREPARE_GENOME.out.digest_genome
     )
@@ -241,7 +272,7 @@ workflow HICAR {
         if(!params.skip_peak_annotation){
             BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
             ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.version.ifEmpty(null))
-            BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno)
+            BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno, PREPARE_GENOME.out.ucscname)
             ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.version.ifEmpty(null))
         }
     }

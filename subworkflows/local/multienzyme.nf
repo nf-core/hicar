@@ -5,11 +5,11 @@ params.options = [:]
 
 include { MAPS_CUT                     } from '../../modules/local/maps/cut'                     addParams(options: params.options.maps_cut)
 include { MAPS_FEND                    } from '../../modules/local/maps/fend'                    addParams(options: params.options.maps_fend)
-include { GENMAP_INDEX                 } from '../../modules/nf-core/modules/genmap/index/main'           addParams(options: params.options.genmap_mappability)
+include { GENMAP_INDEX                 } from '../../modules/nf-core/modules/genmap/index/main'           addParams(options: params.options.genmap_index)
 include { GENMAP_MAPPABILITY           } from '../../modules/nf-core/modules/genmap/mappability/main'           addParams(options: params.options.genmap_mappability)
 include { SEQLEVELS_STYLE              } from '../../modules/local/bioc/seqlevelsstyle'
 include { ENSEMBL_UCSC_CONVERT
-    ENSEMBL_UCSC_CONVERT as ENSEMBL_UCSC_CONVERT2       } from '../../modules/local/bioc/ensembl_ucsc_convert'        addParams(options: [args: "toUCSC", publish_dir:''])
+    ENSEMBL_UCSC_CONVERT as ENSEMBL_UCSC_CONVERT2       } from '../../modules/local/bioc/ensembl_ucsc_convert'        addParams(options: params.options.ensembl_ucsc_convert)
 include { UCSC_WIGTOBIGWIG             } from '../../modules/nf-core/modules/ucsc/wigtobigwig/main'             addParams(options: params.options.ucsc_wigtobigwig)
 include { UCSC_BIGWIGAVERAGEOVERBED    } from '../../modules/nf-core/modules/ucsc/bigwigaverageoverbed/main'    addParams(options: params.options.maps_mapability)
 include { MAPS_MERGE                   } from '../../modules/local/maps/merge'                   addParams(options: params.options.maps_merge)
@@ -37,12 +37,12 @@ workflow MAPS_MULTIENZYME {
         ENSEMBL_UCSC_CONVERT(MAPS_FEND.out.bed)
         ENSEMBL_UCSC_CONVERT2(mappability.map{[cool_bin, it]})
         ch_version = ch_version.mix(ENSEMBL_UCSC_CONVERT.out.version)
-        UCSC_BIGWIGAVERAGEOVERBED(ENSEMBL_UCSC_CONVERT.out.tab, ENSEMBL_UCSC_CONVERT2.out.tab.map{it[1]})
+        UCSC_BIGWIGAVERAGEOVERBED(ENSEMBL_UCSC_CONVERT.out.tab.map{[['id':'background', 'bin_size':it[0]], it[1]]}, ENSEMBL_UCSC_CONVERT2.out.tab.map{it[1]})
     }else{
-        UCSC_BIGWIGAVERAGEOVERBED(MAPS_FEND.out.bed, mappability)
+        UCSC_BIGWIGAVERAGEOVERBED(MAPS_FEND.out.bed.map{[['id':'background', 'bin_size':it[0]], it[1]]}, mappability)
     }
     ch_version = ch_version.mix(UCSC_BIGWIGAVERAGEOVERBED.out.version)
-    MAPS_MERGE(MAPS_CUT.out.cut.join(UCSC_BIGWIGAVERAGEOVERBED.out.tab))
+    MAPS_MERGE(MAPS_CUT.out.cut.join(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}))
 
     MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes)
 

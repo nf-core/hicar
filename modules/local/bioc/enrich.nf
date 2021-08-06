@@ -10,8 +10,7 @@ process BIOC_ENRICH {
     label 'error_ignore'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) },
-        enabled: options.publish
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-clusterprofiler=3.18.1" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -22,6 +21,7 @@ process BIOC_ENRICH {
 
     input:
     tuple val(bin_size), path(diff)
+    val ucscname
 
     output:
     tuple val(bin_size), path("diffhic_bin${bin_size}/enrichment/*"), emit: enrichment
@@ -30,7 +30,7 @@ process BIOC_ENRICH {
     script:
     """
     install_packages.r clusterProfiler pathview biomaRt optparse
-    enrich.r -s ${params.species} -o "diffhic_bin${bin_size}/enrichment" $options.args
+    enrich.r -s ${ucscname} -o "diffhic_bin${bin_size}/enrichment" $options.args
 
     # *.version.txt
     """

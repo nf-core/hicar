@@ -24,7 +24,7 @@ writeLines(as.character(packageVersion("pathview")), "pathview.version.txt")
 writeLines(as.character(packageVersion("biomaRt")), "biomaRt.version.txt")
 
 
-option_list <- list(make_option(c("-s", "--species"), type="character", default=NULL, help="species", metavar="string"),
+option_list <- list(make_option(c("-s", "--genome"), type="character", default=NULL, help="genome assembly name", metavar="string"),
                     make_option(c("-n", "--ucscname"), type="character", default=NULL, help="ucscname", metavar="string"),
                     make_option(c("-o", "--output"), type="character", default=".", help="output folder", metavar="string"),
                     make_option(c("-c", "--cores"), type="integer", default=1, help="Number of cores", metavar="integer"))
@@ -32,9 +32,9 @@ option_list <- list(make_option(c("-s", "--species"), type="character", default=
 opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
 
-if (is.null(opt$species)){
+if (is.null(opt$genome)){
     print_help(opt_parser)
-    stop("Please provide species.", call.=FALSE)
+    stop("Please provide genome name.", call.=FALSE)
 }
 if (!is.null(opt$output)){
     pf <- opt$output
@@ -84,13 +84,13 @@ scientificName <- c("GRCh37"="Homo sapiens",
                     "sacCer3"="Saccharomyces cerevisiae",
                     "susScr3"="Sus scrofa")
 if(is.null(opt$ucscname)){
-    opt$ucscname <- opt$species
+    opt$ucscname <- opt$genome
 }
 if(opt$ucscname %in% names(scientificName)){
     scientificName <- scientificName[opt$ucscname]
 }else{
-    if(opt$species %in% names(scientificName)){
-        scientificName <- scientificName[opt$species]
+    if(opt$genome %in% names(scientificName)){
+        scientificName <- scientificName[opt$genome]
     }else{
         stop("Not a valid genome for enrichment analysis.")
     }

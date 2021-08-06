@@ -9,7 +9,7 @@ include { PAIRTOOLS_PARSE    } from '../../modules/nf-core/modules/pairtools/par
 include { PAIRTOOLS_RESTRICT } from '../../modules/nf-core/modules/pairtools/restrict/main' addParams(options: params.options.pairtools_restrict)
 include { PAIRTOOLS_SELECT   } from '../../modules/nf-core/modules/pairtools/select/main'   addParams(options: params.options.pairtools_select)
 include { PAIRTOOLS_SELECT
-    as PAIRTOOLS_SELECT2  } from '../../modules/nf-core/modules/pairtools/select/main'   addParams(options: params.options.pairtools_select_long)
+    as PAIRTOOLS_SELECT_LONG } from '../../modules/nf-core/modules/pairtools/select/main'   addParams(options: params.options.pairtools_select_long)
 include { PAIRTOOLS_SORT     } from '../../modules/nf-core/modules/pairtools/sort/main'     addParams(options: params.options.pairtools_sort)
 include { PAIRIX             } from '../../modules/nf-core/modules/pairix/main'             addParams(options: params.options.pairix)
 include { READS_STAT         } from '../../modules/local/reads_stat'                        addParams(options: params.options.reads_stat)
@@ -34,9 +34,9 @@ workflow PAIRTOOLS_PAIRE {
     PAIRTOOLS_DEDUP(PAIRTOOLS_SORT.out.sorted)
     // remove same fragment pairs, output samefrag.pairs, valid.pairs <- like HiC pairs
     PAIRTOOLS_RESTRICT(PAIRTOOLS_DEDUP.out.pairs, frag)
-    PAIRTOOLS_SELECT2(PAIRTOOLS_RESTRICT.out.restrict)
+    PAIRTOOLS_SELECT_LONG(PAIRTOOLS_RESTRICT.out.restrict)
     // make index for valid.pairs
-    PAIRIX(PAIRTOOLS_SELECT2.out.unselected)
+    PAIRIX(PAIRTOOLS_SELECT_LONG.out.unselected)
     //reads information
     PAIRTOOLS_PARSE.out.stat
                         .map{meta, stat -> [meta.id, meta, stat]}

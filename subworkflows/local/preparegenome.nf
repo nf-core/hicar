@@ -11,7 +11,6 @@ include {
     GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../modules/nf-core/modules/gunzip/main'               addParams( options: params.options.gunzip        )
 include { GTF2BED                     } from '../../modules/local/gtf2bed'                             addParams( options: params.options.gtf2bed       )
 include { CHROMSIZES                  } from '../../modules/local/genome/chromsizes'                   addParams( options: params.options.chromsizes    )
-include { GENOMESIZE                  } from '../../modules/local/genome/genomesize'
 include { GENOME_FILTER               } from '../../modules/local/genome/filter'                       addParams( options: params.options.genomefilter  )
 include { COOLER_DIGEST               } from '../../modules/nf-core/modules/cooler/digest/main'        addParams( options: params.options.digest_genome )
 include { GFFREAD                     } from '../../modules/nf-core/modules/gffread/main'              addParams( options: params.options.gffread       )
@@ -73,22 +72,46 @@ workflow PREPARE_GENOME {
     /*
      * Calculate effective genome sizes
      */
-     gs = 0.0
-     if (params.macs2_gsize) {
-         gs = params.macs2_gsize
-     } else {
-         //genome size remove all N then * 78%
-         ch_fasta.withReader{
-             String line
-             while( line = it.readLine() ){
-                 if( ! line =~ /^>/ ){
-                     l = line.toLowerCase()
-                     gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
-                 }
-             }
-         }
-         gs *= 0.78
-     }
+    gs = 0.0
+    if (params.macs_gsize) {
+        gs = params.macs_gsize
+    } else {
+        //genome size remove all N then * 78%
+        ch_fasta.withReader{
+           String line
+           while( line = it.readLine() ){
+               if( !(line ==~ /^>/) ){
+                   l = line.toLowerCase()
+                   gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
+               }
+           }
+        }
+        gs *= 0.78
+    }
+
+    /*
+     * Prepare ucsc annotation name
+     */
+    ucscname = null
+    if (params.ucscname) {
+        ucscname = params.ucscname
+    } else {
+        uscs_map = ["GRCh38":"hg38", "GRCh37":"hg19",
+                    "GRCm38":"mm10", "TAIR10":"tair10",
+                    "UMD3.1":"bosTau8", "CanFam3.1":"canFam3",
+                    "WBcel235":"ce11", "GRCz10":"danRer10",
+                    "BDGP6":"dm6", "EquCab2":'equCab2',
+                    "Galgal4":"galGal4", "CHIMP2.1.4":"panTro4",
+                    "Rnor_6.0":"rn6", "R64-1-1":"sacCer3",
+                    "Sscrofa10.2":"susScr3"]
+        if(params.genome){
+            if(ucsc_map[params.genome]){
+                ucscname = ucsc_map[params.genome]
+            }else{
+                ucscname = params.genome
+            }
+        }
+    }
 
     if (params.blacklist) {
         ch_blacklist = Channel.fromPath(params.blacklist, checkIfExists: true)
@@ -126,5 +149,6 @@ workflow PREPARE_GENOME {
     digest_genome     = digest_genome_bed              // path: bed
     bwa_index         = ch_bwa_index                   // path: bwt,amb,sa,ann,pac
     gsize             = gs                             // value: macs2 genome size
+    ucscname          = ucscname                       // value: ucsc annotation name
     version           = ch_version                     // path: *.version.txt
 }
