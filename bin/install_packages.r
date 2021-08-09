@@ -1,5 +1,6 @@
 #!/usr/bin/env Rscript
 pkgs <- commandArgs(trailingOnly = TRUE)
+print(pkgs)
 # set libPath to pwd
 lib <- .libPaths()
 if(file.access(lib[1], mode=2)!=0){
@@ -26,10 +27,10 @@ if(length(pkgs)>0){
     if(any(grepl("\\/", pkgs))){
         pkgs <- c("remotes", pkgs)
     }
-    retryCount <- 0
     Sys.setenv("R_REMOTES_NO_ERRORS_FROM_WARNINGS" = "true")
     getPkg <- function(pkgs){
         for(pkg in pkgs){
+            retryCount <- 0
             while(!requireNamespace(pkg, quietly = TRUE) && retryCount<3){
                 retryCount <- retryCount+1
                 tryCatch(
@@ -40,6 +41,7 @@ if(length(pkgs)>0){
                     },
                     error = function(.e){
                         message("retry package installation.")
+                        Sys.sleep(60)
                     }
                 )
             }

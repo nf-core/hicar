@@ -142,7 +142,7 @@ prep_plot_contact_frequency_vs_genomic_separation_per_chr_d3 <- function(x, samp
     ycolumns = colnames(x)[grep('log10prob_per_chr',colnames(x))]
     y = data.frame(x[,ycolumns])
     valid = which(x$distance > xmin & x$distance < xmax)
-    y=y[valid,]
+    y=y[valid,,drop=FALSE]
     ylim = range(apply(y,2,function(xx){ ind =which(xx>-90); if(length(ind)==0) return(NA) else return( range(xx[ind])) }), na.rm=T)
     ymin= ylim[1]
     ymax = ylim[2]

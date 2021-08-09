@@ -12,7 +12,7 @@ process PAIRSPLOT {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
-    conda (params.enable_conda ? "bioconda::r-nozzle.r1=1.1_1" : null)
+    conda (params.enable_conda ? "conda-forge::r-nozzle.r1=1.1_1" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/r-nozzle.r1:1.1_1--r3.3.2_0"
     } else {

@@ -30,7 +30,7 @@ process PAIRSQC {
     script:
     def software = "pairsqc"
     """
-    MAX_LOGDISTANCE=`cat genome.fa.sizes | awk '{ sum += \$2 } END { printf "%.1f", log(sum)/log(10) }'`
+    MAX_LOGDISTANCE=`cat ${chrom_sizes} | awk '{ sum += \$2 } END { printf "%.1f", log(sum)/log(10) }'`
     pairsqc.py \\
         -p $pair \\
         -c $chrom_sizes -t P \\
