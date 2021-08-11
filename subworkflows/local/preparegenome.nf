@@ -72,11 +72,12 @@ workflow PREPARE_GENOME {
     /*
      * Calculate effective genome sizes
      */
-    gs = 0.0
+    gs = ch_fasta.size() * 0.78
     if (params.macs_gsize) {
         gs = params.macs_gsize
     } else {
         //genome size remove all N then * 78%
+        gs = 0.0
         ch_fasta.withReader{
            String line
            while( line = it.readLine() ){
