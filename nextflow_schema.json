@@ -148,6 +148,13 @@
                     "fa_icon": "fas fa-cut",
                     "help_text": "It will be automatically assigned by the enzyme inputed.",
                     "hidden": true
+                },
+                "restriction_sites_cut_off": {
+                    "type": "number",
+                    "description": "Specifies that the cutoff value used for mappability filter.",
+                    "fa_icon": "fas fa-cut",
+                    "help_text": "Default is 0.5. It is the average over just covered bases.",
+                    "hidden": false
                 }
             }
         },
@@ -206,6 +213,27 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
                     "help_text": "See help from MAPS documentation, default 2."
+                },
+                "maps_cutoff_fdr":{
+                    "type": "number",
+                    "description": "MAPS regression -log10(fdr) cutoff value",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false,
+                    "help_text": "See help from MAPS documentation, default 2 (=fdr 0.05)."
+                },
+                "maps_filter":{
+                    "type": "string",
+                    "description": "MAPS regression filter file name",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false,
+                    "help_text": "file containing bins that need to be filtered out. Format: two columns 'chrom', 'bin'. 'chrom' contains 'chr1','chr2',.. 'bin' is bin label"
+                },
+                "maps_model":{
+                    "type": "string",
+                    "description": "MAPS regression type",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false,
+                    "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson."
                 }
             }
         },

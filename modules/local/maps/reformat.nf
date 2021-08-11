@@ -12,11 +12,11 @@ process MAPS_REFORMAT {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) },
         enabled: options.publish
 
-    conda (params.enable_conda ? "bioconda::r-vgam=1.0_2" : null)
+    conda (params.enable_conda ? "conda-forge::r-data.table=1.12.2" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/r-vgam:1.0_2--r3.3.2_0"
+        container "https://depot.galaxyproject.org/singularity/r-data.table:1.12.2"
     } else {
-        container "quay.io/biocontainers/r-vgam:1.0_2--r3.3.2_0"
+        container "quay.io/biocontainers/r-data.table:1.12.2"
     }
 
     input:
@@ -30,7 +30,7 @@ process MAPS_REFORMAT {
     def software = "MAPS"
     """
     install_packages.r data.table
-    MAPS_peak_formatting.r ${peak} $bin_size
+    MAPS_peak_formatting.r $bin_size ${peak}
 
     echo '1.1.0' > ${software}.version.txt
     """

@@ -29,13 +29,14 @@ process PAIRSQC {
 
     script:
     def software = "pairsqc"
+    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     MAX_LOGDISTANCE=`cat ${chrom_sizes} | awk '{ sum += \$2 } END { printf "%.1f", log(sum)/log(10) }'`
     pairsqc.py \\
         -p $pair \\
         -c $chrom_sizes -t P \\
-        -O ${meta.id} \\
-        -s ${meta.id} \\
+        -O $prefix \\
+        -s $prefix \\
         -M \$MAX_LOGDISTANCE
 
     echo "0.2.2" > ${software}.version.txt

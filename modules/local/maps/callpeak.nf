@@ -29,15 +29,20 @@ process MAPS_CALLPEAK {
 
     script:
     def software = "MAPS"
-    def cutoff   = options.args  ?:"12 2.0"
-    def sex_chr  = options.args2 ?:""
-    def model    = options.args3 ?:"pospoisson"
-    def filter   = "None"
     """
     resolution=\$(bc<<<"$bin_size/1000")
     install_packages.r VGAM MASS
     mv maps_out ${meta.id}_${bin_size}
-    MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id}.\${resolution}k $bin_size 0$sex_chr $filter "${meta.id}_${bin_size}/" $cutoff $model
+    ## arguments:
+    ## INFDIR - dir with reg files, output folder of maps/maps.nf::MAP_MAPS
+    ## SET - dataset name, output of maps/maps.nf::MAP_MAPS. It is the postfix of the file name of reg files, eg: reg_raw.chr22.WT.5k.xor, SET should be WT.5k.
+    ## RESOLUTION - resolution (for example 5000 or 10000). In this pipeline, it is the bin_size.
+    ## COUNT_CUTOFF - count cutoff, default 12
+    ## RATIO_CUTOFF - ratio cutoff, default 2.0
+    ## FDR - -log10(fdr) cutoff, default 2
+    ## FILTER - file containing bins that need to be filtered out. Format: two columns "chrom", "bin". "chrom" contains 'chr1','chr2',.. "bin" is bin label
+    ## regresison_type - pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson
+    MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id}.\${resolution}k $bin_size $options.args
     echo '1.1.0' > ${software}.version.txt
     """
 }

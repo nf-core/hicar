@@ -9,14 +9,13 @@ process MAPS_MERGE {
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) },
-        enabled: options.publish
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
-    conda (params.enable_conda ? "bioconda::macs2=2.2.7.1" : null)
+    conda (params.enable_conda ? "pandas=1.1.5" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/macs2:2.2.7.1--py38h0213d0e_1"
+        container "https://depot.galaxyproject.org/singularity/pandas:1.1.5"
     } else {
-        container "quay.io/biocontainers/macs2:2.2.7.1--py38h0213d0e_1"
+        container "quay.io/biocontainers/pandas:1.1.5"
     }
 
     input:
@@ -33,7 +32,7 @@ process MAPS_MERGE {
         -c $cut \\
         -m $mappability \\
         -o tmp.map
-    awk '\$7>0.5' tmp.map > ${cut.getSimpleName()}
+    awk "\\\$7>${options.args}" tmp.map > ${cut.getSimpleName()}
 
     echo '1.1.0' > ${software}.version.txt
     """

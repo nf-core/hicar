@@ -28,10 +28,9 @@ process MAPS_MAPS{
 
     script:
     def software  = "MAPS"
-    def bin_range = options.args ?: "--BINNING_RANGE 100000000"
-    def sex_chr   = options.args2?: "NA"
-
     """
+    ## 2 steps
+    ## step 1, prepare the config file for MAPS. The file will be used for multiple steps
     mkdir -p "${meta.id}_${bin_size}"
     make_maps_runfile.py \\
         "${meta.id}" \\
@@ -43,9 +42,9 @@ process MAPS_MAPS{
         $bin_size \\
         0 \\
         "${meta.id}_${bin_size}/" \\
-        $sex_chr \\
-        ${bin_range}
-
+        ${options.args}
+    ## step 2, parse the signals into .xor and .and files, details please refer: doi:10.1371/journal.pcbi.1006982
+    ## by default, the sex chromosome will be excluded.
     MAPS.py "${meta.id}_${bin_size}/maps_${meta.id}.maps"
 
     echo '1.1.0' > ${software}.version.txt

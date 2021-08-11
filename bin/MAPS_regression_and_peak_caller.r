@@ -6,9 +6,10 @@
 ## INFDIR - dir with reg files
 ## SET - dataset name
 ## RESOLUTION - resolution (for example 5000 or 10000)
-## chroms - number of chromosomes (19 for mouse, 22 for human)
+## COUNT_CUTOFF - count cutoff, default 12
+## RATIO_CUTOFF - ratio cutoff, default 2.0
+## FDR - -log10(fdr) cutoff, default 2
 ## FILTER - file containing bins that need to be filtered out. Format: two columns "chrom", "bin". "chrom" contains 'chr1','chr2',.. "bin" is bin label
-## OUTFOLDER - output folder
 ## regresison_type - pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson
 
 library(VGAM)
@@ -23,14 +24,17 @@ RESOLUTION = NULL
 COUNT_CUTOFF = 12
 RATIO_CUTOFF = 2.0
 GAP = 15000
+FDR = 2
+
+REG_TYPE = 'pospoisson'
 ###
 
 args <- commandArgs(trailingOnly=TRUE)
 fltr = data.frame(chr='chrNONE',bin=-1)
 
-if (length(args) < 8 || length(args) > 9) {
+if (length(args) < 3 || length(args) > 8) {
     print('Wrong number of arguments. Stopping.')
-    print('Arguments needed (in this order): INFDIR, SET, RESOLUTION, chroms, FILTER, OUTFOLDER, COUNT_CUTOFF, RATIO_CUTOFF, regression_type.')
+    print('Arguments needed (in this order): INFDIR, SET, RESOLUTION, COUNT_CUTOFF, RATIO_CUTOFF, FDR, FILTER, regression_type.')
     print('FILTER is optional argument. Omitt it if no filtering required.')
     print(paste('Number of arguments entered:',length(args)))
     print('Arguments entered:')
@@ -43,43 +47,32 @@ if (length(args) < 8 || length(args) > 9) {
     RESOLUTION = as.integer(args[3])
     chroms <- dir(INFDIR, "reg_raw.*")
     chroms <- unique(sub("reg_raw\\.(.*?)\\..*$", "\\1", chroms))
-    if (grepl('XY',args[4])) {
-        args[4] = strsplit(args[4],'XY')[1]
-        #chroms = paste('chr',seq(1,as.numeric(args[4]),1),sep='')
-        chroms = c(chroms, 'chrX', 'chrY')
-    } else if( grepl('X', args[4])) {
-        args[4] = strsplit(args[4],'X')[1]
-        #chroms = paste('chr',seq(1,as.numeric(args[4]),1),sep='')
-        chroms = c(chroms, 'chrX')
-    } else if( grepl('Y', args[4])) {
-        args[4] = strsplit(args[4],'Y')[1]
-        #chroms = paste('chr',seq(1,as.numeric(args[4]),1),sep='')
-        chroms = c(chroms, 'chrY')
-    } else {
-        #chroms = paste('chr',seq(1,as.numeric(args[4]),1),sep='')
-    }
-    if (length(args) == 5) {
-        if (args[5] != 'None') {
-            FILTER = args[5]
-            fltr = read.table(FILTER,header=T)
+    if(length(args)>3){
+        COUNT_CUTOFF = as.numeric(args[4])
+        RATIO_CUTOFF = as.numeric(args[5])
+        FDR = as.numeric(args[6])
+        print('filter used (if any):')
+        if (length(args) > 6) {
+            if (args[7] != 'None') {
+                FILTER = args[7]
+                fltr = read.table(FILTER,header=T)
+                print(fltr)
+            } else {
+                print('None')
+            }
+            ## this done so that the script is compatible with previous run_pipeline scripts
+            if (length(args) > 7) {
+                if (args[8] != 'pospoisson' && args[8] != 'negbinom') {
+                    print(paste('wrong regression choice. Your choice:', args[8], '. Avaiable choices: pospoisson or negbinom'),sep = ' ')
+                    quit()
+                }
+                REG_TYPE = args[8]
+            }
+        } else {
+            print('None')
         }
-    }
-    OUTFOLDER = args[6]
-    COUNT_CUTOFF = as.numeric(args[7])
-    RATIO_CUTOFF = as.numeric(args[8])
-    ## this done so that the script is compatible with previous run_pipeline scripts
-    if (length(args) == 8) {
-        REG_TYPE = 'pospoisson'
-    } else if (length(args) == 9) {
-        if (args[9] != 'pospoisson' && args[9] != 'negbinom') {
-            print(paste('wrong regression choice. Your choice:', args[9], '. Avaiable choices: pospoisson or negbinom'),sep = ' ')
-            quit()
-        }
-        REG_TYPE = args[9]
     }
 }
-print('filter used (if any):')
-if (args[5] == 'None') { print('None')} else { print(fltr) }
 
 ## loading data
 mm_combined_and = data.frame()
@@ -271,7 +264,6 @@ classify_peaks <- function(final) {
 mx_combined_and = data.frame()
 mx_combined_xor = data.frame()
 summary_all_runs = data.frame()
-FDR = c(2)
 
 singletons_names = paste(chroms,'_0',sep='')
 for (r in runs) {
@@ -318,7 +310,7 @@ for (r in runs) {
     singletons = data.frame()
     for (fdr_cutoff in FDR) {
         peaks_and = if(nrow(mx_combined_and)>0) subset(mx_combined_and, count >= COUNT_CUTOFF & ratio2 >= RATIO_CUTOFF & -log10(fdr) > fdr_cutoff) else data.frame()
-        peaks_xor = if(nrow(mx_combined_and)>0) subset(mx_combined_xor, count >= COUNT_CUTOFF & ratio2 >= RATIO_CUTOFF & -log10(fdr) > fdr_cutoff) else data.frame()
+        peaks_xor = if(nrow(mx_combined_xor)>0) subset(mx_combined_xor, count >= COUNT_CUTOFF & ratio2 >= RATIO_CUTOFF & -log10(fdr) > fdr_cutoff) else data.frame()
         print("finding peaks")
         peaks = rbind(peaks_and, peaks_xor)
         if (dim(peaks)[1] == 0) {
@@ -346,5 +338,5 @@ for (r in runs) {
     ## find singletons, sharp peaks, broad peaks
     summary_all_runs = rbind(summary_all_runs, summary_one_run)
 }
-summary_outf_name = paste(OUTFOLDER,'summary.',SET,'.txt',sep='')
+summary_outf_name = paste(INFDIR,'summary.',SET,'.txt',sep='')
 write.table(summary_all_runs, summary_outf_name, row.names = FALSE, col.names = TRUE, quote=FALSE)
