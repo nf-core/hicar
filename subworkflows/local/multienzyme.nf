@@ -35,14 +35,15 @@ workflow MAPS_MULTIENZYME {
     seqlevelsstyle = SEQLEVELS_STYLE(MAPS_FEND.out.bed.map{it[1]}.collect().map{it[0]}).seqlevels_style
     if("$seqlevelsstyle" != "UCSC"){
         ENSEMBL_UCSC_CONVERT(MAPS_FEND.out.bed)
-        ENSEMBL_UCSC_CONVERT2(mappability.map{[cool_bin, it]})
+        ENSEMBL_UCSC_CONVERT2(cool_bin.combine(mappability))
         ch_version = ch_version.mix(ENSEMBL_UCSC_CONVERT.out.version)
-        UCSC_BIGWIGAVERAGEOVERBED(ENSEMBL_UCSC_CONVERT.out.tab.map{[['id':'background', 'bin_size':it[0]], it[1]]}, ENSEMBL_UCSC_CONVERT2.out.tab.map{it[1]})
+        UCSC_BIGWIGAVERAGEOVERBED(ENSEMBL_UCSC_CONVERT.out.tab.map{[['id':'background', 'bin_size':it[0]], it[1]]},
+                                    ENSEMBL_UCSC_CONVERT2.out.tab.map{it[1]})
     }else{
         UCSC_BIGWIGAVERAGEOVERBED(MAPS_FEND.out.bed.map{[['id':'background', 'bin_size':it[0]], it[1]]}, mappability)
     }
     ch_version = ch_version.mix(UCSC_BIGWIGAVERAGEOVERBED.out.version)
-    MAPS_MERGE(MAPS_CUT.out.cut.join(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}))
+    MAPS_MERGE(MAPS_CUT.out.cut.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]})
 
     MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes)
 

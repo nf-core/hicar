@@ -29,7 +29,7 @@ process BIOC_ENRICH {
 
     script:
     """
-    install_packages.r clusterProfiler pathview biomaRt optparse
+    install_packages.r ChIPpeakAnno clusterProfiler pathview biomaRt optparse
     enrich.r -s ${ucscname} -o "diffhic_bin${bin_size}/enrichment" $options.args
 
     # *.version.txt

@@ -245,12 +245,10 @@ workflow HICAR {
                             .cross(COOLER.out.bedpe.map{[it[0].id, it[0].bin, it[1]]})// group, bin, bedpe
                             .map{ short_bed, long_bedpe -> //[bin_size, group, macs2, long_bedpe, short_bed]
                                     [long_bedpe[1], short_bed[0], short_bed[2], long_bedpe[2], short_bed[1]]}
-    reads_peak.view()
     background.cross(reads_peak)
                 .map{ background, reads -> //[group, bin_size, macs2, long_bedpe, short_bed, background]
                         [[id:reads[1]], background[0], reads[2], reads[3], reads[4], background[1]]}
                 .set{ maps_input }
-    maps_input.view()
     MAPS_PEAK(maps_input)
     ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.version.ifEmpty(null))
 
@@ -273,7 +271,7 @@ workflow HICAR {
         if(!params.skip_peak_annotation){
             BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
             ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.version.ifEmpty(null))
-            BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno, PREPARE_GENOME.out.ucscname)
+            if(PREPARE_GENOME.out.ucscname) BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno, PREPARE_GENOME.out.ucscname)
             ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.version.ifEmpty(null))
         }
     }
