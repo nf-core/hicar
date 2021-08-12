@@ -130,7 +130,7 @@
                 }
             }
         },
-        "experiment_config_options":{
+        "experiment_config_options": {
             "title": "Experiment design options",
             "type": "object",
             "fa_icon": "fas fa-cut",
@@ -140,158 +140,168 @@
                     "type": "string",
                     "description": "Specifies that the cutting position has to be using.",
                     "fa_icon": "fas fa-cut",
-                    "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, and CviQI."
+                    "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, and CviQI.",
+                    "default": "CviQI"
                 },
                 "restriction_sites": {
                     "type": "string",
                     "description": "Specifies that the cutting sequence has to be using.",
                     "fa_icon": "fas fa-cut",
                     "help_text": "It will be automatically assigned by the enzyme inputed.",
-                    "hidden": true
+                    "hidden": true,
+                    "default": "^TAC"
                 },
                 "restriction_sites_cut_off": {
                     "type": "number",
                     "description": "Specifies that the cutoff value used for mappability filter.",
                     "fa_icon": "fas fa-cut",
                     "help_text": "Default is 0.5. It is the average over just covered bases.",
-                    "hidden": false
+                    "hidden": false,
+                    "default": 0.5
                 }
             }
         },
-        "MACS2_peak_calling_options":{
+        "MACS2_peak_calling_options": {
             "title": "MACS2 peak calling options",
             "type": "object",
             "fa_icon": "fas fa-mountains",
             "descripton": "Options for MACS2 peak calling options for ATAC-seq reads (R2).",
             "properties": {
-                "shiftsize":{
+                "shiftsize": {
                     "type": "integer",
                     "description": "shift size for MACS2",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "See help from MACS2 documentation"
+                    "help_text": "See help from MACS2 documentation",
+                    "default": -75
                 },
-                "smooth_window":{
+                "smooth_window": {
                     "type": "integer",
                     "description": "extsize for MACS2",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "See help from MACS2 documentation"
+                    "help_text": "See help from MACS2 documentation",
+                    "default": 150
                 },
-                "qval_thresh":{
+                "qval_thresh": {
                     "type": "number",
                     "description": "cutoff qvalue",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "See help from MACS2 documentation"
+                    "help_text": "See help from MACS2 documentation",
+                    "default": 0.01
                 }
             }
         },
-        "MAPS_peak_calling_options":{
+        "MAPS_peak_calling_options": {
             "title": "MAPS peak calling options",
             "type": "object",
             "fa_icon": "fas fa-mountains",
             "descripton": "Options for MAPS peak calling options for ATAC-seq reads (R2).",
             "properties": {
-                "cool_bin":{
+                "cool_bin": {
                     "type": "string",
                     "description": "resolution bin size",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "Bin size for singal resampling."
+                    "help_text": "Bin size for singal resampling.",
+                    "default": "5000_10000"
                 },
-                "maps_cutoff_counts":{
+                "maps_cutoff_counts": {
                     "type": "integer",
                     "description": "MAPS regression cutoff value",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "See help from MAPS documentation, default 12."
+                    "help_text": "See help from MAPS documentation, default 12.",
+                    "default": 12
                 },
-                "maps_cutoff_fold_change":{
+                "maps_cutoff_fold_change": {
                     "type": "number",
                     "description": "MAPS regression fold change cutoff value",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "See help from MAPS documentation, default 2."
+                    "help_text": "See help from MAPS documentation, default 2.",
+                    "default": 2
                 },
-                "maps_cutoff_fdr":{
+                "maps_cutoff_fdr": {
                     "type": "number",
                     "description": "MAPS regression -log10(fdr) cutoff value",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "See help from MAPS documentation, default 2 (=fdr 0.05)."
+                    "help_text": "See help from MAPS documentation, default 2 (=fdr 0.05).",
+                    "default": 2
                 },
-                "maps_filter":{
+                "maps_filter": {
                     "type": "string",
                     "description": "MAPS regression filter file name",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "file containing bins that need to be filtered out. Format: two columns 'chrom', 'bin'. 'chrom' contains 'chr1','chr2',.. 'bin' is bin label"
+                    "help_text": "file containing bins that need to be filtered out. Format: two columns 'chrom', 'bin'. 'chrom' contains 'chr1','chr2',.. 'bin' is bin label",
+                    "default": "None"
                 },
-                "maps_model":{
+                "maps_model": {
                     "type": "string",
                     "description": "MAPS regression type",
                     "fa_icon": "fas fa-ban",
                     "hidden": false,
-                    "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson."
+                    "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson.",
+                    "default": "pospoisson",
+                    "enum": [
+                        "pospoisson",
+                        "negbinom"
+                    ]
                 }
             }
         },
-        "Other_options_not_expose_yet":{
+        "Other_options_not_expose_yet": {
             "title": "Other options not expose",
             "type": "object",
             "fa_icon": "fas fa-mountains",
             "descripton": "Options for peak calling options.",
             "properties": {
-                "modules":{
-                    "type": "object",
-                    "description": "setting object for modules",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true
-                },
-                "skip_peak_qc":{
+                "skip_peak_qc": {
                     "type": "boolean",
                     "description": "skip peak QC or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": true
                 },
-                "skip_peak_annotation":{
+                "skip_peak_annotation": {
                     "type": "boolean",
                     "description": "skip peak annotation or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": false
                 },
-                "skip_diff_analysis":{
+                "skip_diff_analysis": {
                     "type": "boolean",
                     "description": "skip differential analysis or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": false
                 },
-                "skip_fastqc":{
+                "skip_fastqc": {
                     "type": "boolean",
                     "description": "skip fastqc or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": false
                 },
-                "skip_plot_profile":{
+                "skip_plot_profile": {
                     "type": "boolean",
                     "description": "skip plot profile or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": true
                 },
-                "skip_igv":{
+                "skip_igv": {
                     "type": "boolean",
                     "description": "skip creat IGV files or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": true
                 },
-                "skip_multiqc":{
+                "skip_multiqc": {
                     "type": "boolean",
                     "description": "skip multiqc or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": true
                 },
-                "skip_trackhub":{
+                "skip_trackhub": {
                     "type": "boolean",
                     "description": "skip create trackhub files or not",
                     "fa_icon": "fas fa-ban",
