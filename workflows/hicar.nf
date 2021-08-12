@@ -109,7 +109,7 @@ def multiqc_report = []
 
 // Parse input
 ch_fastq = ch_input.map{
-  row ->
+    row ->
         if(!row.group) { exit 1, 'Input samplesheet must contain 'group' column!' }
         if(!row.replicate) { exit 1, 'Input samplesheet must contain 'replicate' column!' }
         if(!row.fastq_1) { exit 1, 'Input samplesheet must contain 'fastq_1' column!' }
@@ -160,7 +160,7 @@ workflow HICAR {
         FASTQC (
             ch_reads
         )
-      ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
     }
 
     //

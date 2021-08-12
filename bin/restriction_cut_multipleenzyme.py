@@ -45,7 +45,7 @@ def find_site(fasta,seq,outfile,pos, binsize):
                 size = sizes[i]
                 pos = poses[i]
                 #print("searching for:" + seq.lower())
-	            ###this is what needs to change:
+                ###this is what needs to change:
                 current_site = [m.start() + 1 for m in re.finditer(seq.lower(), str(seq_record.seq).lower())]
                 site = site + current_site
                 site_pos = site_pos + ([pos] * len(current_site))

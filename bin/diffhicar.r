@@ -84,7 +84,7 @@ if(length(contrasts.lev)>1 || any(table(condition)>1)){
                 lib.size = sizeFactor,
                 group = group)
 
-  ## do differential analysis
+    ## do differential analysis
     names(contrasts) <- vapply(contrasts,
                                 FUN=paste,
                                 FUN.VALUE = character(1),

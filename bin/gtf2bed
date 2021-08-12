@@ -52,7 +52,7 @@ while (<IN>) {
     next unless $id && $f[0];
 
     if ($f[2] eq 'exon') {
-      die "no position at exon on line $." if ! $f[3];
+        die "no position at exon on line $." if ! $f[3];
         # gff3 puts :\d in exons sometimes
         $id =~ s/:\d+$// if $gff == 3;
         push @{$exons{$id}}, \@f;

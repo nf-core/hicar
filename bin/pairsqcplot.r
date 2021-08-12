@@ -271,13 +271,13 @@ plot_for_sample<-function(sample_name, report_dir) {
     )
     convergence_determinant = res[[3]];
 
-  # pngpdf_preset( list(
-  #    function() plot_contact_probability_vs_distance(x),
-  #    function() plot_contact_frequency_vs_genomic_separation_per_chr(x)
-  #    ), paste(sample_name, "log10prob", sep="."), stylefunc0, get_preset(2,'h50'), add.date=FALSE
-  #)
+    # pngpdf_preset( list(
+    #    function() plot_contact_probability_vs_distance(x),
+    #    function() plot_contact_frequency_vs_genomic_separation_per_chr(x)
+    #    ), paste(sample_name, "log10prob", sep="."), stylefunc0, get_preset(2,'h50'), add.date=FALSE
+    #)
 
-  res = pngpdf_preset( list(
+    res = pngpdf_preset( list(
             function() plot_contact_probability_vs_distance(x)
         ), paste(sample_name, "log10prob", sep="."), stylefunc0, get_preset(1), add.date=FALSE
     )

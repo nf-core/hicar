@@ -32,8 +32,8 @@ process DUMPINTRAREADS {
     """
     mkdir -p $outdir
     awk -v setname=${prefix} -v outdir=${outdir} -F \$"\t" \\
-      '{if(\$1 == \$4) {print > outdir"/"setname"."\$1".long.intra.bedpe"} }' \\
-      $bedpe
+        '{if(\$1 == \$4) {print > outdir"/"setname"."\$1".long.intra.bedpe"} }' \\
+        $bedpe
 
     echo \$(awk --version 2>&1) | sed -e "s/GNU Awk //g; s/, API.*\$//" > ${software}.version.txt
     """

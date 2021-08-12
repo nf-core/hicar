@@ -79,13 +79,13 @@ workflow PREPARE_GENOME {
         //genome size remove all N then * 78%
         gs = 0.0
         ch_fasta.withReader{
-           String line
-           while( line = it.readLine() ){
-               if( !(line ==~ /^>/) ){
-                   l = line.toLowerCase()
-                   gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
-               }
-           }
+            String line
+            while( line = it.readLine() ){
+                if( !(line ==~ /^>/) ){
+                    l = line.toLowerCase()
+                    gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
+                }
+            }
         }
         gs *= 0.78
     }

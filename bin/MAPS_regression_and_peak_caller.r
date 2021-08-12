@@ -175,8 +175,8 @@ label_peaks <- function(df) {
         y$p_val_reg2[ y$p_val_reg2 == 0 ] = 1111111
         y$p_val_reg2[ y$p_val_reg2 == 1111111 ] = min(y$p_val_reg2)
         for(i in 1:nrow(y)) {
-              z <- y[ abs(y$bin1_mid - y$bin1_mid[i])<=GAP & abs(y$bin2_mid - y$bin2_mid[i])<=GAP,]
-              y$CountNei[i] <- nrow(z)
+            z <- y[ abs(y$bin1_mid - y$bin1_mid[i])<=GAP & abs(y$bin2_mid - y$bin2_mid[i])<=GAP,]
+            y$CountNei[i] <- nrow(z)
         }
         u <- y[ y$CountNei == 1 ,] # singletons
         v <- y[ y$CountNei >= 2 ,] # peak cluster: sharp peak + broad peak
