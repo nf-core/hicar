@@ -350,12 +350,6 @@
                     "description": "Institutional config URL link.",
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
-                },
-                "enable_conda":{
-                    "type": "boolean",
-                    "description": "enable conda or not",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true
                 }
             }
         },
@@ -511,6 +505,9 @@
         },
         {
             "$ref": "#/definitions/MACS2_peak_calling_options"
+        },
+        {
+            "$ref": "#/definitions/MAPS_peak_calling_options"
         },
         {
             "$ref": "#/definitions/Other_options_not_expose_yet"
