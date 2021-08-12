@@ -25,8 +25,6 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 ## Pipeline summary
 
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
-
 1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Trim reads (`[cutadapt](https://cutadapt.readthedocs.io/en/stable/)`)
 3. Map reads (`[bwa mem](http://bio-bwa.sourceforge.net/bwa.shtml)`)
@@ -57,8 +55,6 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 4. Start running your own analysis!
 
-    <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
-
     ```console
     nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> --input samplesheet.csv --genome GRCh38
     ```
@@ -82,8 +78,6 @@ nf-core/hicar was originally written by Jianhong Ou, Yu Xiang, Yarui Diao.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
-
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).
@@ -95,7 +89,6 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 <!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
 <!-- If you use  nf-core/hicar for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
 
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
 You can cite the `nf-core` publication as follows:
