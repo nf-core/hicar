@@ -24,6 +24,7 @@ process PAIRSPLOT {
 
     output:
     tuple val(meta), path("${meta.id}_report/*"), emit: qc
+    tuple val(meta), path("${meta.id}_report/*.summary.out"), emit: summary
     path "*.version.txt"                        , emit: version
 
     script:

@@ -9,3 +9,62 @@ report_section_order:
         order: -1001
 
 export_plots: true
+
+# Run only these modules
+run_modules:
+    - custom_content
+    - fastqc
+    - cutadapt
+    - samtools
+
+# Customise the module search patterns to speed up execution time
+#  - Skip module sub-tools that we are not interested in
+#  - Replace file-content searching with filename pattern searching
+#  - Don't add anything that is the same as the MultiQC default
+# See https://multiqc.info/docs/#optimise-file-search-patterns for details
+sp:
+    pairs_reads_stats:
+        fn: "reads_summary.csv"
+    pairs_reads_detailed_summary:
+        fn: "pairsqc_summary_out.csv"
+    pairs_peaks_genomic_dist:
+        fn: "genomicElementDistribuitonOfEachPeakList.*.png"
+    other_side_genomic_dist:
+        fn: "genomicElementDistribuitonOfremoteInteractionPeaks.*.png"
+ignore_images: false
+
+# See https://github.com/ewels/MultiQC_TestData/blob/master/data/custom_content/with_config/table_headerconfig/multiqc_config.yaml
+custom_data:
+    pairs_reads_stats:
+        parent_id: 'pairs_qc'
+        parent_name: 'PAIRS QC'
+        parent_description: "Pairs QC report"
+        section_name: 'PAIRS reads stats'
+        description: "Table of mapped reads stats."
+        file_format: "csv"
+        plot_type: 'table'
+        pconfig:
+            id: 'pairs_reads_stats_table'
+            table_title: 'PAIRS reads stats'
+            namespace: 'PAIRS reads stats'
+    pairs_reads_detailed_summary:
+        parent_id: 'pairs_qc'
+        section_name: 'PAIRS reads detailed summary'
+        description: "Cis-to-trans ratio is computed as the ratio of long-range cis reads (>20kb) to trans reads plus long-range cis reads. Typically, cis-to-trans ratio higher than 40% is required. Percentage of long-range cis reads is the ratio of long-range cis reads to total number of reads. Minimum 15% is required and 40% or higher suggests a good library(doi:10.1016/j.cell.2014.11.021). Convergence is determined as standard deviation of proportions of four read orientations to be <0.002 (Very good) or <0.05 (Good) (See section Proportion of read orientation versus genomic separation in the pairsqc_report file under pairs/QC/). The slope of log10 contact probability vs distance between 10kb ~ 300kb representing TAD is also provided as well. (See section Contact probability versus genomic separation in the pairsqc_report file under pairs/QC/)"
+        file_format: "csv"
+        plot_type: 'table'
+        pconfig:
+            id: 'pairs_reads_detailed_summary_table'
+            table_title: 'PAIRS reads detailed summary'
+            namespace: 'PAIRS reads detailed summary'
+            format: '{:.2f}'
+    pairs_peaks_genomic_dist:
+        parent_id: 'pairs_qc'
+        section_name: 'Peaks genomic element distribution'
+        description: "The genomic element distribution of the peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defeined as downstream 2000 from TES."
+        file_format: "png"
+    other_side_genomic_dist:
+        parent_id: 'pairs_qc'
+        section_name: 'The genomeic element distribution for the peaks interacting with promoters'
+        description: "The genomic element distribution of the other sites of promoter peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defeined as downstream 2000 from TES."
+        file_format: "png"

@@ -58,13 +58,13 @@
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             },
             "samtools/flagstat": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
             },
             "samtools/idxstats": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
             },
             "samtools/index": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
             },
             "samtools/merge": {
                 "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
@@ -73,10 +73,10 @@
                 "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
             },
             "samtools/stats": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
             },
             "samtools/view": {
-                "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
+                "git_sha": "c5235a983d454787fa0c3247b02086969217163b"
             },
             "ucsc/bigwigaverageoverbed": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"

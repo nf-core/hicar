@@ -25,11 +25,12 @@ process BIOC_CHIPPEAKANNO {
 
     output:
     tuple val(bin_size), path("diffhic_bin${bin_size}/anno/*"), emit: anno
+    path "diffhic_bin${bin_size}/anno/*.png", emit: png
     path "*.version.txt"               , emit: version
 
     script:
     """
     install_packages.r ChIPpeakAnno ggplot2
-    annopeaks.r ${gtf} diffhic_bin${bin_size}
+    annopeaks.r ${gtf} diffhic_bin${bin_size} ${bin_size}
     """
 }

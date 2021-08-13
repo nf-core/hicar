@@ -21,6 +21,7 @@ resList <- list()
 args <- commandArgs(trailingOnly=TRUE)
 gtf <- args[1]
 pf <- file.path(args[2], "anno")
+bin_size <- args[3]
 
 detbl <- dir(".", "DEtable.*.csv", recursive = TRUE, full.names = TRUE)
 detbl <- detbl[!grepl("anno.csv", detbl)] ## in case of re-run
@@ -40,8 +41,10 @@ id2symbol <- function(gtf){
 }
 id2symbol <- id2symbol(gtf)
 anno <- toGRanges(txdb)
+promoters <- promoters(anno, upstream=2000, downstream=500)
 resList <- list()
 peaks <- list()
+promoterList <- list() # list to save the other sites of promoters
 
 dir.create(pf, showWarnings = FALSE)
 for(det in detbl){
@@ -67,6 +70,9 @@ for(det in detbl){
         resList[[basename(det)]] <- c(DB.anno1, DB.anno2)
     }else{
         peaks[[basename(det)]] <- unique(c(DB.gr1, DB.gr2))
+        ol1 <- findOverlaps(DB.gr1, promoters)
+        ol2 <- findOverlaps(DB.gr2, promoters)
+        promoterList[[basename(det)]] <- unique(c(DB.gr2[unique(queryHits(ol1))], DB.gr1[unique(queryHits(ol2))]))
     }
     # Summary the annotations
     DB.anno1 <- mcols(DB.anno1)
@@ -95,11 +101,11 @@ if(packageVersion("ChIPpeakAnno")>="3.23.12"){
                                                     "#FFAD65", "#FF8E32")),
                                         plot = FALSE)
 
-    ggsave(file.path(pf, "genomicElementDistribuitonOfDiffBind.pdf"), plot=out$plot, width=9, height=9)
-    ggsave(file.path(pf, "genomicElementDistribuitonOfDiffBind.png"), plot=out$plot)
+    ggsave(file.path(pf, paste0("genomicElementDistribuitonOfDiffBind.", bin_size, ".pdf")), plot=out$plot, width=9, height=9)
+    ggsave(file.path(pf, paste0("genomicElementDistribuitonOfDiffBind.", bin_size, ".png")), plot=out$plot)
     out <- metagenePlot(resList, txdb)
-    ggsave(file.path(pf, "metagenePlotToTSSofDiffBind.pdf"), plot=out, width=9, height=9)
-    ggsave(file.path(pf, "metagenePlotToTSSofDiffBind.png"), plot=out)
+    ggsave(file.path(pf, paste0("metagenePlotToTSSofDiffBind.", bin_size, ".pdf")), plot=out, width=9, height=9)
+    ggsave(file.path(pf, paste0("metagenePlotToTSSofDiffBind.", bin_size, ".png")), plot=out)
     }
     if(length(peaks)>0){
         peaks <- GRangesList(peaks[lengths(peaks)>0])
@@ -116,16 +122,41 @@ if(packageVersion("ChIPpeakAnno")>="3.23.12"){
                                                     "#FFAD65", "#FF8E32")),
                                         plot = FALSE)
 
-        ggsave(file.path(pf, "genomicElementDistribuitonOfEachPeakList.pdf"), plot=out$plot, width=9, height=9)
-        ggsave(file.path(pf, "genomicElementDistribuitonOfEachPeakList.png"), plot=out$plot)
+        ggsave(file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".pdf")), plot=out$plot, width=9, height=9)
+        ggsave(file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".png")), plot=out$plot)
 
         out <- metagenePlot(peaks, txdb)
-        ggsave(file.path(pf, "metagenePlotToTSSOfEachPeakList.pdf"), plot=out, width=9, height=9)
-        ggsave(file.path(pf, "metagenePlotToTSSOfEachPeakList.png"), plot=out)
+        ggsave(file.path(pf, paste0("metagenePlotToTSSOfEachPeakList.", bin_size, ".pdf")), plot=out, width=9, height=9)
+        ggsave(file.path(pf, paste0("metagenePlotToTSSOfEachPeakList.", bin_size, ".png")), plot=out)
 
         if(length(peaks)<=5 && length(peaks)>1){
             ol <- findOverlapsOfPeaks(peaks)
-            png(file.path(pf, "vennDiagram.all.png"))
+            png(file.path(pf, paste0("vennDiagram.all.", bin_size, ".png")))
+            makeVennDiagram(ol, connectedPeaks="keepAll")
+            dev.off()
+        }
+    }
+    if(length(promoterList)>0){
+        promoterList <- GRangesList(promoterList[lengths(promoterList)>0])
+        out <- genomicElementDistribution(promoterList,
+                                        TxDb = txdb,
+                                        promoterRegion=c(upstream=2000, downstream=500),
+                                        geneDownstream=c(upstream=0, downstream=2000),
+                                        promoterLevel=list(
+                                            # from 5' -> 3', fixed precedence 3' -> 5'
+                                            breaks = c(-2000, -1000, -500, 0, 500),
+                                            labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
+                                                    "upstream <500b", "TSS - 500b"),
+                                            colors = c("#FFE5CC", "#FFCA99",
+                                                    "#FFAD65", "#FF8E32")),
+                                        plot = FALSE)
+
+        ggsave(file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".pdf")), plot=out$plot, width=9, height=9)
+        ggsave(file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".png")), plot=out$plot)
+
+        if(length(promoterList)<=5 && length(promoterList)>1){
+            ol <- findOverlapsOfPeaks(promoterList)
+            png(file.path(pf, paste0("vennDiagram.remote.interaction.peak.with.promoters.all.", bin_size, ".png")))
             makeVennDiagram(ol, connectedPeaks="keepAll")
             dev.off()
         }

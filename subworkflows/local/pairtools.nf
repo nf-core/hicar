@@ -44,13 +44,14 @@ workflow PAIRTOOLS_PAIRE {
                         .map{id, meta, raw, dedup -> [meta, raw, dedup ]}
                         .set{ reads_stat }
     READS_STAT(reads_stat)
-    READS_SUMMARY(READS_STAT.out.stat.map{it[1]}.collect())
     PAIRSQC(PAIRIX.out.index, chromsizes)
     PAIRSPLOT(PAIRSQC.out.qc)
+    READS_SUMMARY(READS_STAT.out.stat.map{it[1]}.mix(PAIRSPLOT.out.summary.map{it[1]}).collect())
 
     emit:
     pair = PAIRIX.out.index               // channel: [ val(meta), [valid.pair.gz], [valid.pair.gz.px] ]
-    stat = READS_SUMMARY.out.summary      // channel: [ val(meta), [summary] ]
-    raw = PAIRTOOLS_PARSE.out.pairsam     // channel: [ val(meta), [pairsam] ]
+    stat = READS_SUMMARY.out.summary      // channel: [ path(summary) ]
+    qc   = PAIRSQC.out.qc                 // channel: [ val(meta), [qc]]
+    raw  = PAIRTOOLS_PARSE.out.pairsam    // channel: [ val(meta), [pairsam] ]
     version = PAIRTOOLS_PARSE.out.version // channel: [ path(version) ]
 }
