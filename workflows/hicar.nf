@@ -66,6 +66,8 @@ include { GET_SOFTWARE_VERSIONS  } from '../modules/local/get_software_versions'
 include { CHECKSUMS              } from '../modules/local/checksums' addParams( options: getParam(modules, 'checksums') )
 include { DIFFHICAR              } from '../modules/local/bioc/diffhicar' addParams(options: getParam(modules, 'diffhicar'))
 include { BIOC_CHIPPEAKANNO      } from '../modules/local/bioc/chippeakanno' addParams(options: getParam(modules, 'chippeakanno'))
+include { BIOC_CHIPPEAKANNO
+    as BIOC_CHIPPEAKANNO_MAPS    } from '../modules/local/bioc/chippeakanno' addParams(options: getParam(modules, 'chippeakanno_maps'))
 include { BIOC_ENRICH            } from '../modules/local/bioc/enrich' addParams(options: getParam(modules, 'enrichment'))
 
 //
@@ -252,6 +254,18 @@ workflow HICAR {
     ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.version.ifEmpty(null))
 
     //
+    // Annotate the MAPS peak
+    //
+    if(!params.skip_peak_annotation){
+        MAPS_PEAK.out.peak //[]
+            .map{meta, bin_size, peak -> [bin_size, peak]}
+            .groupTuple()
+            .set{ch_maps_anno}
+        BIOC_CHIPPEAKANNO_MAPS(ch_maps_anno, PREPARE_GENOME.out.gtf)
+        ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO_MAPS.out.version.ifEmpty(null))
+    }
+
+    //
     // Differential analysis
     //
     if(!params.skip_diff_analysis){
@@ -307,7 +321,8 @@ workflow HICAR {
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO.out.png.collect().ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO_MAPS.out.png.collect().ifEmpty([]))
+    //ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO.out.png.collect().ifEmpty([]))
 
     MULTIQC (
         ch_multiqc_files.collect()

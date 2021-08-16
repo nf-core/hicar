@@ -21,9 +21,9 @@ resList <- list()
 args <- commandArgs(trailingOnly=TRUE)
 gtf <- args[1]
 pf <- file.path(args[2], "anno")
-bin_size <- args[3]
+bin_size <- args[2]
 
-detbl <- dir(".", "DEtable.*.csv", recursive = TRUE, full.names = TRUE)
+detbl <- dir(".", "DEtable.*.csv|sig3Dinteractions.bedpe", recursive = TRUE, full.names = TRUE)
 detbl <- detbl[!grepl("anno.csv", detbl)] ## in case of re-run
 
 txdb <- makeTxDbFromGFF(gtf)
@@ -48,7 +48,11 @@ promoterList <- list() # list to save the other sites of promoters
 
 dir.create(pf, showWarnings = FALSE)
 for(det in detbl){
-    DB <- read.csv(det)
+    if(grepl("csv$", det)) {
+      DB <- read.csv(det)
+    }else{
+      DB <- read.delim(det)
+    }
     if(nrow(DB)<1) next
     rownames(DB) <- paste0("p", seq.int(nrow(DB)))
     DB.gr1 <- with(DB, GRanges(chr1, IRanges(start1, end1, name=rownames(DB))))
@@ -80,7 +84,7 @@ for(det in detbl){
     DB.anno <- merge(DB.anno1, DB.anno2, by="peak",
                     suffixes = c(".anchor1",".anchor2"))
     DB <- cbind(DB[DB.anno$peak, ], DB.anno)
-    pff <- file.path(pf, sub(".csv", ".anno.csv", det))
+    pff <- file.path(pf, sub(".(csv|bedpe)", ".anno.csv", det))
     dir.create(dirname(pff), recursive = TRUE, showWarnings = FALSE)
     write.csv(DB, pff, row.names = FALSE)
 }
@@ -101,11 +105,11 @@ if(packageVersion("ChIPpeakAnno")>="3.23.12"){
                                                     "#FFAD65", "#FF8E32")),
                                         plot = FALSE)
 
-    ggsave(file.path(pf, paste0("genomicElementDistribuitonOfDiffBind.", bin_size, ".pdf")), plot=out$plot, width=9, height=9)
-    ggsave(file.path(pf, paste0("genomicElementDistribuitonOfDiffBind.", bin_size, ".png")), plot=out$plot)
+    ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".pdf")), plot=out$plot, width=9, height=9)
+    ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".png")), plot=out$plot)
     out <- metagenePlot(resList, txdb)
-    ggsave(file.path(pf, paste0("metagenePlotToTSSofDiffBind.", bin_size, ".pdf")), plot=out, width=9, height=9)
-    ggsave(file.path(pf, paste0("metagenePlotToTSSofDiffBind.", bin_size, ".png")), plot=out)
+    ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".pdf")), plot=out, width=9, height=9)
+    ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".png")), plot=out)
     }
     if(length(peaks)>0){
         peaks <- GRangesList(peaks[lengths(peaks)>0])

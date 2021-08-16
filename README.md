@@ -26,15 +26,15 @@ On release, automated continuous integration tests run the pipeline on a full-si
 ## Pipeline summary
 
 1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Trim reads (`[cutadapt](https://cutadapt.readthedocs.io/en/stable/)`)
-3. Map reads (`[bwa mem](http://bio-bwa.sourceforge.net/bwa.shtml)`)
-4. Filter reads (`[pairtools](https://pairtools.readthedocs.io/en/latest/)`)
-5. Quality analysis (`[pairsqc](https://github.com/4dn-dcic/pairsqc)`)
-6. Create cooler files for visualization (`[cooler](https://cooler.readthedocs.io/en/latest/index.html)`)
-7. Call peaks for ATAC reads (R2 reads) (`[MACS2](https://macs3-project.github.io/MACS/)`)
-8. Find TADs and loops (`[MAPS](https://github.com/ijuric/MAPS)`)
-9. Differential analysis (`[edgeR](https://bioconductor.org/packages/edgeR/)`)
-10. Annotation TADs and loops (`[ChIPpeakAnno](https://bioconductor.org/packages/ChIPpeakAnno/)`)
+2. Trim reads ([`cutadapt`](https://cutadapt.readthedocs.io/en/stable/))
+3. Map reads ([`bwa mem`](http://bio-bwa.sourceforge.net/bwa.shtml))
+4. Filter reads ([`pairtools`](https://pairtools.readthedocs.io/en/latest/))
+5. Quality analysis ([`pairsqc`](https://github.com/4dn-dcic/pairsqc))
+6. Create cooler files for visualization ([`cooler`](https://cooler.readthedocs.io/en/latest/index.html))
+7. Call peaks for ATAC reads (R2 reads) ([`MACS2`](https://macs3-project.github.io/MACS/))
+8. Find TADs and loops ([`MAPS`](https://github.com/ijuric/MAPS))
+9. Differential analysis ([`edgeR`](https://bioconductor.org/packages/edgeR/))
+10. Annotation TADs and loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
 11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start

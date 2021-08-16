@@ -23,13 +23,14 @@ process DIFFHICAR {
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")
 
     output:
-    tuple val(bin_size), path("diffhic_bin${bin_size}/*"), emit: diff
+    tuple val(bin_size), path("${prefix}/*"), emit: diff
     path "*.version.txt"                  , emit: version
 
     script:
+    prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
     """
     install_packages.r edgeR
-    diffhicar.r diffhic_bin${bin_size} \\
+    diffhicar.r $prefix \\
         $options.args
     ## must output the packages version as *.version.txt
     """

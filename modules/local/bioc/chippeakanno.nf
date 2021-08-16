@@ -24,13 +24,14 @@ process BIOC_CHIPPEAKANNO {
     path gtf
 
     output:
-    tuple val(bin_size), path("diffhic_bin${bin_size}/anno/*"), emit: anno
-    path "diffhic_bin${bin_size}/anno/*.png", emit: png
+    tuple val(bin_size), path("${prefix}/anno/*"), emit: anno
+    path "${prefix}/anno/*.png", emit: png
     path "*.version.txt"               , emit: version
 
     script:
+    prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
     """
     install_packages.r ChIPpeakAnno ggplot2
-    annopeaks.r ${gtf} diffhic_bin${bin_size} ${bin_size}
+    annopeaks.r ${gtf} ${prefix}
     """
 }
