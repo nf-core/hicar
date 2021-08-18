@@ -68,7 +68,7 @@ class CisTransStat(object):
     def print_stat(self, fout):
         fout.write("Total reads\t{:,}\n".format(self.total))
         fout.write("Short cis reads (<20kb)\t{:,}\n".format(self.cis_short))
-        fout.write("Cis reads (>20kb)\t{:,}\n".format(self.cis))
+        fout.write("Cis reads (>=20kb)\t{:,}\n".format(self.cis))
         fout.write("Trans reads\t{:,}\n".format(self.trans))
         fout.write("Cis/Trans ratio\t{:.3f}\n".format(self.cis_to_trans))
         fout.write("% Long-range intrachromosomal reads\t{:.3f}\n".format(self.p_long_range_intra))
@@ -251,7 +251,7 @@ def cis_trans_ratio (pairs_file, outfilename, DIST_THRES=20000, cols= cols_pairs
         if chr1 == chr2:
             for x in it:
                 distance = get_distance_and_orientation(x, cols)[0]
-                if distance > DIST_THRES:
+                if distance >= DIST_THRES:
                     cts.cis += 1
                 else:
                     cts.cis_short += 1

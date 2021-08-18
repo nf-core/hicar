@@ -261,6 +261,7 @@ plot_for_sample<-function(sample_name, report_dir) {
     plot_table_file = paste(report_dir, "/", sample_name, ".plot_table.out", sep="")
 
     x=read.table(plot_table_file,sep="\t",stringsAsFactors=F,header=T)
+    write.csv(x[, grepl("distance|proportion", colnames(x))], file.path(report_dir, paste0(sample_name, ".distance.vs.proportion.csv")), row.names=FALSE)
     dir.create(plot_dir, showWarnings = FALSE, recursive = TRUE)
     setwd(plot_dir)
     res = pngpdf_preset( list(

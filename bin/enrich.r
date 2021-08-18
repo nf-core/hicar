@@ -18,6 +18,8 @@ library(clusterProfiler)
 library(pathview)
 library(biomaRt)
 library(optparse)
+library(ggplot2)
+library(scales)
 writeLines(as.character(packageVersion("ChIPpeakAnno")), "ChIPpeakAnno.version.txt")
 writeLines(as.character(packageVersion("clusterProfiler")), "clusterProfiler.version.txt")
 writeLines(as.character(packageVersion("pathview")), "pathview.version.txt")
@@ -26,6 +28,7 @@ writeLines(as.character(packageVersion("biomaRt")), "biomaRt.version.txt")
 
 option_list <- list(make_option(c("-s", "--genome"), type="character", default=NULL, help="genome assembly name", metavar="string"),
                     make_option(c("-n", "--ucscname"), type="character", default=NULL, help="ucscname", metavar="string"),
+                    make_option(c("-q", "--fdr"), type="double", default=0.05, help="false discovery rate cutoff value", metavar="double"),
                     make_option(c("-o", "--output"), type="character", default=".", help="output folder", metavar="string"),
                     make_option(c("-c", "--cores"), type="integer", default=1, help="Number of cores", metavar="integer"))
 
@@ -40,6 +43,13 @@ if (!is.null(opt$output)){
     pf <- opt$output
 }else{
     pf <- "."
+}
+FDRcutoff <- 0.05
+if (!is.null(opt$fdr)){
+    FDRcutoff <- as.numeric(opt$fdr)[1]
+    if(FDRcutoff<0 | FDRcutoff>1){
+        stop("cutoff fdr should be a number between 0 and 1.")
+    }
 }
 
 dir.create(pf, recursive = TRUE, showWarnings = FALSE)
@@ -138,7 +148,13 @@ for(file in files){
     if(length(data$gene)!=nrow(data)){
         data$gene <- data$symbol
     }
-    data.s <- data[data$FDR<0.05, , drop=FALSE]
+    if(length(data$gene)!=nrow(data)){ ## interactive data
+        data$gene <- ifelse(data$shortestDistance.anchor1<data$shortestDistance.anchor2,
+                            data$symbol.anchor1, data$symbol.anchor2)
+    }
+    data.s <- data[data$FDR<FDRcutoff, , drop=FALSE]
+    pff <- file.path(pf, basename(dirname(file)))
+    dir.create(pff, recursive = TRUE)
     if(nrow(data.s)>1){
         gene.df <- bitr(data.s$gene,
                         fromType=ifelse(grepl("^ENS", as.character(data.s$gene)[1]),
@@ -152,19 +168,18 @@ for(file in files){
                     readable = TRUE
             )
         })
-        pff <- file.path(pf, basename(dirname(file)))
-        dir.create(pff, recursive = TRUE)
 
         null <- mapply(ego, names(ego), FUN=function(.ele, .name){
             write.csv(.ele, file.path(pff, paste0("GO.", .name, ".enrichment.for.padj0.05.csv")))
 
             .ele <- as.data.frame(.ele)
             if(nrow(.ele)>1){
-                .ele$qvalue <- -log10(.ele$PValue)
-                plotdata <- .ele[!is.na(.ele$qvalue), c("Description", "qvalue", "Count")]
+                colnames(.ele) <- tolower(colnames(.ele))
+                .ele$qvalue <- -log10(.ele$pvalue)
+                plotdata <- .ele[!is.na(.ele$qvalue), c("description", "qvalue", "count")]
                 if(nrow(plotdata)>20) plotdata <- plotdata[1:20, ]
-                plotdata$Description <- shortStrs(plotdata$Description)
-                ggplot(plotdata, aes(x=reorder(Description, -qvalue), y=qvalue, fill=Count, label=Count)) +
+                plotdata$description <- shortStrs(plotdata$description)
+                ggplot(plotdata, aes(x=reorder(description, -qvalue), y=qvalue, fill=count, label=count)) +
                     scale_fill_gradient2(low = muted("blue"), high = muted("red"), oob = scales::squish) +
                     geom_bar(stat="identity") + scale_y_continuous(expand = expand_scale(mult = c(0, .1))) +
                     geom_text(vjust=-.1) +
@@ -183,6 +198,9 @@ for(file in files){
         write.csv(kk, file.path(pff, "KEGGenrichment.for.padj0.05.csv"))
 
         ds <- data$log2FoldChange
+        if(length(ds)!=nrow(data)){
+            ds <- data$logFC
+        }
         gene.df <- bitr(data$gene,
                         fromType=ifelse(grepl("^ENS", as.character(data.s$gene)[1]),
                                         "ENSEMBL", "SYMBOL"),
@@ -194,19 +212,22 @@ for(file in files){
                                         "ENSEMBL", "SYMBOL")]), "ENTREZID"]
         ds <- ds[!is.na(names(ds))]
         ds <- ds[!is.na(ds)]
-
-        p <- file.path(pff, "pathview")
-        dir.create(p)
-        for (pid in kk$ID[-seq.int(45)]) {
-            tryCatch(pv.out <- pathview(gene.data = ds, pathway.id = pid,
-                                        species=organism, kegg.dir = p,
-                                        kegg.native=TRUE),
-                        error=function(.e) message(.e))
+        if(length(ds)>2){
+            p <- file.path(pff, "pathview")
+            dir.create(p)
+            for (pid in kk$ID[-seq.int(45)]) {
+                tryCatch(pv.out <- pathview(gene.data = ds, pathway.id = pid,
+                                            species=organism, kegg.dir = p,
+                                            kegg.native=TRUE),
+                            error=function(.e) message(.e))
+            }
         }
+
         pngs <- dir(".", "pathview.png")
         file.rename(pngs, file.path(p, pngs))
 
-        rnk <- file.path(pff, sub(".csv", ".preranked.rnk", file))
+        rnk <- file.path(pff, sub(".csv", ".preranked.rnk", basename(file)))
+        stat <- ifelse("stat" %in% colnames(data), "stat", "F")
         if(scientificName!="Homo sapiens"){
             mart <- useMart("ensembl", paste0(scientificName2martTab(scientificName), "_gene_ensembl"))
             bm <- getBM(values = unique(data$ensembl_id),
@@ -216,14 +237,15 @@ for(file in files){
             data$hsapiens_homolog_associated_gene_name <-
                 bm[match(data$ensembl_id, bm$ensembl_gene_id),
                 "hsapiens_homolog_associated_gene_name"]
-            data.rnk <- data[data$stat, c("hsapiens_homolog_associated_gene_name", "stat")]
+            data.rnk <- data[, c("hsapiens_homolog_associated_gene_name", stat)]
         }else{
-            data.rnk <- data[data$stat, c("gene", "stat")]
+            data.rnk <- data[, c("gene", stat)]
         }
         colnames(data.rnk)[1] <- c("hsapiens_gene_name")
-        data.rnk <- data[data$stat, c("hsapiens_gene_name", "stat")]
-        data.rnk <- data.rnk[!is.na(data.rnk[, 1]), ]
-        data.rnk <- data.rnk[data.rnk[, 1]!="", ]
+        data.rnk <- data.rnk[order(data[[stat]], decreasing=TRUE), ]
+        data.rnk <- data.rnk[!is.na(data.rnk[, 1]), , drop=FALSE]
+        data.rnk <- data.rnk[data.rnk[, 1]!="", , drop=FALSE]
+        data.rnk <- data.rnk[!duplicated(data.rnk[, 1]), , drop=FALSE]
         write.table(data.rnk, file = rnk, quote=FALSE, row.names = FALSE, sep="\t")
         rpt_label <- "c2.all.v7.2"
         outfolder <- file.path(pff, "GSEA")
@@ -232,5 +254,7 @@ for(file in files){
                     "-create_svgs true -make_sets true -plot_top_x 100 -rnd_seed timestamp -set_max 500 -set_min 15 -zip_report false -out",
                     outfolder)
         tryCatch(system(cmd), error=function(e){message(e)})
+    }else{
+        writeLines(paste("No available enrichment results by FDR <", FDRcutoff), file.path(pff, sub(".csv", ".txt", basename(file))))
     }
 }

@@ -22,7 +22,7 @@ process READS_SUMMARY {
     path stat
 
     output:
-    path "*.csv"                  , emit: summary
+    path "*.{csv,json}"                  , emit: summary
     path "*.version.txt"          , emit: version
 
     script:

@@ -306,6 +306,12 @@
                     "description": "skip create trackhub files or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": true
+                },
+                "enrichment_fdr": {
+                    "type": "number",
+                    "description": "cutoff value for false discovery rate of enrichment analysis",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
                 }
             }
         },

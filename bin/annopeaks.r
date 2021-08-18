@@ -49,9 +49,9 @@ promoterList <- list() # list to save the other sites of promoters
 dir.create(pf, showWarnings = FALSE)
 for(det in detbl){
     if(grepl("csv$", det)) {
-      DB <- read.csv(det)
+        DB <- read.csv(det)
     }else{
-      DB <- read.delim(det)
+        DB <- read.delim(det)
     }
     if(nrow(DB)<1) next
     rownames(DB) <- paste0("p", seq.int(nrow(DB)))

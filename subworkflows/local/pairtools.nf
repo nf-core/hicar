@@ -46,7 +46,9 @@ workflow PAIRTOOLS_PAIRE {
     READS_STAT(reads_stat)
     PAIRSQC(PAIRIX.out.index, chromsizes)
     PAIRSPLOT(PAIRSQC.out.qc)
-    READS_SUMMARY(READS_STAT.out.stat.map{it[1]}.mix(PAIRSPLOT.out.summary.map{it[1]}).collect())
+    READS_SUMMARY(READS_STAT.out.stat.map{it[1]}
+                                    .mix(PAIRSPLOT.out.summary.map{it[1]})
+                                    .mix(PAIRSPLOT.out.csv.map{it[1]}).collect())
 
     emit:
     pair = PAIRIX.out.index               // channel: [ val(meta), [valid.pair.gz], [valid.pair.gz.px] ]

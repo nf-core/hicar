@@ -7,7 +7,7 @@ options        = initOptions(params.options)
 process BIOC_ENRICH {
     tag "$bin_size"
     label 'process_high'
-    label 'error_ignore'
+    errorStrategy { (task.attempt <= 3)  ? 'retry' : 'ignore' }
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) }
@@ -24,13 +24,14 @@ process BIOC_ENRICH {
     val ucscname
 
     output:
-    tuple val(bin_size), path("diffhic_bin${bin_size}/enrichment/*"), emit: enrichment
-    path "*.version.txt"                                            , emit: version
+    tuple val(bin_size), path("${prefix}/enrichment/*"), emit: enrichment
+    path "*.version.txt"                               , emit: version
 
     script:
+    prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
     """
     install_packages.r ChIPpeakAnno clusterProfiler pathview biomaRt optparse
-    enrich.r -s ${ucscname} -o "diffhic_bin${bin_size}/enrichment" $options.args
+    enrich.r -s ${ucscname} -o "${prefix}/enrichment" $options.args
 
     # *.version.txt
     """
