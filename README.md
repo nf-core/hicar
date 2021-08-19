@@ -37,6 +37,8 @@ On release, automated continuous integration tests run the pipeline on a full-si
 10. Annotation TADs and loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
 11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
+![work flow of the pipeline](docs/images/workflow.svg)
+
 ## Quick Start
 
 1. Install [`Nextflow`](https://nf-co.re/usage/installation) (`>=21.04.0`)
