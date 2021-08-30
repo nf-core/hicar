@@ -31,7 +31,7 @@ option_list <- list(make_option(c("-g", "--gtf"), type="character", default=NULL
                     make_option(c("-x", "--restrict"), type="character", default=NULL, help="filename of restrict cut", metavar="string"),
                     make_option(c("-r", "--resolution"), type="integer", default=NULL, help="resolution", metavar="integer"),
                     make_option(c("-d", "--gap"), type="integer", default=NULL, help="gap, default 2*resolution", metavar="integer"),
-                    make_option(c("-l", "--raedlength"), type="integer", default=150, help="reads length", metavar="integer"),
+                    make_option(c("-l", "--raedlength"), type="integer", default=NULL, help="reads length used to strengthen the signal, default resolution/10", metavar="integer"),
                     make_option(c("-m", "--maxevents"), type="integer", default=25, help="max events to plot", metavar="integer"),
                     make_option(c("-o", "--output"), type="character", default=".", help="output folder", metavar="string"),
                     make_option(c("-c", "--cores"), type="integer", default=1, help="Number of cores", metavar="integer"))
@@ -41,6 +41,7 @@ opt <- parse_args(opt_parser)
 gtf <- opt$gtf
 resolution <- opt$resolution
 gap <- 2 * resolution
+readwidth <- ceiling(resolution/10)
 output <- opt$output
 chrom_size <- opt$chromsize
 restrict_cut <- opt$restrict
@@ -65,12 +66,10 @@ if(nrow(evts)<1) stop("No events in files.")
 dir.create(output, recursive = TRUE, showWarnings = FALSE)
 
 ## read file and summary counts
-readPairFile <- function(filenames, ranges){
-    stopifnot(is(ranges, "GRanges"))
+loadPairFire <- function(filenames){
     stopifnot(is.character(filenames))
     stopifnot(all(file.exists(filenames)))
     out <- list()
-    total <- list()
     for(fn in filenames){
         f <- gzfile(fn, open = "r")
         chunk <- readLines(f)
@@ -78,12 +77,27 @@ readPairFile <- function(filenames, ranges){
         chunk <- chunk[!grepl("^#", chunk)]
         if(length(chunk)){
             dt <- do.call(rbind, strsplit(chunk, "\\t"))
+            dt <- unique(dt) # remove duplicates
             gi <- GInteractions(anchor1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 3]), width = readwidth), strand = dt[, 6]),
                                 anchor2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 5]), width = readwidth), strand = dt[, 7]),
                                 restrict1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 10]), as.numeric(dt[, 11]), names = dt[, 9])),
                                 restrict2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 13]), as.numeric(dt[, 14]), names = dt[, 12])))
-            total[[sub(".unselected.pairs.gz", "", basename(fn))]] <- length(gi)
-            out[[sub(".unselected.pairs.gz", "", basename(fn))]] <- subsetByOverlaps(gi, ranges = ranges, use.region="both")
+            out[[sub(".unselected.pairs.gz", "", basename(fn))]] <- gi
+        }
+    }
+    return(out)
+}
+chunks <- loadPairFire(pairfiles)
+readPairFile <- function(chunks, ranges){
+    stopifnot(is(ranges, "GRanges"))
+    out <- list()
+    total <- list()
+    for(fn in names(chunks)){
+        chunk <- chunks[[fn]]
+        if(length(chunk)){
+            total[[fn]] <- length(chunk)
+            out[[fn]] <-
+                subsetByOverlaps(chunk, ranges = ranges, use.region="both")
         }
         rm(chunk)
         rm(gi)
@@ -119,7 +133,10 @@ grs <- with(evts, GInteractions(anchor1 = GRanges(chr1, IRanges(start1, end1)),
                                 score = fdr))
 grs$score <- 1-grs$score
 grs <- unique(grs)
-link <- gi2track(grs)
+grs_narrow <- grs
+regions(grs_narrow) <-
+    resize(regions(grs), width = ceiling(width(regions(grs))/2), fix = "center")
+link <- gi2track(grs_narrow)
 setTrackStyleParam(link, "tracktype", "link")
 setTrackStyleParam(link, "color", c("gray80", "yellow", "brown"))
 reg <- reduce(GRanges(seqnames(first(grs)),
@@ -154,7 +171,7 @@ for(i in seq_along(gr1)){
             bait <- GInteractions(anchor1 = parse2GRanges(names(bait)),
                                 anchor2 = unname(bait))
             ## get the v4c
-            info <- readPairFile(filenames = pairfiles, ranges = c(first(bait), second(bait)))
+            info <- readPairFile(chunks, ranges = c(first(bait), second(bait)))
             total <- info$norm_factor
             names(cools) <- sub("\\d+\\.mcool$", "", basename(cools))
             gis <- lapply(cools, importGInteractions,
