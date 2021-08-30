@@ -37,6 +37,36 @@
                     "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "description": "skip fastqc or not",
+                    "fa_icon": "fab fa-creative-commons-pd",
+                    "hidden": false
+                },
+                "skip_peak_annotation": {
+                    "type": "boolean",
+                    "description": "skip peak annotation or not",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": false
+                },
+                "skip_virtual_4c": {
+                    "type": "boolean",
+                    "description": "skip create track files for virtual 4c or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false
+                },
+                "skip_diff_analysis": {
+                    "type": "boolean",
+                    "description": "skip differential analysis or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "description": "skip multiqc or not",
+                    "fa_icon": "far fa-calendar-times",
+                    "hidden": false
+                },
                 "multiqc_title": {
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
@@ -82,31 +112,31 @@
                 },
                 "bwa_index": {
                     "type": "string",
-                    "fa_icon": "fas fa-font",
+                    "fa_icon": "fab fa-wpexplorer",
                     "description": "Path to bwa index file.",
                     "help_text": "If you have no genome reference available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
                 },
                 "gtf": {
                     "type": "string",
-                    "fa_icon": "fas fa-font",
+                    "fa_icon": "fas fa-map-marked-alt",
                     "description": "Path to annotation gtf file.",
                     "help_text": "Annotation gtf or gff file is required for annotation and quality control. This parameter is *mandatory* if `--genome` is not specified."
                 },
                 "gff": {
                     "type": "string",
-                    "fa_icon": "fas fa-font",
+                    "fa_icon": "fas fa-map-marked-alt",
                     "description": "Path to annotation gff file.",
                     "help_text": "Annotation gff or gff file is required for annotation and quality control. This parameter is *mandatory* if `--genome` is not specified."
                 },
                 "gene_bed": {
                     "type": "string",
-                    "fa_icon": "fas fa-procedres",
+                    "fa_icon": "fas fa-file-medical-alt",
                     "description": "Path to annotation gene bed file.",
                     "help_text": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
                 },
                 "mappability": {
                     "type": "string",
-                    "fa_icon": "fas fa-font",
+                    "fa_icon": "fas fa-file-contract",
                     "description": "Path to genome mappability file.",
                     "help_text": "If you have no genome mappability available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
                 },
@@ -120,7 +150,7 @@
                     "type": "string",
                     "description": "UCSC assembly annotation name.",
                     "help_text": "[UCSC assembly annotation name](https://genome.ucsc.edu/FAQ/FAQgenes.html)",
-                    "fa_icon": "fas fa-arrows-alt-h"
+                    "fa_icon": "fas fa-water"
                 },
                 "blacklist": {
                     "type": "string",
@@ -133,13 +163,13 @@
         "experiment_config_options": {
             "title": "Experiment design options",
             "type": "object",
-            "fa_icon": "fas fa-cut",
+            "fa_icon": "fas fa-vials",
             "description": "Parameters used to describe the experiment designs.",
             "properties": {
                 "enzyme": {
                     "type": "string",
                     "description": "Specifies that the cutting position has to be using.",
-                    "fa_icon": "fas fa-cut",
+                    "fa_icon": "fas fa-vial",
                     "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, and CviQI.",
                     "default": "CviQI"
                 },
@@ -154,7 +184,7 @@
                 "restriction_sites_cut_off": {
                     "type": "number",
                     "description": "Specifies that the cutoff value used for mappability filter.",
-                    "fa_icon": "fas fa-cut",
+                    "fa_icon": "fas fa-ruler-horizontal",
                     "help_text": "Default is 0.5. It is the average over just covered bases.",
                     "hidden": false,
                     "default": 0.5
@@ -170,7 +200,7 @@
                 "shiftsize": {
                     "type": "integer",
                     "description": "shift size for MACS2",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-arrows-alt-h",
                     "hidden": false,
                     "help_text": "See help from MACS2 documentation",
                     "default": -75
@@ -178,7 +208,7 @@
                 "smooth_window": {
                     "type": "integer",
                     "description": "extsize for MACS2",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-compress",
                     "hidden": false,
                     "help_text": "See help from MACS2 documentation",
                     "default": 150
@@ -186,7 +216,7 @@
                 "qval_thresh": {
                     "type": "number",
                     "description": "cutoff qvalue",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-filter",
                     "hidden": false,
                     "help_text": "See help from MACS2 documentation",
                     "default": 0.01
@@ -196,13 +226,13 @@
         "MAPS_peak_calling_options": {
             "title": "MAPS peak calling options",
             "type": "object",
-            "fa_icon": "fas fa-mountains",
+            "fa_icon": "fab fa-connectdevelop",
             "descripton": "Options for MAPS peak calling options for ATAC-seq reads (R2).",
             "properties": {
                 "cool_bin": {
                     "type": "string",
                     "description": "resolution bin size",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-layer-group",
                     "hidden": false,
                     "help_text": "Bin size for singal resampling.",
                     "default": "5000_10000"
@@ -210,7 +240,7 @@
                 "maps_cutoff_counts": {
                     "type": "integer",
                     "description": "MAPS regression cutoff value",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-stream",
                     "hidden": false,
                     "help_text": "See help from MAPS documentation, default 12.",
                     "default": 12
@@ -218,7 +248,7 @@
                 "maps_cutoff_fold_change": {
                     "type": "number",
                     "description": "MAPS regression fold change cutoff value",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-check-double",
                     "hidden": false,
                     "help_text": "See help from MAPS documentation, default 2.",
                     "default": 2
@@ -226,7 +256,7 @@
                 "maps_cutoff_fdr": {
                     "type": "number",
                     "description": "MAPS regression -log10(fdr) cutoff value",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-percent",
                     "hidden": false,
                     "help_text": "See help from MAPS documentation, default 2 (=fdr 0.05).",
                     "default": 2
@@ -234,7 +264,7 @@
                 "maps_filter": {
                     "type": "string",
                     "description": "MAPS regression filter file name",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-clipboard",
                     "hidden": false,
                     "help_text": "file containing bins that need to be filtered out. Format: two columns 'chrom', 'bin'. 'chrom' contains 'chr1','chr2',.. 'bin' is bin label",
                     "default": "None"
@@ -242,7 +272,7 @@
                 "maps_model": {
                     "type": "string",
                     "description": "MAPS regression type",
-                    "fa_icon": "fas fa-ban",
+                    "fa_icon": "fas fa-cogs",
                     "hidden": false,
                     "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson.",
                     "default": "pospoisson",
@@ -253,35 +283,33 @@
                 }
             }
         },
+        "Tracks_options": {
+            "title": "Options related to tracks",
+            "type": "object",
+            "fa_icon": "fab fa-wpforms",
+            "description": "Options for tracks viewed by igv, ucsc genome browser and virtual 4c plot tools",
+            "properties": {
+                "v4c_max_events": {
+                    "type": "integer",
+                    "description": "max events to plot for virtual 4c",
+                    "fa_icon": "fas fa-water",
+                    "hidden": false,
+                    "default": 25
+                }
+            }
+        },
         "Other_options_not_expose_yet": {
             "title": "Other options not expose",
             "type": "object",
-            "fa_icon": "fas fa-mountains",
-            "descripton": "Options for peak calling options.",
+            "fa_icon": "fas fa-ban",
+            "hidden": true,
+            "descripton": "Options under development.",
             "properties": {
                 "skip_peak_qc": {
                     "type": "boolean",
                     "description": "skip peak QC or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": true
-                },
-                "skip_peak_annotation": {
-                    "type": "boolean",
-                    "description": "skip peak annotation or not",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": false
-                },
-                "skip_diff_analysis": {
-                    "type": "boolean",
-                    "description": "skip differential analysis or not",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": false
-                },
-                "skip_fastqc": {
-                    "type": "boolean",
-                    "description": "skip fastqc or not",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": false
                 },
                 "skip_plot_profile": {
                     "type": "boolean",
@@ -292,12 +320,6 @@
                 "skip_igv": {
                     "type": "boolean",
                     "description": "skip creat IGV files or not",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true
-                },
-                "skip_multiqc": {
-                    "type": "boolean",
-                    "description": "skip multiqc or not",
                     "fa_icon": "fas fa-ban",
                     "hidden": true
                 },
@@ -504,7 +526,8 @@
                 "md5sum": {
                     "type": "string",
                     "description": "The check sum command path.",
-                    "default": "md5sum"
+                    "default": "md5sum",
+                    "fa_icon": "fas fa-fingerprint"
                 }
             }
         }
@@ -524,6 +547,9 @@
         },
         {
             "$ref": "#/definitions/MAPS_peak_calling_options"
+        },
+        {
+            "$ref": "#/definitions/Tracks_options"
         },
         {
             "$ref": "#/definitions/Other_options_not_expose_yet"

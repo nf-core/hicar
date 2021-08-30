@@ -27,10 +27,11 @@ process COOLER_ZOOMIFY {
 
     script:
     def software = getSoftwareName(task.process)
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def prefix   = options.suffix ? "${meta.id}${meta.bin}${options.suffix}" : "${meta.id}${meta.bin}"
     """
     cooler zoomify \\
         $options.args \\
+        -r "${meta.bin}N" \\
         -n $task.cpus \\
         -o ${prefix}.mcool \\
         $cool

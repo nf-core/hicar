@@ -69,6 +69,9 @@ include { BIOC_CHIPPEAKANNO      } from '../modules/local/bioc/chippeakanno' add
 include { BIOC_CHIPPEAKANNO
     as BIOC_CHIPPEAKANNO_MAPS    } from '../modules/local/bioc/chippeakanno' addParams(options: getParam(modules, 'chippeakanno_maps'))
 include { BIOC_ENRICH            } from '../modules/local/bioc/enrich' addParams(options: getParam(modules, 'enrichment'))
+include { BIOC_TRACKVIEWER       } from '../modules/local/bioc/trackviewer' addParams(options: getParam(modules, 'trackviewer'))
+include { BIOC_TRACKVIEWER
+    as BIOC_TRACKVIEWER_MAPS     } from '../modules/local/bioc/trackviewer' addParams(options: getParam(modules, 'trackviewer_maps'))
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -264,6 +267,20 @@ workflow HICAR {
             .set{ch_maps_anno}
         BIOC_CHIPPEAKANNO_MAPS(ch_maps_anno, PREPARE_GENOME.out.gtf)
         ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO_MAPS.out.version.ifEmpty(null))
+        if(!params.skip_virtual_4c){
+            BIOC_CHIPPEAKANNO_MAPS.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
+                                        .groupTuple()
+                                        .map{bin, df -> [bin, df[0], df[1]]}
+                                        .set{ch_maps_trackviewer}
+            //ch_maps_trackviewer.view()
+            BIOC_TRACKVIEWER_MAPS(
+                ch_maps_trackviewer,
+                PAIRTOOLS_PAIRE.out.distalpair.collect{it[1]},
+                PREPARE_GENOME.out.gtf,
+                PREPARE_GENOME.out.chrom_sizes,
+                PREPARE_GENOME.out.digest_genome)
+            ch_software_versions = ch_software_versions.mix(BIOC_TRACKVIEWER_MAPS.out.version.ifEmpty(null))
+        }
     }
 
     //
@@ -287,6 +304,20 @@ workflow HICAR {
             ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.version.ifEmpty(null))
             if(PREPARE_GENOME.out.ucscname) BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno.filter{it.size()>0}, PREPARE_GENOME.out.ucscname)
             ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.version.ifEmpty(null))
+            if(!params.skip_virtual_4c){
+                BIOC_CHIPPEAKANNO.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
+                                            .groupTuple()
+                                            .map{bin, df -> [bin, df[0], df[1]]}
+                                            .set{ch_trackviewer}
+                //ch_trackviewer.view()
+                BIOC_TRACKVIEWER(
+                    ch_trackviewer,
+                    PAIRTOOLS_PAIRE.out.distalpair.collect{it[1]},
+                    PREPARE_GENOME.out.gtf,
+                    PREPARE_GENOME.out.chrom_sizes,
+                    PREPARE_GENOME.out.digest_genome)
+                ch_software_versions = ch_software_versions.mix(BIOC_TRACKVIEWER.out.version.ifEmpty(null))
+            }
         }
     }
 
@@ -305,32 +336,33 @@ workflow HICAR {
     GET_SOFTWARE_VERSIONS (
         ch_software_versions.map { it }.collect()
     )
+    if(!params.skip_multiqc){
+        //
+        // MODULE: MultiQC
+        //
+        workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
+        ch_workflow_summary = Channel.value(workflow_summary)
 
-    //
-    // MODULE: MultiQC
-    //
-    workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
-    ch_workflow_summary = Channel.value(workflow_summary)
+        ch_multiqc_files = Channel.empty()
+        ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_files = ch_multiqc_files.mix(GET_SOFTWARE_VERSIONS.out.yaml.collect())
+        ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO_MAPS.out.png.collect().ifEmpty([]))
+        //ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO.out.png.collect().ifEmpty([]))
 
-    ch_multiqc_files = Channel.empty()
-    ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
-    ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_files = ch_multiqc_files.mix(GET_SOFTWARE_VERSIONS.out.yaml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO_MAPS.out.png.collect().ifEmpty([]))
-    //ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO.out.png.collect().ifEmpty([]))
-
-    MULTIQC (
-        ch_multiqc_files.collect()
-    )
-    multiqc_report       = MULTIQC.out.report.toList()
-    ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
+        MULTIQC (
+            ch_multiqc_files.collect()
+        )
+        multiqc_report       = MULTIQC.out.report.toList()
+        ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
+    }
 }
 
 /*

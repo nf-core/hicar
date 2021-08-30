@@ -45,6 +45,12 @@
 * [ChIPpeakAnno](https://pubmed.ncbi.nlm.nih.gov/20459804/)
     > Zhu LJ, Gazin C, Lawson ND, Pagès H, Lin SM, Lapointe DS, Green MR. ChIPpeakAnno: a Bioconductor package to annotate ChIP-seq and ChIP-chip data. BMC Bioinformatics. 2010 May 11;11:237. doi: 10.1186/1471-2105-11-237. PMID: 20459804; PMCID: PMC3098059.
 
+* [clusterProfiler](https://pubmed.ncbi.nlm.nih.gov/22455463/)
+    > Yu G, Wang LG, Han Y, He QY. clusterProfiler: an R package for comparing biological themes among gene clusters. OMICS. 2012 May;16(5):284-7. doi: 10.1089/omi.2011.0118. Epub 2012 Mar 28. PMID: 22455463; PMCID: PMC3339379.
+
+* [trackViewer](https://pubmed.ncbi.nlm.nih.gov/31133757/)
+    > Ou J, Zhu LJ. trackViewer: a Bioconductor package for interactive and integrative visualization of multi-omics data. Nat Methods. 2019 Jun;16(6):453-454. doi: 10.1038/s41592-019-0430-y. PMID: 31133757.
+
 * [pairsqc](https://github.com/4dn-dcic/pairsqc)
 
 * [pairtools](https://github.com/open2c/pairtools)

@@ -26,17 +26,18 @@ workflow PAIRTOOLS_PAIRE {
     main:
     //raw pairs, output raw.pairsam
     PAIRTOOLS_PARSE(ch_bam, chromsizes)
+    // select valid pairs
+    PAIRTOOLS_SELECT(PAIRTOOLS_PARSE.out.pairsam)
+    // remove same fragment pairs, output samefrag.pairs, valid.pairs <- like HiC pairs
+    PAIRTOOLS_RESTRICT(PAIRTOOLS_SELECT.out.selected, frag)
+    PAIRTOOLS_SELECT_LONG(PAIRTOOLS_RESTRICT.out.restrict)
     // select valid pairs, output sorted.pairs
-    PAIRTOOLS_FLIP(PAIRTOOLS_PARSE.out.pairsam, chromsizes)
-    PAIRTOOLS_SELECT(PAIRTOOLS_FLIP.out.flip)
-    PAIRTOOLS_SORT(PAIRTOOLS_SELECT.out.selected)
+    PAIRTOOLS_FLIP(PAIRTOOLS_SELECT_LONG.out.unselected, chromsizes)
+    PAIRTOOLS_SORT(PAIRTOOLS_FLIP.out.flip)
     // remove duplicate pairs, output dedup.pairs
     PAIRTOOLS_DEDUP(PAIRTOOLS_SORT.out.sorted)
-    // remove same fragment pairs, output samefrag.pairs, valid.pairs <- like HiC pairs
-    PAIRTOOLS_RESTRICT(PAIRTOOLS_DEDUP.out.pairs, frag)
-    PAIRTOOLS_SELECT_LONG(PAIRTOOLS_RESTRICT.out.restrict)
     // make index for valid.pairs
-    PAIRIX(PAIRTOOLS_SELECT_LONG.out.unselected)
+    PAIRIX(PAIRTOOLS_DEDUP.out.pairs)
     //reads information
     PAIRTOOLS_PARSE.out.stat
                         .map{meta, stat -> [meta.id, meta, stat]}
@@ -55,5 +56,6 @@ workflow PAIRTOOLS_PAIRE {
     stat = READS_SUMMARY.out.summary      // channel: [ path(summary) ]
     qc   = PAIRSQC.out.qc                 // channel: [ val(meta), [qc]]
     raw  = PAIRTOOLS_PARSE.out.pairsam    // channel: [ val(meta), [pairsam] ]
+    distalpair = PAIRTOOLS_SELECT_LONG.out.unselected // channel: [val(meta), [valid.pair.gz]]
     version = PAIRTOOLS_PARSE.out.version // channel: [ path(version) ]
 }
