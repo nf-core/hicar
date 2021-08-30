@@ -51,7 +51,7 @@ if(!is.null(opt$readlength)){
     readwidth <- as.numeric(opt$readlength)
 }
 if(!is.null(opt$maxevents)){
-  maxEvent <- as.numeric(opt$maxevents)
+    maxEvent <- as.numeric(opt$maxevents)
 }
 cools <- dir(".", "mcool$", full.names = TRUE, recursive = TRUE)
 pairfiles <- dir(".", ".unselected.pairs.gz$", full.names = TRUE, recursive = TRUE)
@@ -93,12 +93,12 @@ readPairFile <- function(filenames, ranges){
     out <- split(out, f)
     giRbind <- function(a, b){
         GInteractions(anchor1 = c(first(a), first(b)),
-                      anchor2 = c(second(a), second(b)),
-                      restrict1 = c(a$restrict1, b$restrict1),
-                      restrict2 = c(a$restrict2, b$restrict2))
+                    anchor2 = c(second(a), second(b)),
+                    restrict1 = c(a$restrict1, b$restrict1),
+                    restrict2 = c(a$restrict2, b$restrict2))
     }
     out <- lapply(out, function(.ele){
-      Reduce(giRbind, .ele)
+        Reduce(giRbind, .ele)
     })
     total <- split(unlist(total), f)
     total <- sapply(total, sum)
@@ -128,13 +128,13 @@ reg <- reduce(GRanges(seqnames(first(grs)),
 gr1 <- unique(subsetByOverlaps(reg, grs))
 gr1 <- gr1[seq.int(min(maxEvent, length(gr1)))]
 prettyMax <- function(x){
-  if(x<1) return(round(x, digits = 2))
-  if(x<=5) return(ceiling(x))
-  if(x<10) return(2*ceiling(x/2))
-  if(x<100) return(10*ceiling(x/10))
-  if(x<1000) return(50*ceiling(x/50))
-  n <- 10^ceiling(log10(x))
-  return(n*ceiling(x/n))
+    if(x<1) return(round(x, digits = 2))
+    if(x<=5) return(ceiling(x))
+    if(x<10) return(2*ceiling(x/2))
+    if(x<100) return(10*ceiling(x/10))
+    if(x<1000) return(50*ceiling(x/50))
+    n <- 10^ceiling(log10(x))
+    return(n*ceiling(x/n))
 }
 for(i in seq_along(gr1)){
     if(i < maxEvent){
@@ -152,52 +152,52 @@ for(i in seq_along(gr1)){
             bait <- lapply(bait, range)
             bait <- unlist(GRangesList(bait))
             bait <- GInteractions(anchor1 = parse2GRanges(names(bait)),
-                                  anchor2 = unname(bait))
+                                anchor2 = unname(bait))
             ## get the v4c
             info <- readPairFile(filenames = pairfiles, ranges = c(first(bait), second(bait)))
             total <- info$norm_factor
             names(cools) <- sub("\\d+\\.mcool$", "", basename(cools))
             gis <- lapply(cools, importGInteractions,
-                          resolution = resolution,
-                          format="cool",
-                          ranges=gr, out = "GInteractions")
+                        resolution = resolution,
+                        format="cool",
+                        ranges=gr, out = "GInteractions")
             gis <- mapply(gis, total[names(gis)], FUN=function(.ele, .total){
-              .ele$score <- log2(.ele$score+1) * .total
-              .ele
+                .ele$score <- log2(.ele$score+1) * .total
+                .ele
             })
             maxV <- max(sapply(gis, function(.ele) max(.ele$score, na.rm=TRUE)))
             maxV <- prettyMax(maxV)
             heat <- lapply(gis, function(.ele){
-              .ele <- gi2track(.ele)
-              setTrackStyleParam(.ele, "breaks", seq(from=0, to=maxV, by=maxV/10))
-              setTrackStyleParam(.ele, "color", c("lightblue", "yellow", "red"))
-              #setTrackStyleParam(.ele, "ylim", c(0, .5))
-              .ele
+                .ele <- gi2track(.ele)
+                setTrackStyleParam(.ele, "breaks", seq(from=0, to=maxV, by=maxV/10))
+                setTrackStyleParam(.ele, "color", c("lightblue", "yellow", "red"))
+                #setTrackStyleParam(.ele, "ylim", c(0, .5))
+                .ele
             })
             names(heat) <- paste("valid pairs", names(heat))
             v4c <- lapply(seq_along(first(bait)), function(.e){
-              vp1 <- mapply(info$gi, total[names(info$gi)], FUN=function(.ele, .total){
-                .ele <- subsetByOverlaps(.ele, first(bait)[.e], use.region="both")
-                .ele <- GRanges(coverage(c(first(.ele), second(.ele))))
-                .ele$score <- .ele$score*.total
-                new("track", dat=.ele,
-                    type="data", format = "BED",
-                    name = paste0(seqnames(first(bait)[.e]), ":",
-                                  start(first(bait)[.e]), "-",
-                                  end(first(bait)[.e])))
-              })
-              maxY <- sapply(vp1, FUN = function(.ele){
-                max(subsetByOverlaps(.ele$dat, second(bait)[.e])$score)
-              })
-              maxY <- prettyMax(max(maxY))
-              vp1 <- lapply(vp1, function(.ele){
-                setTrackStyleParam(.ele, "ylim", c(0, maxY))
-                .ele
-              })
+                vp1 <- mapply(info$gi, total[names(info$gi)], FUN=function(.ele, .total){
+                    .ele <- subsetByOverlaps(.ele, first(bait)[.e], use.region="both")
+                    .ele <- GRanges(coverage(c(first(.ele), second(.ele))))
+                    .ele$score <- .ele$score*.total
+                    new("track", dat=.ele,
+                        type="data", format = "BED",
+                        name = paste0(seqnames(first(bait)[.e]), ":",
+                                    start(first(bait)[.e]), "-",
+                                    end(first(bait)[.e])))
+                })
+                maxY <- sapply(vp1, FUN = function(.ele){
+                    max(subsetByOverlaps(.ele$dat, second(bait)[.e])$score)
+                })
+                maxY <- prettyMax(max(maxY))
+                vp1 <- lapply(vp1, function(.ele){
+                    setTrackStyleParam(.ele, "ylim", c(0, maxY))
+                    .ele
+                })
             })
             names(v4c) <- paste0(seqnames(first(bait)), ":",
-                                 start(first(bait)), "-",
-                                 end(first(bait)))
+                                start(first(bait)), "-",
+                                end(first(bait)))
             v4c <- unlist(v4c, recursive = FALSE)
             ids <- getGeneIDsFromTxDb(gr, txdb)
             genes <- geneTrack(ids, txdb, map[ids], asList=FALSE)
