@@ -45,6 +45,7 @@ if (length(args) < 3 || length(args) > 8) {
     INFDIR = args[1]
     SET = args[2]
     RESOLUTION = as.integer(args[3])
+    SET <- paste0(SET, ".", ceiling(RESOLUTION/1e3), "k")
     chroms <- dir(INFDIR, "reg_raw.*")
     chroms <- unique(sub("reg_raw\\.(.*?)\\..*$", "\\1", chroms))
     if(length(args)>3){

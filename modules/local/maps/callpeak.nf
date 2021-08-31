@@ -30,7 +30,6 @@ process MAPS_CALLPEAK {
     script:
     def software = "MAPS"
     """
-    resolution=\$(bc<<<"$bin_size/1000")
     install_packages.r VGAM MASS
     mv maps_out ${meta.id}_${bin_size}
     ## arguments:
@@ -42,7 +41,7 @@ process MAPS_CALLPEAK {
     ## FDR - -log10(fdr) cutoff, default 2
     ## FILTER - file containing bins that need to be filtered out. Format: two columns "chrom", "bin". "chrom" contains 'chr1','chr2',.. "bin" is bin label
     ## regresison_type - pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson
-    MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id}.\${resolution}k $bin_size $options.args
+    MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id} $bin_size $options.args
     echo '1.1.0' > ${software}.version.txt
     """
 }
