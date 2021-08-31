@@ -53,6 +53,7 @@
                     "type": "boolean",
                     "description": "skip create track files for virtual 4c or not",
                     "fa_icon": "fas fa-ban",
+                    "default": true,
                     "hidden": false
                 },
                 "skip_diff_analysis": {
@@ -522,12 +523,6 @@
                     "hidden": true,
                     "fa_icon": "fas fa-toolbox",
                     "help_text": "This may be useful for example if you are unable to directly pull Singularity containers to run the pipeline due to http/https proxy issues."
-                },
-                "md5sum": {
-                    "type": "string",
-                    "description": "The check sum command path.",
-                    "default": "md5sum",
-                    "fa_icon": "fas fa-fingerprint"
                 }
             }
         }

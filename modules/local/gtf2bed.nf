@@ -12,11 +12,11 @@ process GTF2BED {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) },
         enabled: options.publish
 
-    conda (params.enable_conda ? "conda-forge::perl=5.26.2" : null)
+    conda (params.enable_conda ? "bioconda::perl-getopt-long=2.50" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/sed:4.2.3.dev0--0"
+        container "https://depot.galaxyproject.org/singularity/perl-getopt-long:2.50--pl526_1"
     } else {
-        container "quay.io/biocontainers/sed:4.2.3.dev0--0"
+        container "quay.io/biocontainers/perl-getopt-long:2.50--pl526_1"
     }
 
     input:
