@@ -12,7 +12,7 @@ if(file.access(lib[1], mode=2)!=0){
 
 if(length(pkgs)>0){
     bicm <- TRUE
-    if(BiocManager %in% available.packages()){
+    if("BiocManager" %in% available.packages(repos = "https://cloud.r-project.org/")){
         while(!requireNamespace("BiocManager", quietly = TRUE)){
             tryCatch(
                 install.packages("BiocManager",
