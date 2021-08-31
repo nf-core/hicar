@@ -11,18 +11,34 @@ if(file.access(lib[1], mode=2)!=0){
 }
 
 if(length(pkgs)>0){
-    while(!requireNamespace("BiocManager", quietly = TRUE)){
-        tryCatch(
-            install.packages("BiocManager",
-                            repos = "https://cloud.r-project.org/",
-                            quiet = TRUE),
-            error = function(.e){
-                message("retry package installation.")
-            }
-        )
+    bicm <- TRUE
+    if(BiocManager %in% available.packages()){
+        while(!requireNamespace("BiocManager", quietly = TRUE)){
+            tryCatch(
+                install.packages("BiocManager",
+                                repos = "https://cloud.r-project.org/",
+                                quiet = TRUE),
+                error = function(.e){
+                    message("retry package installation.")
+                }
+            )
 
+        }
+        pkgs <- pkgs[pkgs %in% BiocManager::available() | grepl("\\/", pkgs)]
+    }else{# Bioconductor(R) version <= 3.8(3.5)
+        while(!requireNamespace("BiocInstaller", quietly = TRUE)){
+            tryCatch(
+                {
+                    source("https://bioconductor.org/biocLite.R")
+                    biocLite("BiocInstaller")
+                },
+                error = function(.e){
+                    message("retry package installation.")
+                }
+            )
+        }
+        bicm <- FALSE
     }
-    pkgs <- pkgs[pkgs %in% BiocManager::available() | grepl("\\/", pkgs)]
 
     if(any(grepl("\\/", pkgs))){
         pkgs <- c("remotes", pkgs)
@@ -37,7 +53,11 @@ if(length(pkgs)>0){
                     if(grepl("\\/", pkg)){
                         remotes::install_github(pkg, upgrade = FALSE, quite = FALSE)
                     }else{
-                        BiocManager::install(pkg, update = FALSE, ask = FALSE)
+                        if(biocm) {
+                            BiocManager::install(pkg, update = FALSE, ask = FALSE)
+                        } else {
+                            BiocInstaller::biocLite(pkg, suppressUpdates=TRUE, suppressAutoUpdate=TRUE, ask=FALSE)
+                        }
                     },
                     error = function(.e){
                         message("retry package installation.")
