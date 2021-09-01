@@ -10,32 +10,46 @@ if(file.access(lib[1], mode=2)!=0){
     .libPaths(c(pwd, lib))
 }
 
+pkgs <- pkgs[!pkgs %in% installed.packages()]
+
 if(length(pkgs)>0){
     bicm <- TRUE
-    if("BiocManager" %in% available.packages(repos = "https://cloud.r-project.org/")){
-        while(!requireNamespace("BiocManager", quietly = TRUE)){
+    version <- R.Version()
+    if(getRversion()>="3.6"){
+        retryCount <- 0
+        while(!requireNamespace("BiocManager", quietly = TRUE) && retryCount<3){
             tryCatch(
-                install.packages("BiocManager",
-                                repos = "https://cloud.r-project.org/",
-                                quiet = TRUE),
+                {
+                    if(retryCount>1){
+                        .libPaths(c(file.path(getwd(), "lib"), .libPaths()))
+                    }
+                    install.packages("BiocManager",
+                                    repos = "https://cloud.r-project.org/",
+                                    quiet = TRUE)
+                },
                 error = function(.e){
                     message("retry package installation.")
                 }
             )
-
+            retryCount <- retryCount + 1
         }
         pkgs <- pkgs[pkgs %in% BiocManager::available() | grepl("\\/", pkgs)]
     }else{# Bioconductor(R) version <= 3.8(3.5)
-        while(!requireNamespace("BiocInstaller", quietly = TRUE)){
+        retryCount <- 0
+        while(!requireNamespace("BiocInstaller", quietly = TRUE) && retryCount<3){
             tryCatch(
                 {
                     source("https://bioconductor.org/biocLite.R")
+                    if(retryCount>1){
+                        .libPaths(c(file.path(getwd(), "lib"), .libPaths()))
+                    }
                     biocLite("BiocInstaller")
                 },
                 error = function(.e){
                     message("retry package installation.")
                 }
             )
+            retryCount <- retryCount + 1
         }
         bicm <- FALSE
     }
@@ -53,15 +67,19 @@ if(length(pkgs)>0){
                     if(grepl("\\/", pkg)){
                         remotes::install_github(pkg, upgrade = FALSE, quite = FALSE)
                     }else{
+                        if(retryCount>1){
+                            .libPaths(c(file.path(getwd(), "lib"), .libPaths()))
+                        }
                         if(biocm) {
                             BiocManager::install(pkg, update = FALSE, ask = FALSE)
+
                         } else {
                             BiocInstaller::biocLite(pkg, suppressUpdates=TRUE, suppressAutoUpdate=TRUE, ask=FALSE)
                         }
                     },
                     error = function(.e){
                         message("retry package installation.")
-                        Sys.sleep(60)
+                        #Sys.sleep(60)
                     }
                 )
             }

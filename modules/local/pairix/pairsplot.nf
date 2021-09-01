@@ -7,16 +7,15 @@ options        = initOptions(params.options)
 process PAIRSPLOT {
     tag "$meta.id"
     label 'process_low'
-    errorStrategy { (task.attempt <= 3)  ? 'retry' : 'ignore' }
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
-    conda (params.enable_conda ? "conda-forge::r-nozzle.r1=1.1_1" : null)
+    conda (params.enable_conda ? "bioconda::bioconductor-chipqc>=1.14.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/r-nozzle.r1:1.1_1--r3.3.2_0"
+        container "https://depot.galaxyproject.org/singularity/bioconductor-chipqc:1.28.0--r41hdfd78af_0"
     } else {
-        container "quay.io/biocontainers/r-nozzle.r1:1.1_1--r3.3.2_0"
+        container "quay.io/biocontainers/bioconductor-chipqc:1.28.0--r41hdfd78af_0"
     }
 
     input:
@@ -41,7 +40,7 @@ process PAIRSPLOT {
         "mnase": 4]
     def enzyme = RE_cutsite[params.enzyme.toLowerCase()]?:4
     """
-    install_packages.r SooLee/plotosaurus stringr Nozzle.R1
+    install_packages.r stringr Nozzle.R1
     mv pairsqc_report ${meta.id}_report
     pairsqcplot.r $enzyme ${meta.id}_report
 

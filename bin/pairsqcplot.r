@@ -21,7 +21,114 @@ dir.create(pwd)
 
 # (this maybe a issue)
 # both plotosaurus and interactive_multiline_d3prep is not test on multiple platforms
-library(plotosaurus)
+# library(plotosaurus)
+# difficult to load the plotosaurus in docker, copied the source code from https://github.com/SooLee/plotosaurus
+COLOR3B <-function() { c('grey80','grey60',1) }
+COLOR4 <-function() { c('dark violet','dodgerblue2','mediumseagreen','lightcoral') }
+exp_axis<-function(x, axis_ind, n=5){
+  at=pretty(x, n)
+  at_exp = sapply(at, function(xx)as.expression(bquote(10^ .(xx))))
+  axis(axis_ind, at=at, labels=at_exp)
+}
+get_preset <- function( n=1, layout=''){
+
+  # 1 plot in one page
+  if(n==1){
+    preset = list(
+        plts = list(
+            c(0.2,0.95,0.2,0.95)
+        ),
+        width=7,
+        height=7
+    )
+
+  # 2 plots in one page
+  } else if(n==2){
+
+    if(layout == 'h50' ){
+      preset = list(
+          plts=list(
+              c(0.1,0.47,0.2,0.95),
+              c(0.58,0.95,0.2,0.95)
+          ),
+          width=12,
+          height=6
+      )
+    } else if(layout == 'v50' ){
+      preset = list(
+          plts=list(
+              c(0.2,0.95,0.2,0.5),
+              c(0.2,0.95,0.65,0.95)
+          ),
+          width=7,
+          height=7
+      )
+    }
+
+  # 3 plots in one page
+  } else if(n==3){
+
+    preset = list(
+        plts=list(
+            c(0.1,0.47,0.2,0.95),
+            c(0.58,0.95,0.45,0.95),
+            c(0.58,0.95,0.2,0.35)
+        ),
+        width=12,
+        height=6
+    )
+  }
+
+  return(preset)
+}
+pngpdf<-function(plot.func,fprefix,width=7,height=7,pointsize=12,add.date=TRUE,skip.png=FALSE,nplots=1,png.res=600, display.only=FALSE){
+
+  if(add.date==TRUE){ date.tag=paste(".",gsub("-","",Sys.Date()),sep="")  ## eg. ".20141209"
+  } else { date.tag="" }
+
+  if(display.only) {
+      return.value = plot.func()
+
+  } else {
+
+    if(skip.png==FALSE){
+      png(paste(fprefix,date.tag,".png",sep=""),width=width,height=height*nplots,pointsize=pointsize*(nplots^0.3),units="in",res=png.res)
+      par(mfrow=c(nplots,1))
+      plot.func()
+      dev.off()
+    }
+
+    pdf.options(useDingbats=FALSE)
+    pdf(paste(fprefix,date.tag,".pdf",sep=""),width=width,height=height,pointsize=pointsize)
+    return.value = plot.func()
+    dev.off()
+
+    }
+
+  invisible(return.value)
+}
+pngpdf_preset<-function (plotfuncs, name, stylefunc=stylefunc0, preset=get_preset(length(plotfuncs)), ...)
+{
+    pngpdf(function() {
+        retn=list()
+        stylefunc()
+        par(plt = preset$plts[[1]])
+        retn[[1]] = plotfuncs[[1]]()
+        if (length(plotfuncs) > 1) {
+            for (i in 2:length(plotfuncs)) {
+                par(new = T, plt = preset$plts[[i]])
+                retn[[i]] = plotfuncs[[i]]()
+            }
+        }
+        return(retn);
+    }, name, width = preset$width, height = preset$height, ...)
+}
+stylefunc0<-function(){
+    par(las=1, lend=2)
+    par(bg='white',fg=1,col.lab=1, col.axis=1)
+}
+#### end of copy ######
+
 library(stringr)
 source("https://raw.githubusercontent.com/SooLee/d3forNozzleR/master/interactive_multiline_d3prep.r") # for d3 integration
 

@@ -12,11 +12,11 @@ process MAPS_CALLPEAK {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) },
         enabled: options.publish
 
-    conda (params.enable_conda ? "conda-forge::r-vgam=1.1_5" : null)
+    conda (params.enable_conda ? "bioconda::bioconductor-monocle=2.20.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/r-vgam:1.0_2--r3.3.2_0"
+        container "https://depot.galaxyproject.org/singularity/bioconductor-monocle:2.20.0--r41h399db7b_0"
     } else {
-        container "quay.io/biocontainers/r-vgam:1.0_2--r3.3.2_0"
+        container "quay.io/biocontainers/bioconductor-monocle:2.20.0--r41h399db7b_0"
     }
 
     input:

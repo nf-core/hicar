@@ -7,7 +7,7 @@ options        = initOptions(params.options)
 process BIOC_ENRICH {
     tag "$bin_size"
     label 'process_high'
-    errorStrategy { (task.attempt <= 3)  ? 'retry' : 'ignore' }
+    errorStrategy { (task.attempt <= 2)  ? 'retry' : 'ignore' }
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) }
@@ -18,6 +18,9 @@ process BIOC_ENRICH {
     } else {
         container "quay.io/biocontainers/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0"
     }
+
+    when:
+    !workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container
 
     input:
     tuple val(bin_size), path(diff)
