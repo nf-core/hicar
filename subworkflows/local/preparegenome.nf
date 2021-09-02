@@ -97,7 +97,7 @@ workflow PREPARE_GENOME {
     if (params.ucscname) {
         ucscname = params.ucscname
     } else {
-        uscs_map = ["GRCh38":"hg38", "GRCh37":"hg19",
+        ucsc_map = ["GRCh38":"hg38", "GRCh37":"hg19",
                     "GRCm38":"mm10", "TAIR10":"tair10",
                     "UMD3.1":"bosTau8", "CanFam3.1":"canFam3",
                     "WBcel235":"ce11", "GRCz10":"danRer10",
