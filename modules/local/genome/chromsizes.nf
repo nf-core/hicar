@@ -30,7 +30,7 @@ process CHROMSIZES {
     def software = 'samtools'
     """
     samtools faidx $fasta
-    cut -f 1,2 ${fasta}.fai > ${fasta}.sizes
+    cut -f 1,2 ${fasta}.fai | sort -k 1,1 > ${fasta}.sizes
     echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
     """
 }
