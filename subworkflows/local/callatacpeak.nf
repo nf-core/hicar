@@ -59,7 +59,10 @@ workflow ATAC_PEAK {
     // dump ATAC reads for each samples for differential analysis
     DUMPREADS_SAMPLE(SHIFTREADS.out.bed)
     ch_version = ch_version.mix(DUMPREADS.out.version)
-    BEDTOOLS_GENOMECOV_SAM(DUMPREADS_SAMPLE.out.peak, chromsizes, "bedgraph")
+    DUMPREADS_SAMPLE.out.peak.map{it[0]}
+                    .combine(DUMPREADS_SAMPLE.out.peak.map{it[1]}.flatten())
+                    .set{single_dump_bed_file}
+    BEDTOOLS_GENOMECOV_SAM(single_dump_bed_file, chromsizes, "bedgraph")
     ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_SAM.out.version)
     UCSC_BEDGRAPHTOBIGWIG_SAM(BEDTOOLS_GENOMECOV_SAM.out.genomecov, chromsizes)
     ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_SAM.out.version)
