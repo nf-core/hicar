@@ -16,6 +16,9 @@ include { MERGE_PEAK          } from '../../modules/local/atacreads/mergepeak'  
 include { BEDTOOLS_GENOMECOV  } from '../../modules/nf-core/modules/bedtools/genomecov/main'  addParams(options: params.options.bedtools_genomecov_per_group)
 include { BEDTOOLS_GENOMECOV
     as BEDTOOLS_GENOMECOV_SAM } from '../../modules/nf-core/modules/bedtools/genomecov/main'  addParams(options: params.options.bedtools_genomecov_per_sample)
+include { BEDTOOLS_SORT       } from '../../modules/nf-core/modules/bedtools/sort/main'  addParams(options: params.options.bedtools_sort_per_group)
+include { BEDTOOLS_SORT
+    as BEDTOOLS_SORT_SAM      } from '../../modules/nf-core/modules/bedtools/sort/main'  addParams(options: params.options.bedtools_sort_per_sample)
 include { UCSC_BEDGRAPHTOBIGWIG  } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'  addParams(options: params.options.ucsc_bedgraphtobigwig_per_group)
 include { UCSC_BEDGRAPHTOBIGWIG
     as UCSC_BEDGRAPHTOBIGWIG_SAM } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'  addParams(options: params.options.ucsc_bedgraphtobigwig_per_sample)
@@ -54,7 +57,8 @@ workflow ATAC_PEAK {
     // dump ATAC reads for each group for maps
     DUMPREADS(MERGEREADS.out.bed)
     BEDTOOLS_GENOMECOV(DUMPREADS.out.peak, chromsizes, "bedgraph")
-    UCSC_BEDGRAPHTOBIGWIG(BEDTOOLS_GENOMECOV.out.genomecov, chromsizes)
+    BEDTOOLS_SORT(BEDTOOLS_GENOMECOV.out.genomecov)
+    UCSC_BEDGRAPHTOBIGWIG(BEDTOOLS_SORT.out.bed, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
     DUMPREADS_SAMPLE(SHIFTREADS.out.bed)
@@ -63,8 +67,9 @@ workflow ATAC_PEAK {
                     .map{it -> [["id":it.simpleName], it] }
                     .set{single_dump_bed_file}
     BEDTOOLS_GENOMECOV_SAM(single_dump_bed_file, chromsizes, "bedgraph")
+    BEDTOOLS_SORT_SAM(BEDTOOLS_GENOMECOV_SAM.out.genomecov)
     ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_SAM.out.version)
-    UCSC_BEDGRAPHTOBIGWIG_SAM(BEDTOOLS_GENOMECOV_SAM.out.genomecov, chromsizes)
+    UCSC_BEDGRAPHTOBIGWIG_SAM(BEDTOOLS_SORT_SAM.out.genomecov, chromsizes)
     ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_SAM.out.version)
 
     emit:

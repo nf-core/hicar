@@ -35,7 +35,7 @@ readBWFile <- function(f, seqinfo){
 if(toUCSC){
     if(!"UCSC" %in% seqstyle){
         if(isBWF){
-            data <- readBWFile(inf)
+            data <- readBWFile(inf, seqinfo)
         }
         seqlevelsStyle(data) <- "UCSC"
         ## double check
@@ -50,7 +50,7 @@ if(toUCSC){
 }else{
     if(!"Ensembl" %in% seqstyle){
         if(isBWF){
-            data <- readBWFile(inf)
+            data <- readBWFile(inf, seqinfo)
         }
         seqlevelsStyle(data) <- "Ensembl"
         ## double check
