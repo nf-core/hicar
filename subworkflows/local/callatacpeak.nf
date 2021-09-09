@@ -69,7 +69,7 @@ workflow ATAC_PEAK {
     BEDTOOLS_GENOMECOV_SAM(single_dump_bed_file, chromsizes, "bedgraph")
     BEDTOOLS_SORT_SAM(BEDTOOLS_GENOMECOV_SAM.out.genomecov)
     ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_SAM.out.version)
-    UCSC_BEDGRAPHTOBIGWIG_SAM(BEDTOOLS_SORT_SAM.out.genomecov, chromsizes)
+    UCSC_BEDGRAPHTOBIGWIG_SAM(BEDTOOLS_SORT_SAM.out.bed, chromsizes)
     ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_SAM.out.version)
 
     emit:
