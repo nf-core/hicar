@@ -56,7 +56,10 @@ workflow ATAC_PEAK {
 
     // dump ATAC reads for each group for maps
     DUMPREADS(MERGEREADS.out.bed)
-    BEDTOOLS_GENOMECOV(DUMPREADS.out.peak, chromsizes, "bedgraph")
+    DUMPREADS.out.peak.map{it[1]}.flatten()
+            .map{it -> [["id":it.simpleName], it] }
+            .set{single_dump_bed_file}
+    BEDTOOLS_GENOMECOV(single_dump_bed_file, chromsizes, "bedgraph")
     BEDTOOLS_SORT(BEDTOOLS_GENOMECOV.out.genomecov)
     UCSC_BEDGRAPHTOBIGWIG(BEDTOOLS_SORT.out.bed, chromsizes)
 
@@ -65,8 +68,8 @@ workflow ATAC_PEAK {
     ch_version = ch_version.mix(DUMPREADS.out.version)
     DUMPREADS_SAMPLE.out.peak.map{it[1]}.flatten()
                     .map{it -> [["id":it.simpleName], it] }
-                    .set{single_dump_bed_file}
-    BEDTOOLS_GENOMECOV_SAM(single_dump_bed_file, chromsizes, "bedgraph")
+                    .set{single_dump_bed_file_sam}
+    BEDTOOLS_GENOMECOV_SAM(single_dump_bed_file_sam, chromsizes, "bedgraph")
     BEDTOOLS_SORT_SAM(BEDTOOLS_GENOMECOV_SAM.out.genomecov)
     ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_SAM.out.version)
     UCSC_BEDGRAPHTOBIGWIG_SAM(BEDTOOLS_SORT_SAM.out.bed, chromsizes)
