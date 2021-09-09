@@ -327,3 +327,23 @@ We recommend adding the following line to your environment to limit this (typica
 ```console
 NXF_OPTS='-Xms1g -Xmx4g'
 ```
+
+## Troubleshooting
+
+* Error: "PaddingError: Placeholder of length '80' too short in package"
+
+There is no easy answer here. The new `conda` packages should having a longer prefix (255 characters).
+The possible solution now is that try to run the pipeline in a shorter folder path, if at all possible.
+
+* Error: "Not a conda environment"
+
+There is something going wrong with the conda environment building.
+Just try to remove the conda environment folder and resume the run.
+
+* Error: "The exit status of the task that caused the workflow execution to fail was: null."
+
+Check the files are readable for the workflow.
+
+* Error:  "Session aborted -- Cause: Unable to execute HTTP request: ngi-igenomes.s3.amazonaws.com"
+
+The s3 connection reached the limitation of connection. Try to resume the analysis one hour later.
