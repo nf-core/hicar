@@ -1,10 +1,12 @@
 #!/usr/bin/env Rscript
 
 fs <- dir(".", "*.reads_stats.csv")
-df <- do.call(rbind, lapply(fs, read.csv))
-con <- file("reads_summary.csv", open="wt")
-write.csv(df, con, row.names=FALSE)
-close(con)
+if(length(fs)>0){
+    df <- do.call(rbind, lapply(fs, read.csv))
+    con <- file("reads_summary.csv", open="wt")
+    write.csv(df, con, row.names=FALSE)
+    close(con)
+}
 
 fs <- dir(".", "*.summary.out$")
 if(length(fs)>0){
@@ -15,6 +17,13 @@ if(length(fs)>0){
     con <- file("pairsqc_summary_out.csv", open="wt")
     write.csv(df, con, row.names=FALSE)
     close(con)
+}
+
+fs <- dir(".", "^summary")
+if(length(fs)>0){
+    df <- do.call(rbind, lapply(fs, read.delim, header=TRUE, sep=" "))
+    df[, 1] <- sub("summary.(.*?).txt", "\\1", basename(fs))
+    write.csv(df, "MAPS_summary_out.csv", row.names=FALSE)
 }
 
 fs <- dir(".", "*.distance.vs.proportion.csv$")
@@ -53,7 +62,7 @@ if(length(fs)>0){
             paste(unlist(json), collapse=", "),
             "}",
             "}")
-    writeLines(json, "dist.prop.json")
+    writeLines(json, "dist.prop.qc.json")
 
     ## merge by first columns
     mg <- function(...){

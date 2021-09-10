@@ -97,8 +97,9 @@ if(length(contrasts.lev)>1 || any(table(condition)>1)){
 
     ## PCA
     pdf(fname(NA, "pdf", "Multidimensional.scaling.plot-plot"))
-    plotMDS(y)
+    mds <- plotMDS(y)
     dev.off()
+    write.table(as.data.frame(mds)[, c("x", "y")], fname(NA, "csv", "Multidimensional.scaling.qc"), col.names=FALSE, sep=",", quote=FALSE)
     ## plot dispersion
     pdf(fname(NA, "pdf", "DispersionEstimate-plot"))
     plotBCV(y)

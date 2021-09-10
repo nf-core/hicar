@@ -13,6 +13,7 @@ include { DUMPREADS           } from '../../modules/local/atacreads/dumpreads'  
 include { DUMPREADS
     as DUMPREADS_SAMPLE       } from '../../modules/local/atacreads/dumpreads'        addParams(options: params.options.dump_reads_per_sample)
 include { MERGE_PEAK          } from '../../modules/local/atacreads/mergepeak'        addParams(options: params.options.merge_peak)
+include { ATACQC              } from '../../modules/local/atacreads/atacqc'           addParams(options: params.options.atacqc)
 include { BEDTOOLS_GENOMECOV  } from '../../modules/nf-core/modules/bedtools/genomecov/main'  addParams(options: params.options.bedtools_genomecov_per_group)
 include { BEDTOOLS_GENOMECOV
     as BEDTOOLS_GENOMECOV_SAM } from '../../modules/nf-core/modules/bedtools/genomecov/main'  addParams(options: params.options.bedtools_genomecov_per_sample)
@@ -28,6 +29,7 @@ workflow ATAC_PEAK {
     raw_pairs  // channel: [ val(meta), [pairs] ]
     chromsizes // channel: [ path(size) ]
     macs_gsize // channel: value
+    gtf        // channel: [ path(gtf) ]
 
     main:
     // extract ATAC reads, split the pairs into longRange_Trans pairs and short pairs
@@ -54,6 +56,10 @@ workflow ATAC_PEAK {
     atac_peaks = MACS2_CALLPEAK.out.peak.map{it[1]}.collect()
     MERGE_PEAK(atac_peaks)
 
+    // stats
+    ATACQC(atac_peaks, MERGEREADS.out.bed.map{it[1]}.collect(), gtf)
+    ch_version = ch_version.mix(ATACQC.out.version)
+
     // dump ATAC reads for each group for maps
     DUMPREADS(MERGEREADS.out.bed)
     DUMPREADS.out.peak.map{it[1]}.flatten()
@@ -79,6 +85,7 @@ workflow ATAC_PEAK {
     peak       = MACS2_CALLPEAK.out.peak              // channel: [ val(meta), path(peak) ]
     xls        = MACS2_CALLPEAK.out.xls               // channel: [ val(meta), path(xls) ]
     mergedpeak = MERGE_PEAK.out.peak                  // channel: [ path(bed) ]
+    stats      = ATACQC.out.stats                     // channel: [ path(csv) ]
     reads      = DUMPREADS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
     samplereads= DUMPREADS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
     version    = ch_version                           // channel: [ path(version) ]

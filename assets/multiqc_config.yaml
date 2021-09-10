@@ -17,6 +17,12 @@ run_modules:
     - cutadapt
     - samtools
 
+# Hiding General Statistics Proper Pairs columns
+table_columns_visible:
+    Samtools:
+        reads_properly_paired_percent: False
+        non-primary_alignments: False
+
 # Customise the module search patterns to speed up execution time
 #  - Skip module sub-tools that we are not interested in
 #  - Replace file-content searching with filename pattern searching
@@ -28,7 +34,13 @@ sp:
     pairs_reads_detailed_summary:
         fn: "pairsqc_summary_out.csv"
     pairs_reads_proportion:
-        fn: "dist.prop.json"
+        fn: "dist.prop.qc.json"
+    atac_peaks_qc:
+        fn: "TSSEscore_FRiP.csv"
+    maps_qc:
+        fn: "MAPS_summary_out.csv"
+    sample_pca:
+        fn: "Multidimensional.scaling.qc.csv"
     pairs_peaks_genomic_dist:
         fn: "genomicElementDistribuitonOfEachPeakList.*.png"
     other_side_genomic_dist:
@@ -52,7 +64,7 @@ custom_data:
     pairs_reads_detailed_summary:
         parent_id: 'pairs_qc'
         section_name: 'PAIRS reads detailed summary'
-        description: "Cis-to-trans ratio is computed as the ratio of long-range cis reads (>20kb) to trans reads plus long-range cis reads. Typically, cis-to-trans ratio higher than 40% is required. Percentage of long-range cis reads is the ratio of long-range cis reads to total number of reads. Minimum 15% is required and 40% or higher suggests a good library(doi:10.1016/j.cell.2014.11.021). Convergence is determined as standard deviation of proportions of four read orientations to be <0.002 (Very good) or <0.05 (Good) (See section Proportion of read orientation versus genomic separation in the pairsqc_report file under pairs/QC/). The slope of log10 contact probability vs distance between 10kb ~ 300kb representing TAD is also provided as well. (See section Contact probability versus genomic separation in the pairsqc_report file under pairs/QC/)"
+        description: "Cis-to-trans ratio is computed as the ratio of long-range cis reads (>20kb) to trans reads plus long-range cis reads. Typically, <strong>cis-to-trans ratio higher than 40% is required</strong>. Percentage of long-range cis reads is the ratio of long-range cis reads to total number of reads. <strong>Minimum 15% is required and 40% or higher suggests a good library</strong>(<a href='https://pubmed.ncbi.nlm.nih.gov/25497547/'>doi:10.1016/j.cell.2014.11.021</a>). Convergence is determined as standard deviation of proportions of four read orientations to be <0.002 (Very good) or <0.05 (Good) (See section Proportion of read orientation versus genomic separation in the pairsqc_report file under pairs/QC/). The slope of log10 contact probability vs distance between 10kb ~ 300kb representing TAD is also provided as well. (See section Contact probability versus genomic separation in the pairsqc_report file under pairs/QC/)"
         file_format: "csv"
         plot_type: 'table'
         pconfig:
@@ -75,6 +87,37 @@ custom_data:
             ymax: 1
             marker_size: 3
             marker_line_colour: '#999999'
+    atac_peaks_qc:
+        parent_id: 'pairs_qc'
+        section_name: 'ATAC R2 reads quality control'
+        description: '<strong>Fraction of reads in peaks (FRiP)</strong> – Fraction of all mapped reads that fall into the called peak regions, i.e. usable reads in significantly enriched peaks divided by all usable reads. In general, FRiP scores correlate positively with the number of regions. (<a href="https://pubmed.ncbi.nlm.nih.gov/22955991/">Landt et al, Genome Research Sept. 2012, 22(9): 1813–1831</a>). <strong>FRiP should be greater than 1%</strong>. <br/><br/><strong>TSS enrichment score</strong> is a raio between aggregate distribution of reads centered on TSSs and that flanking the corresponding TSSs. TSS score = the depth of TSS (each 100bp window within 1000 bp each side) / the depth of end flanks (100bp each end). TSSE score = max(mean(TSS score in each window)). TSS enrichment score is calculated according to the definition at <a href="https://www.encodeproject.org/data-standards/terms/#enrichment">ENCODE TSSE score</a>. Transcription start site (TSS) enrichment values are dependent on the reference files used; cutoff values for high quality data are listed in the following table from <a href="https://www.encodeproject.org/atac-seq/">ENCODE ATAC-seq QC</a>. For HiCAR, only R2 reads is used in TSSE score calculation and reads enrichment is following exponential ratio, we adjusted the TSSE score range. TSSEscore < 2.5: concerning; TSSEscore 2.5-3.5: concerning; TSSEscore > 3.5: Ideal. <br/><br/>Promoter/Transcript body proportions is test for the R2 reads enriched in promoters or in transcript body.'
+        file_format: 'csv'
+        plot_type: 'table'
+        pconfig:
+            id: 'atac_peaks_qc_table'
+            table_title: 'ATAC R2 reads quality control'
+            namespace: 'ATAC R2 reads quality control'
+    maps_qc:
+        parent_id: 'pairs_qc'
+        section_name: 'MAPS peak calling summary'
+        description: '<a href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006982">MAPS summary</a>.'
+        file_format: 'csv'
+        plot_type: 'table'
+        pconfig:
+            id: 'maps_peaks_qc_table'
+            table_title: 'MAPS peak calling summary'
+            namespace: 'MAPS peak calling summary'
+    sample_pca:
+        parent_id: 'pairs_qc'
+        section_name: 'PCA analysis'
+        description: 'PCA analysis by <a href="https://pubmed.ncbi.nlm.nih.gov/19910308/">edgeR</a>.'
+        file_format: 'csv'
+        plot_type: 'scatter'
+        pconfig:
+            id: 'sample_pca_plot'
+            title: 'PCA analysis by edgeR'
+            xlab: 'PC1'
+            ylab: 'PC2'
     pairs_peaks_genomic_dist:
         parent_id: 'pairs_qc'
         section_name: 'Peaks genomic element distribution'

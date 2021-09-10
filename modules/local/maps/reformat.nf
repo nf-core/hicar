@@ -9,8 +9,7 @@ process MAPS_REFORMAT {
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) },
-        enabled: options.publish
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
     conda (params.enable_conda ? "conda-forge::r-data.table=1.12.2" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {

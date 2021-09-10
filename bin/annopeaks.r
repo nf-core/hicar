@@ -70,13 +70,14 @@ for(det in detbl){
                                     FeatureLocForDistance = "TSS",
                                     ignore.strand = TRUE)
     if(length(id2symbol)>0) DB.anno2$symbol[!is.na(DB.anno2$feature)] <- id2symbol[DB.anno2$feature[!is.na(DB.anno2$feature)]]
+    groupName <- sub(".sig3Dinteractions.bedpe|csv", "", basename(det))
     if(grepl("padj", det)){
-        resList[[basename(det)]] <- c(DB.anno1, DB.anno2)
+        resList[[groupName]] <- c(DB.anno1, DB.anno2)
     }else{
-        peaks[[basename(det)]] <- unique(c(DB.gr1, DB.gr2))
+        peaks[[groupName]] <- unique(c(DB.gr1, DB.gr2))
         ol1 <- findOverlaps(DB.gr1, promoters)
         ol2 <- findOverlaps(DB.gr2, promoters)
-        promoterList[[basename(det)]] <- unique(c(DB.gr2[unique(queryHits(ol1))], DB.gr1[unique(queryHits(ol2))]))
+        promoterList[[groupName]] <- unique(c(DB.gr2[unique(queryHits(ol1))], DB.gr1[unique(queryHits(ol2))]))
     }
     # Summary the annotations
     DB.anno1 <- mcols(DB.anno1)
@@ -136,8 +137,9 @@ if(packageVersion("ChIPpeakAnno")>="3.23.12"){
         if(length(peaks)<=5 && length(peaks)>1){
             ol <- findOverlapsOfPeaks(peaks)
             png(file.path(pf, paste0("vennDiagram.all.", bin_size, ".png")))
-            makeVennDiagram(ol, connectedPeaks="keepAll")
+            vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
             dev.off()
+            write.csv(vd$vennCounts, file.path(pf, paste0("vennDiagram.all.", bin_size, ".csv")), row.names=FALSE)
         }
     }
     if(length(promoterList)>0){
@@ -161,8 +163,9 @@ if(packageVersion("ChIPpeakAnno")>="3.23.12"){
         if(length(promoterList)<=5 && length(promoterList)>1){
             ol <- findOverlapsOfPeaks(promoterList)
             png(file.path(pf, paste0("vennDiagram.remote.interaction.peak.with.promoters.all.", bin_size, ".png")))
-            makeVennDiagram(ol, connectedPeaks="keepAll")
+            vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
             dev.off()
+            write.csv(vd$vennCounts, file.path(pf, paste0("vennDiagram.remote.interaction.peak.with.promoters.all.", bin_size, ".csv")), row.names=FALSE)
         }
     }
 }

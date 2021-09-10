@@ -5,6 +5,8 @@ params.options = [:]
 
 include { MAPS_MAPS             } from '../../modules/local/maps/maps'         addParams(options: params.options.maps_maps)
 include { MAPS_CALLPEAK         } from '../../modules/local/maps/callpeak'     addParams(options: params.options.maps_callpeak)
+include { READS_SUMMARY
+    as MAPS_STATS               } from '../../modules/local/reads_summary'      addParams(options: params.options.maps_stats)
 include { MAPS_REFORMAT         } from '../../modules/local/maps/reformat'     addParams(options: params.options.maps_reformat)
 
 workflow MAPS_PEAK {
@@ -22,8 +24,11 @@ workflow MAPS_PEAK {
     //peak formatting
     MAPS_REFORMAT(peak)
     ch_version = ch_version.mix(MAPS_REFORMAT.out.version)
+    //merge stats
+    MAPS_STATS(MAPS_CALLPEAK.out.summary.map{it[2]}.collect())
 
     emit:
     peak         = MAPS_REFORMAT.out.bedpe      // channel: [ path(bedpe) ]
+    stats        = MAPS_STATS.out.summary       // channel: [ path(stats) ]
     version      = ch_version                   // channel: [ path(version) ]
 }

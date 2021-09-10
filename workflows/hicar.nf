@@ -80,9 +80,9 @@ include { PREPARE_GENOME         } from '../subworkflows/local/preparegenome' ad
 include { BAM_STAT               } from '../subworkflows/local/bam_stats' addParams(options: getSubWorkFlowParam(modules, ['samtools_sort', 'samtools_index', 'samtools_stats', 'samtools_flagstat', 'samtools_idxstats']))
 include { PAIRTOOLS_PAIRE        } from '../subworkflows/local/pairtools' addParams(options: getSubWorkFlowParam(modules, ['paritools_dedup', 'pairtools_flip', 'pairtools_parse', 'pairtools_restrict', 'pairtools_select', 'pairtools_select_long', 'pairtools_sort', 'pairix', 'reads_stat', 'reads_summary', 'pairsqc', 'pairsplot']))
 include { COOLER                 } from '../subworkflows/local/cooler' addParams(options: getSubWorkFlowParam(modules, ['cooler_cload', 'cooler_merge', 'cooler_zoomify', 'cooler_dump_per_group', 'cooler_dump_per_sample', 'dumpintrareads_per_group', 'dumpintrareads_per_sample']))
-include { ATAC_PEAK              } from '../subworkflows/local/callatacpeak' addParams(options: getSubWorkFlowParam(modules, ['pairtools_select', 'pairtools_select_short', 'merge_reads', 'shift_reads', 'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample', 'merge_peak', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedgraphtobigwig_per_group', 'ucsc_bedgraphtobigwig_per_sample']))
+include { ATAC_PEAK              } from '../subworkflows/local/callatacpeak' addParams(options: getSubWorkFlowParam(modules, ['pairtools_select', 'pairtools_select_short', 'merge_reads', 'shift_reads', 'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample', 'merge_peak', 'atacqc', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedgraphtobigwig_per_group', 'ucsc_bedgraphtobigwig_per_sample']))
 include { MAPS_MULTIENZYME       } from '../subworkflows/local/multienzyme'   addParams(options: getSubWorkFlowParam(modules, ['maps_cut', 'maps_fend', 'genmap_index', 'genmap_mappability', 'ucsc_wigtobigwig', 'maps_mapability', 'maps_merge', 'maps_feature', 'ensembl_ucsc_convert']))
-include { MAPS_PEAK              } from '../subworkflows/local/maps_peak' addParams(options: getSubWorkFlowParam(modules, ['maps_maps', 'maps_callpeak', 'maps_reformat']))
+include { MAPS_PEAK              } from '../subworkflows/local/maps_peak' addParams(options: getSubWorkFlowParam(modules, ['maps_maps', 'maps_callpeak', 'maps_stats', 'maps_reformat']))
 
 /*
 ========================================================================================
@@ -234,7 +234,8 @@ workflow HICAR {
     ATAC_PEAK(
         PAIRTOOLS_PAIRE.out.raw,
         PREPARE_GENOME.out.chrom_sizes,
-        PREPARE_GENOME.out.gsize
+        PREPARE_GENOME.out.gsize,
+        PREPARE_GENOME.out.gtf
     )
     ch_software_versions = ch_software_versions.mix(ATAC_PEAK.out.version.ifEmpty(null))
 
@@ -355,8 +356,17 @@ workflow HICAR {
         ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO_MAPS.out.png.collect().ifEmpty([]))
-        //ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO.out.png.collect().ifEmpty([]))
-
+        ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(MAPS_PEAK.out.stats.collect().ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(DIFFHICAR.out.stats.collect().ifEmpty([]))
+        ch_multiqc_files
+            .flatten()
+            .map { it -> if (it) [ it.baseName, it ] }
+            .groupTuple()
+            .map { it[1][0] }
+            .flatten()
+            .collect()
+            .set { ch_multiqc_files }
         MULTIQC (
             ch_multiqc_files.collect()
         )
