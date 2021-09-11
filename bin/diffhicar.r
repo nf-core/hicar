@@ -99,7 +99,33 @@ if(length(contrasts.lev)>1 || any(table(condition)>1)){
     pdf(fname(NA, "pdf", "Multidimensional.scaling.plot-plot"))
     mds <- plotMDS(y)
     dev.off()
-    write.table(as.data.frame(mds)[, c("x", "y")], fname(NA, "csv", "Multidimensional.scaling.qc"), col.names=FALSE, sep=",", quote=FALSE)
+    ## PCA for multiQC
+    json <- as.data.frame(mds)[, c("x", "y")]
+    json <- split(json, coldata[rownames(json), "condition"])
+    json <- mapply(json, rainbow(n=length(json)), FUN=function(.ele, .color){
+        .ele <- cbind(.ele, "name"=rownames(.ele))
+        .ele <- apply(.ele, 1, function(.e){
+            x <- names(.e)
+            y <- .e
+            .e <- paste0('{"x":', .e[1],
+                        ', "y":', .e[2],
+                        ', "color":"', .color,
+                        '", "name":"', .e[3],
+                        '"}')
+        })
+        .ele <- paste(.ele, collapse=", ")
+        .ele <- paste("[", .ele, "]")
+    })
+    json <- paste0('"', names(json), '" :', json)
+    json <- c(
+            "{",
+            '"id":"sample_pca",',
+            '"data":{',
+            paste(unlist(json), collapse=", "),
+            "}",
+            "}")
+    writeLines(json, fname(NA, "json", "Multidimensional.scaling.qc"))
+
     ## plot dispersion
     pdf(fname(NA, "pdf", "DispersionEstimate-plot"))
     plotBCV(y)

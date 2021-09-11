@@ -40,7 +40,7 @@ sp:
     maps_qc:
         fn: "MAPS_summary_out.csv"
     sample_pca:
-        fn: "Multidimensional.scaling.qc.csv"
+        fn: "Multidimensional.scaling.qc.json"
     pairs_peaks_genomic_dist:
         fn: "genomicElementDistribuitonOfEachPeakList.*.png"
     other_side_genomic_dist:
@@ -90,7 +90,7 @@ custom_data:
     atac_peaks_qc:
         parent_id: 'pairs_qc'
         section_name: 'ATAC R2 reads quality control'
-        description: '<strong>Fraction of reads in peaks (FRiP)</strong> – Fraction of all mapped reads that fall into the called peak regions, i.e. usable reads in significantly enriched peaks divided by all usable reads. In general, FRiP scores correlate positively with the number of regions. (<a href="https://pubmed.ncbi.nlm.nih.gov/22955991/">Landt et al, Genome Research Sept. 2012, 22(9): 1813–1831</a>). <strong>FRiP should be greater than 1%</strong>. <br/><br/><strong>TSS enrichment score</strong> is a raio between aggregate distribution of reads centered on TSSs and that flanking the corresponding TSSs. TSS score = the depth of TSS (each 100bp window within 1000 bp each side) / the depth of end flanks (100bp each end). TSSE score = max(mean(TSS score in each window)). TSS enrichment score is calculated according to the definition at <a href="https://www.encodeproject.org/data-standards/terms/#enrichment">ENCODE TSSE score</a>. Transcription start site (TSS) enrichment values are dependent on the reference files used; cutoff values for high quality data are listed in the following table from <a href="https://www.encodeproject.org/atac-seq/">ENCODE ATAC-seq QC</a>. For HiCAR, only R2 reads is used in TSSE score calculation and reads enrichment is following exponential ratio, we adjusted the TSSE score range. TSSEscore < 2.5: concerning; TSSEscore 2.5-3.5: concerning; TSSEscore > 3.5: Ideal. <br/><br/>Promoter/Transcript body proportions is test for the R2 reads enriched in promoters or in transcript body.'
+        description: '<strong>Fraction of reads in peaks (FRiP)</strong> – Fraction of all mapped reads that fall into the called peak regions, i.e. usable reads in significantly enriched peaks divided by all usable reads. In general, FRiP scores correlate positively with the number of regions. (<a href="https://pubmed.ncbi.nlm.nih.gov/22955991/">Landt et al, Genome Research Sept. 2012, 22(9): 1813–1831</a>). <strong>FRiP should be greater than 1%</strong>. <br/><br/><strong>TSS enrichment score</strong> is a raio between aggregate distribution of reads centered on TSSs and that flanking the corresponding TSSs. TSS score = the depth of TSS (each 100bp window within 1000 bp each side) / the depth of end flanks (100bp each end). TSSE score = max(mean(TSS score in each window)). TSS enrichment score is calculated according to the definition at <a href="https://www.encodeproject.org/data-standards/terms/#enrichment">ENCODE TSSE score</a>. Transcription start site (TSS) enrichment values are dependent on the reference files used; cutoff values for high quality data are listed in the following table from <a href="https://www.encodeproject.org/atac-seq/">ENCODE ATAC-seq QC</a>. For HiCAR, only R2 reads is used in TSSE score calculation and reads enrichment is following exponential ratio, we adjusted the TSSE score range. TSSEscore < 2.5: concerning; TSSEscore 2.5-3.5: acceptable; TSSEscore > 3.5: Ideal. <br/><br/>Promoter/Transcript body proportions is test for the R2 reads enriched in promoters or in transcript body.'
         file_format: 'csv'
         plot_type: 'table'
         pconfig:
@@ -111,13 +111,14 @@ custom_data:
         parent_id: 'pairs_qc'
         section_name: 'PCA analysis'
         description: 'PCA analysis by <a href="https://pubmed.ncbi.nlm.nih.gov/19910308/">edgeR</a>.'
-        file_format: 'csv'
+        file_format: 'json'
         plot_type: 'scatter'
         pconfig:
-            id: 'sample_pca_plot'
+            id: 'sample_pca'
             title: 'PCA analysis by edgeR'
             xlab: 'PC1'
             ylab: 'PC2'
+            marker_size: 3
     pairs_peaks_genomic_dist:
         parent_id: 'pairs_qc'
         section_name: 'Peaks genomic element distribution'

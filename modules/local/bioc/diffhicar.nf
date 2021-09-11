@@ -24,7 +24,7 @@ process DIFFHICAR {
 
     output:
     tuple val(bin_size), path("${prefix}/*"), emit: diff
-    path "${prefix}/*.qc.csv"               , emit: stats
+    path "${prefix}/*.qc.json"               , emit: stats
     path "*.version.txt"                    , emit: version
 
     script:
