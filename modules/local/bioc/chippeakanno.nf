@@ -26,7 +26,7 @@ process BIOC_CHIPPEAKANNO {
     output:
     tuple val(bin_size), path("${prefix}/anno/*"), emit: anno
     tuple val(bin_size), path("${prefix}/anno/**.anno.csv"), emit: csv
-    path "${prefix}/anno/*.png", emit: png
+    path "${prefix}/anno/*.png", optional:true, emit: png
     path "*.version.txt"               , emit: version
 
     script:
