@@ -20,6 +20,7 @@ include { BEDTOOLS_GENOMECOV
 include { BEDTOOLS_SORT       } from '../../modules/nf-core/modules/bedtools/sort/main'  addParams(options: params.options.bedtools_sort_per_group)
 include { BEDTOOLS_SORT
     as BEDTOOLS_SORT_SAM      } from '../../modules/nf-core/modules/bedtools/sort/main'  addParams(options: params.options.bedtools_sort_per_sample)
+include { UCSC_BEDCLIP        } from '../../modules/nf-core/modules/ucsc/bedclip/main'  addParams(options: params.options.ucsc_bedclip)
 include { UCSC_BEDGRAPHTOBIGWIG  } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'  addParams(options: params.options.ucsc_bedgraphtobigwig_per_group)
 include { UCSC_BEDGRAPHTOBIGWIG
     as UCSC_BEDGRAPHTOBIGWIG_SAM } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'  addParams(options: params.options.ucsc_bedgraphtobigwig_per_sample)
@@ -63,7 +64,8 @@ workflow ATAC_PEAK {
     // dump ATAC reads for each group for maps
     DUMPREADS(MERGEREADS.out.bed)
     BEDTOOLS_SORT(MACS2_CALLPEAK.out.pileup)
-    UCSC_BEDGRAPHTOBIGWIG(BEDTOOLS_SORT.out.bed, chromsizes)
+    UCSC_BEDCLIP(BEDTOOLS_SORT.out.bed, chromsizes)
+    UCSC_BEDGRAPHTOBIGWIG(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
     DUMPREADS_SAMPLE(SHIFTREADS.out.bed)
