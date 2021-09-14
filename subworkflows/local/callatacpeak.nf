@@ -62,20 +62,13 @@ workflow ATAC_PEAK {
 
     // dump ATAC reads for each group for maps
     DUMPREADS(MERGEREADS.out.bed)
-    DUMPREADS.out.peak.map{it[1]}.flatten()
-            .map{it -> [["id":it.simpleName], it] }
-            .set{single_dump_bed_file}
-    BEDTOOLS_GENOMECOV(single_dump_bed_file, chromsizes, "bedgraph")
-    BEDTOOLS_SORT(BEDTOOLS_GENOMECOV.out.genomecov)
+    BEDTOOLS_SORT(MACS2_CALLPEAK.out.pileup)
     UCSC_BEDGRAPHTOBIGWIG(BEDTOOLS_SORT.out.bed, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
     DUMPREADS_SAMPLE(SHIFTREADS.out.bed)
     ch_version = ch_version.mix(DUMPREADS.out.version)
-    DUMPREADS_SAMPLE.out.peak.map{it[1]}.flatten()
-                    .map{it -> [["id":it.simpleName], it] }
-                    .set{single_dump_bed_file_sam}
-    BEDTOOLS_GENOMECOV_SAM(single_dump_bed_file_sam, chromsizes, "bedgraph")
+    BEDTOOLS_GENOMECOV_SAM(SHIFTREADS.out.bed, chromsizes, "bedgraph")
     BEDTOOLS_SORT_SAM(BEDTOOLS_GENOMECOV_SAM.out.genomecov)
     ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_SAM.out.version)
     UCSC_BEDGRAPHTOBIGWIG_SAM(BEDTOOLS_SORT_SAM.out.bed, chromsizes)
@@ -88,5 +81,6 @@ workflow ATAC_PEAK {
     stats      = ATACQC.out.stats                     // channel: [ path(csv) ]
     reads      = DUMPREADS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
     samplereads= DUMPREADS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
+    bws        = UCSC_BEDGRAPHTOBIGWIG.out.bigwig     // channel: [ val(meta), path(bigwig) ]
     version    = ch_version                           // channel: [ path(version) ]
 }

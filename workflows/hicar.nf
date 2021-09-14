@@ -72,6 +72,7 @@ include { BIOC_ENRICH            } from '../modules/local/bioc/enrich' addParams
 include { BIOC_TRACKVIEWER       } from '../modules/local/bioc/trackviewer' addParams(options: getParam(modules, 'trackviewer'))
 include { BIOC_TRACKVIEWER
     as BIOC_TRACKVIEWER_MAPS     } from '../modules/local/bioc/trackviewer' addParams(options: getParam(modules, 'trackviewer_maps'))
+include { IGV                    } from '../modules/local/igv' addParams(options: getParam(modules, 'igv'))
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -257,6 +258,15 @@ workflow HICAR {
                 .set{ maps_input }
     MAPS_PEAK(maps_input)
     ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.version.ifEmpty(null))
+
+    //
+    // Create igv index.html file
+    //
+    ATAC_PEAK.out.bws.map{it[0].id}.collect().mix(MAPS_PEAK.out.peak.map{it[0].id+'.'+it[1]+'.contacts'}.collect()).collect().toList()
+            .combine(ATAC_PEAK.out.bws.map{it[1]}.collect().mix(MAPS_PEAK.out.peak.map{it[2]}.collect()).collect().toList())
+            .set{ igv_track_files }
+    //igv_track_files.view()
+    IGV(igv_track_files, PREPARE_GENOME.out.ucscname)
 
     //
     // Annotate the MAPS peak

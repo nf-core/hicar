@@ -30,6 +30,7 @@ process MACS2_CALLPEAK {
     tuple val(meta), path("*.gappedPeak"), optional:true, emit: gapped
     tuple val(meta), path("*.bed")       , optional:true, emit: bed
     tuple val(meta), path("*.bdg")       , optional:true, emit: bdg
+    tuple val(meta), path("*_pileup.bdg"), optional:true, emit: pileup
 
     script:
     def software = getSoftwareName(task.process)
