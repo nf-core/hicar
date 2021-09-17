@@ -49,7 +49,7 @@ cnts <- do.call(cbind, lapply(cnts, function(.ele){
     .ele[match(peaks_id, getID(.ele)), 7]
 }))
 cnts[is.na(cnts)] <- 0
-names(peaks_id) <- paste0("p", seq_along(peaks_id))
+names(peaks_id) <- paste0(rep("p", length(peaks_id)), seq_along(peaks_id))
 rownames(cnts) <- names(peaks_id)
 
 pf <- as.character(binsize)
