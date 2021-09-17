@@ -54,7 +54,7 @@ custom_data:
         parent_name: 'PAIRS QC'
         parent_description: "Pairs QC report"
         section_name: 'PAIRS reads stats'
-        description: "Table of mapped reads stats."
+        description: 'Table of mapped reads stats. The duplication rate should be lower than 50%. 20%~30% is a good level for 60M PE reads for human genome. For shallow seq, <30% duplication rate should be the cutting value for further deep sequence. Too low duplication rate (<5%) may indicate low specific chromatin interacts. This is adapted from <a href="https://pubmed.ncbi.nlm.nih.gov/24782889/">ChIPQC</a>'
         file_format: "csv"
         plot_type: 'table'
         pconfig:

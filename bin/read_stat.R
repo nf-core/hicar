@@ -19,6 +19,7 @@ df <- data.frame(sample=sample_name,
         total=all_pairs["total"],
         duplicate=dep_pairs['total_dups'],
         non_duplicated=dep_pairs['total_nodups'],
+        duplication_rate=round(100*dep_pairs['total_dups']/all_pairs["total"],2),
         trans=dep_pairs['trans'],
         cis=dep_pairs['cis'],
         longRange=dep_pairs['cis_20kb+'])
