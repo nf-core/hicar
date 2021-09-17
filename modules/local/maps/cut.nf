@@ -44,7 +44,8 @@ process MAPS_CUT {
         -s ${enzyme.site} \\
         -p ${enzyme.pos} \\
         -b ${bin_size} \\
-        -o ${bin_size}_${params.enzyme}.cut
+        -o ${bin_size}_${params.enzyme}.cut \\
+        -c $task.cpus
 
     echo '1.1.0' > ${software}.version.txt
     """
