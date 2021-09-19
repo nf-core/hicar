@@ -146,6 +146,7 @@ cool_bin = Channel.fromList(params.cool_bin.tokenize('_'))
 workflow HICAR {
 
     ch_software_versions = Channel.empty()
+    ch_multiqc_files = Channel.empty()
 
     //
     // check the input fastq files are correct and produce checksum for GEO submission
@@ -177,6 +178,7 @@ workflow HICAR {
         )
         ch_software_versions = ch_software_versions.mix(CUTADAPT.out.version.ifEmpty(null))
         reads4mapping = CUTADAPT.out.reads
+        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
     }else{
         reads4mapping = ch_reads
     }
@@ -368,7 +370,6 @@ workflow HICAR {
         workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        ch_multiqc_files = Channel.empty()
         ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
         ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
@@ -377,7 +378,6 @@ workflow HICAR {
         ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO_MAPS.out.png.collect().ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
