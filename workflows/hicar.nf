@@ -171,19 +171,33 @@ workflow HICAR {
     //
     // MODULE: trimming
     //
-    CUTADAPT(
-        ch_reads
-    )
-    ch_software_versions = ch_software_versions.mix(CUTADAPT.out.version.ifEmpty(null))
+    if(!params.skip_cutadapt){
+        CUTADAPT(
+            ch_reads
+        )
+        ch_software_versions = ch_software_versions.mix(CUTADAPT.out.version.ifEmpty(null))
+        reads4mapping = CUTADAPT.out.reads
+    }else{
+        reads4mapping = ch_reads
+    }
+
 
     //
     // MODULE: mapping
     //
     BWA_MEM(
-        CUTADAPT.out.reads,
+        reads4mapping,
         PREPARE_GENOME.out.bwa_index
     )
     ch_software_versions = ch_software_versions.mix(BWA_MEM.out.version.ifEmpty(null))
+
+    //
+    // MODULE: shift 5 ends and trimming
+    //
+    //CHECK5END(
+    //    BWA_MEM.out.bam,
+    //    PREPARE_GENOME.out.digest_genome
+    //)
 
     //
     // Pool the technique replicates
