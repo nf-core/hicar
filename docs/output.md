@@ -20,7 +20,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 * [cooler](#cooler) - Cooler files for visualization
 * [ATACpeak](#call-peaks-for-short-reads) - The peaks called ATAC reads (R2 reads).
 * [MAPSpeak](#tads-and-loops) - The TADs and loops determined by MAPS.
-* [DifferentialAnalyis](#differential-analysis) Differential analysis for the TADs and loops.
+* [DifferentialAnalyis](#differential-analysis) - Differential analysis for the TADs and loops.
+* [igv.js](#igv) - The track files which can be viewed by web-server.
 
 ### MultiQC
 
@@ -179,3 +180,14 @@ The input counts are filtered counts dumped by pairtools for each samples.
 The differential analysis is done for validated TADs and loops by MAPs.
 Annotation is done by [ChIPpeakAnno](https://pubmed.ncbi.nlm.nih.gov/20459804/)
 for the overlap features (gene level) or nearest features.
+
+### IGV
+
+<details markdown="1">
+<summary>Output files</summary>
+
+* `igv.js/*`: index.html, readme.txt and track.tgz.
+
+</details>
+
+The track.tga contain the R2 reads tracks and interactions called by MAPS. Untar the `track.tgz` file and copy all the files into same folder in a web-server to view the data.
