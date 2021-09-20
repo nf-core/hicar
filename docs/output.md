@@ -74,7 +74,6 @@ The checksums (md5) of decompressed fastq files. Those infomation can be used fo
     * `genome.fa.fai`: genome index file
     * `filtered/genome.include_regions.bed`: filtered genome by blacklist
     * `digest/*`: genomic features files digested by given restriction enzyme
-    * `bwa_index/bwa/*`: bwa index files build on fly
 
 </details>
 
@@ -120,6 +119,7 @@ Adapter-trimmed reads are mapped to the reference assembly using [BWA::mem](http
 
 * `pairs/`
     * `raw/*`: The raw reads pairs for each sample and stats for the pairs.
+    * `filtered/*`: The filtered files. The unselected.pairs.gz files in samefrag folder can be used to generate virtual 4C plots.
     * `QC/*`: The quality analysis results.
 
 </details>
@@ -132,11 +132,16 @@ The quality analysis for filtered pairs were done by [pairsqc](https://github.co
 <details markdown="1">
 <summary>Output files</summary>
 
-* `pairs/mcool/*`: The mcool files for each group.
+* `cooler/mcool/*`: The mcool files for each group.
 
 </details>
 
 [Cooler](https://cooler.readthedocs.io/en/latest/index.html) files for visualization.
+To view the `.mcool` files, you may want to try [higlass-manage](https://github.com/higlass/higlass-manage).
+Once the higlass-manage is install, view the files by
+```console
+higlass-manage view cooler/mcool/your.mcool
+```
 
 ### Call peaks for short reads
 
