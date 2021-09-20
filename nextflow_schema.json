@@ -40,7 +40,7 @@
                 "skip_cutadapt": {
                     "type": "boolean",
                     "description": "skip trim 5'end TAC",
-                    "fa_icon": "fab fa-creative-commons-pd",
+                    "fa_icon": "fas fa-remove-format",
                     "hidden": false
                 },
                 "skip_fastqc": {
