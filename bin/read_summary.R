@@ -11,7 +11,7 @@ if(length(fs)>0){
 fs <- dir(".", "*.summary.out$")
 if(length(fs)>0){
     df <- t(do.call(cbind, lapply(fs, read.delim, header=FALSE, row.names=1)))
-    df <- sub(",", "", df)
+    df <- gsub(",", "", df)
     mode(df) <- "numeric"
     df <- cbind(sample=sub(".summary.out", "", basename(fs)), df)
     con <- file("pairsqc_summary_out.csv", open="wt")
