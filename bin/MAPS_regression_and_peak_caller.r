@@ -273,30 +273,34 @@ for (r in runs) {
     name_counter = 1
     for (i in chroms) {
             ## regression
-            print(paste('run',r,': regression on chromosome',i))
-            print(outf_names[name_counter])
-            mm = subset(mm_combined_and, chr == i)
-            if(nrow(mm)>6){
-                if (REG_TYPE == 'pospoisson') {
-                    mm = pospoisson_regression(mm, dataset_length)
-                } else if (REG_TYPE == 'negbinom') {
-                    mm = negbinom_regression(mm, dataset_length)
+            tryCatch({
+                print(paste('run',r,': regression on chromosome',i))
+                print(outf_names[name_counter])
+                mm = subset(mm_combined_and, chr == i)
+                if(nrow(mm)>6){
+                    if (REG_TYPE == 'pospoisson') {
+                        mm = pospoisson_regression(mm, dataset_length)
+                    } else if (REG_TYPE == 'negbinom') {
+                        mm = negbinom_regression(mm, dataset_length)
+                    }
+                    mx_combined_and = rbind(mx_combined_and, mm)
                 }
-                mx_combined_and = rbind(mx_combined_and, mm)
-            }
-            write.table(mm,outf_names[name_counter],row.names = TRUE,col.names = TRUE,quote=FALSE)
-            name_counter = name_counter + 1
-            print(outf_names[name_counter])
-            mm = subset(mm_combined_xor, chr == i)
-            if(nrow(mm)>6){
-                if (REG_TYPE == 'pospoisson') {
-                    mm = pospoisson_regression(mm, dataset_length)
-                } else if (REG_TYPE == 'negbinom') {
-                    mm = negbinom_regression(mm, dataset_length)
+                write.table(mm,outf_names[name_counter],row.names = TRUE,col.names = TRUE,quote=FALSE)
+                name_counter = name_counter + 1
+                print(outf_names[name_counter])
+                mm = subset(mm_combined_xor, chr == i)
+                if(nrow(mm)>6){
+                    if (REG_TYPE == 'pospoisson') {
+                        mm = pospoisson_regression(mm, dataset_length)
+                    } else if (REG_TYPE == 'negbinom') {
+                        mm = negbinom_regression(mm, dataset_length)
+                    }
+                    mx_combined_xor = rbind(mx_combined_xor, mm)
                 }
-                mx_combined_xor = rbind(mx_combined_xor, mm)
-            }
-            write.table(mm,outf_names[name_counter],row.names = TRUE,col.names = TRUE,quote=FALSE)
+                write.table(mm,outf_names[name_counter],row.names = TRUE,col.names = TRUE,quote=FALSE)
+            }, error=function(.e){
+                message(.e)
+            })
             name_counter = name_counter + 1
             ## finding min FDR so I can set appropriate lower boundary for FDR
     }
