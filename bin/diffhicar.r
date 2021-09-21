@@ -44,6 +44,15 @@ sizeFactor <- vapply(cnts, FUN=function(.ele) sum(.ele[, 7], na.rm = TRUE),
                     FUN.VALUE = numeric(1))
 
 getID <- function(mat) gsub("\\s+", "", apply(mat[, seq.int(6)], 1, paste, collapse="_"))
+getID1 <- function(mat) gsub("\\s+", "", apply(mat[, seq.int(3)], 1, paste, collapse="_"))
+getID2 <- function(mat) gsub("\\s+", "", apply(mat[, 4:6], 1, paste, collapse="_"))
+## prefilter
+peaks_id1 <- getID1(peaks)
+peaks_id2 <- getID2(peaks)
+cnts <- lapply(cnts, function(.ele) .ele[getID1(.ele) %in% peaks_id1, , drop=FALSE])
+cnts <- lapply(cnts, function(.ele) .ele[getID2(.ele) %in% peaks_id2, , drop=FALSE])
+rm(peaks_id1, peaks_id2, getID1, getID2)
+## match all the counts for peaks
 peaks_id <- getID(peaks)
 cnts <- do.call(cbind, lapply(cnts, function(.ele){
     .ele[match(peaks_id, getID(.ele)), 7]
@@ -100,7 +109,9 @@ if(length(contrasts.lev)>1 || any(table(condition)>1)){
     mds <- plotMDS(y)
     dev.off()
     ## PCA for multiQC
-    json <- as.data.frame(mds)[, c("x", "y")]
+    tryCatch({
+    json <- data.frame(x=mds$x, y=mds$y)
+    rownames(json) <- rownames(mds$distance.matrix.squared)
     json <- split(json, coldata[rownames(json), "condition"])
     json <- mapply(json, rainbow(n=length(json)), FUN=function(.ele, .color){
         .ele <- cbind(.ele, "name"=rownames(.ele))
@@ -125,6 +136,7 @@ if(length(contrasts.lev)>1 || any(table(condition)>1)){
             "}",
             "}")
     writeLines(json, fname(NA, "json", "Multidimensional.scaling.qc"))
+    }, error=function(e) message(e))
 
     ## plot dispersion
     pdf(fname(NA, "pdf", "DispersionEstimate-plot"))
