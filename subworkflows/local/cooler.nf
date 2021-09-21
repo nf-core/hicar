@@ -12,6 +12,7 @@ include { COOLER_DUMP
 include { DUMPINTRAREADS } from '../../modules/local/cooler/dumpintrareads'    addParams(options: params.options.dumpintrareads_per_group)
 include { DUMPINTRAREADS
     as DUMPINTRAREADS_SAMPLE} from '../../modules/local/cooler/dumpintrareads'    addParams(options: params.options.dumpintrareads_per_sample)
+include { JUICER         } from '../../modules/local/cooler/juicer'    addParams(options: params.options.juicer)
 
 workflow COOLER {
     take:
@@ -35,6 +36,9 @@ workflow COOLER {
     COOLER_ZOOMIFY(COOLER_MERGE.out.cool)
     // dump long.intra.bedpe for each group for MAPS to call peaks
     COOLER_DUMP(COOLER_MERGE.out.cool).bedpe | DUMPINTRAREADS
+    JUICER(DUMPINTRAREADS.out.gi, chromsizes)
+    ch_version = ch_version.mix(JUICER.out.version)
+
     // dump long.intra.bedpe for each sample
     COOLER_DUMP_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool]})
     DUMPINTRAREADS_SAMPLE(COOLER_DUMP_SAMPLE.out.bedpe)

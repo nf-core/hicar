@@ -22,18 +22,21 @@ process DUMPINTRAREADS {
     tuple val(meta), path(bedpe)
 
     output:
-    tuple val(meta), path("${meta.id}/*.long.intra.bedpe") , emit: bedpe
+    tuple val(meta), path("${outdir}/*.long.intra.bedpe")  , emit: bedpe
+    tuple val(meta), path("*.ginteractions")               , emit: gi
     path  "*.version.txt"                                  , emit: version
 
     script:
     def software = "awk"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
-    def outdir   = "${meta.id}"
+    outdir   = "${meta.id}"
     """
     mkdir -p $outdir
     awk -v setname=${prefix} -v outdir=${outdir} -F \$"\t" \\
         '{if(\$1 == \$4) {print > outdir"/"setname"."\$1".long.intra.bedpe"} }' \\
         $bedpe
+
+    awk -F "\t" '{print 0, \$1, \$2, 0, 0, \$4, \$5, 1, \$7}' $bedpe > ${prefix}.ginteractions
 
     echo \$(awk --version 2>&1) | sed -e "s/GNU Awk //g; s/, API.*\$//" > ${software}.version.txt
     """
