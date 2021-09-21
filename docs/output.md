@@ -141,9 +141,9 @@ The quality analysis for filtered pairs were done by [pairsqc](https://github.co
 To view the `.mcool` files, you may want to try [higlass-manage](https://github.com/higlass/higlass-manage).
 Once the `higlass-manage` is install, view the files by
 
-```
-higlass-manage view cooler/mcool/your.mcool
-```
+    ```bash
+    higlass-manage view cooler/mcool/your.mcool
+    ```
 
 [Juicebox](https://github.com/aidenlab/Juicebox) can be used to view the `.hic` file.
 `.hic` file is the second choices for visualization in case installation of `higlass-manage` is impossible.
