@@ -183,7 +183,6 @@ workflow HICAR {
         reads4mapping = ch_reads
     }
 
-
     //
     // MODULE: mapping
     //
@@ -192,14 +191,6 @@ workflow HICAR {
         PREPARE_GENOME.out.bwa_index
     )
     ch_software_versions = ch_software_versions.mix(BWA_MEM.out.version.ifEmpty(null))
-
-    //
-    // MODULE: shift 5 ends and trimming
-    //
-    //CHECK5END(
-    //    BWA_MEM.out.bam,
-    //    PREPARE_GENOME.out.digest_genome
-    //)
 
     //
     // Pool the technique replicates

@@ -140,6 +140,7 @@ The quality analysis for filtered pairs were done by [pairsqc](https://github.co
 [Cooler](https://cooler.readthedocs.io/en/latest/index.html) files for visualization.
 To view the `.mcool` files, you may want to try [higlass-manage](https://github.com/higlass/higlass-manage).
 Once the `higlass-manage` is install, view the files by
+
 ```
 higlass-manage view cooler/mcool/your.mcool
 ```
