@@ -6,7 +6,7 @@ options        = initOptions(params.options)
 
 process DIFFHICAR {
     tag "$bin_size"
-    label 'process_high'
+    label 'process_medium'
     label 'error_ignore'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,

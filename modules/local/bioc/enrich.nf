@@ -6,7 +6,7 @@ options        = initOptions(params.options)
 
 process BIOC_ENRICH {
     tag "$bin_size"
-    label 'process_high'
+    label 'process_medium'
     errorStrategy { (task.attempt <= 2)  ? 'retry' : 'ignore' }
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
