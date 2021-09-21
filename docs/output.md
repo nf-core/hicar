@@ -133,15 +133,19 @@ The quality analysis for filtered pairs were done by [pairsqc](https://github.co
 <summary>Output files</summary>
 
 * `cooler/mcool/*`: The mcool files for each group.
+* `cooler/hic/*`: The .hic files for each group.
 
 </details>
 
 [Cooler](https://cooler.readthedocs.io/en/latest/index.html) files for visualization.
 To view the `.mcool` files, you may want to try [higlass-manage](https://github.com/higlass/higlass-manage).
-Once the higlass-manage is install, view the files by
+Once the `higlass-manage` is install, view the files by
 ```console
 higlass-manage view cooler/mcool/your.mcool
 ```
+
+[Juicebox](https://github.com/aidenlab/Juicebox) can be used to view the `.hic` file.
+`.hic` file is the second choices for visualization in case installation of `higlass-manage` is impossible.
 
 ### Call peaks for short reads
 
