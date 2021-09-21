@@ -77,7 +77,7 @@ write.csv(sizeFactor, fname(NA, "csv", "library.size"), row.names = TRUE)
 
 ## coldata
 sampleNames <- colnames(cnts)
-condition <- sub("_REP.*$", "", sampleNames)
+condition <- make.names(sub("_REP.*$", "", sampleNames), allow_=TRUE)
 coldata <- data.frame(condition=factor(condition),
                     row.names = sampleNames)
 ## write designtable

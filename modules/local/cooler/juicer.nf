@@ -26,8 +26,19 @@ process JUICER {
     """
     ## thanks https://www.biostars.org/p/360254/
     sort -k2,2d -k6,6d $gi > ${gi}.sorted
+    resolutions=(500 1000 2000 5000 10000 20000 50000 100000 250000 500000 1000000 2000000 5000000)
+    res=()
+    function join_by { local IFS="\$1"; shift; echo "\$*"; }
+    for i in \${resolutions[@]}
+    do
+        if [[ \$i -ge $meta.bin ]]; then
+            res+=(\$i)
+        fi
+    done
+    res=\$(join_by , \${res[@]})
     java -Xms512m -Xmx2048m -jar $projectDir/bin/juicer_tools_1.22.01.jar pre \
-        $options.args --threads $task.cpus ${gi}.sorted ${prefix}.hic $chromsize
+        -r \$res \
+        $options.args --threads $task.cpus ${gi}.sorted ${prefix}.${meta.bin}.hic $chromsize
 
     echo 1.22.01 > ${software}.version.txt
     """

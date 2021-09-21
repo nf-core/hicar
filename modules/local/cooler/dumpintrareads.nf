@@ -36,7 +36,7 @@ process DUMPINTRAREADS {
         '{if(\$1 == \$4) {print > outdir"/"setname"."\$1".long.intra.bedpe"} }' \\
         $bedpe
 
-    awk -F "\t" '{print 0, \$1, \$2, 0, 0, \$4, \$5, 1, \$7}' $bedpe > ${prefix}.ginteractions
+    awk -F "\t" '{print 0, \$1, \$2, 0, 0, \$4, \$5, 1, \$7}' $bedpe > ${prefix}.${meta.bin}.ginteractions
 
     echo \$(awk --version 2>&1) | sed -e "s/GNU Awk //g; s/, API.*\$//" > ${software}.version.txt
     """
