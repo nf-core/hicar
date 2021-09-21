@@ -228,7 +228,6 @@ As you will see in the example below, we have:
 * appended `--action lowercase` to the default `args` used by the module.
 * changed the default `publish_dir` value to where the files will eventually be published in the main results directory.
 
-
 ```nextflow
 params {
     modules {
