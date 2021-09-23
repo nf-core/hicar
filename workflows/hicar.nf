@@ -285,7 +285,7 @@ workflow HICAR {
             .set{ch_maps_anno}
         BIOC_CHIPPEAKANNO_MAPS(ch_maps_anno, PREPARE_GENOME.out.gtf)
         ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO_MAPS.out.version.ifEmpty(null))
-        if(!params.skip_virtual_4c){
+        if(params.virtual_4c){
             BIOC_CHIPPEAKANNO_MAPS.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
                                         .groupTuple()
                                         .map{bin, df -> [bin, df[0], df[1]]}
@@ -322,7 +322,7 @@ workflow HICAR {
             ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.version.ifEmpty(null))
             if(PREPARE_GENOME.out.ucscname) BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno.filter{it.size()>0}, PREPARE_GENOME.out.ucscname)
             ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.version.ifEmpty(null))
-            if(!params.skip_virtual_4c){
+            if(params.virtual_4c){
                 BIOC_CHIPPEAKANNO.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
                                             .groupTuple()
                                             .map{bin, df -> [bin, df[0], df[1]]}

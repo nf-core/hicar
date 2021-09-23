@@ -17,7 +17,6 @@ library(trackViewer)
 library(GenomicFeatures)
 library(InteractionSet)
 library(rtracklayer)
-library(optparse)
 writeLines(as.character(packageVersion("trackViewer")), "trackViewer.version.txt")
 writeLines(as.character(packageVersion("GenomicFeatures")), "GenomicFeatures.version.txt")
 writeLines(as.character(packageVersion("InteractionSet")), "InteractionSet.version.txt")
@@ -26,18 +25,49 @@ writeLines(as.character(packageVersion("rtracklayer")), "rtracklayer.version.txt
 gap <- 1000
 readwidth <- 150
 maxEvent <- 25
-option_list <- list(make_option(c("-g", "--gtf"), type="character", default=NULL, help="filename of gtf", metavar="string"),
-                    make_option(c("-s", "--chromsize"), type="character", default=NULL, help="filename of chrome size", metavar="string"),
-                    make_option(c("-x", "--restrict"), type="character", default=NULL, help="filename of restrict cut", metavar="string"),
-                    make_option(c("-r", "--resolution"), type="integer", default=NULL, help="resolution", metavar="integer"),
-                    make_option(c("-d", "--gap"), type="integer", default=NULL, help="gap, default 2*resolution", metavar="integer"),
-                    make_option(c("-l", "--raedlength"), type="integer", default=NULL, help="reads length used to strengthen the signal, default resolution/10", metavar="integer"),
-                    make_option(c("-m", "--maxevents"), type="integer", default=25, help="max events to plot", metavar="integer"),
-                    make_option(c("-o", "--output"), type="character", default=".", help="output folder", metavar="string"),
-                    make_option(c("-c", "--cores"), type="integer", default=1, help="Number of cores", metavar="integer"))
+if("optparse" %in% installed.packages()){
+    library(optparse)
+    option_list <- list(make_option(c("-g", "--gtf"), type="character", default=NULL, help="filename of gtf", metavar="string"),
+                        make_option(c("-s", "--chromsize"), type="character", default=NULL, help="filename of chrome size", metavar="string"),
+                        make_option(c("-x", "--restrict"), type="character", default=NULL, help="filename of restrict cut", metavar="string"),
+                        make_option(c("-r", "--resolution"), type="integer", default=NULL, help="resolution", metavar="integer"),
+                        make_option(c("-d", "--gap"), type="integer", default=NULL, help="gap, default 2*resolution", metavar="integer"),
+                        make_option(c("-l", "--readlength"), type="integer", default=NULL, help="reads length used to strengthen the signal, default resolution/10", metavar="integer"),
+                        make_option(c("-m", "--maxevents"), type="integer", default=25, help="max events to plot", metavar="integer"),
+                        make_option(c("-o", "--output"), type="character", default=".", help="output folder", metavar="string"),
+                        make_option(c("-c", "--cores"), type="integer", default=1, help="Number of cores", metavar="integer"),
+                        make_option(c("-e", "--events"), type="character", default=NULL, help="given events csv file, must be ginteractions file", metavar="string"))
+    opt_parser <- OptionParser(option_list=option_list)
+    opt <- parse_args(opt_parser)
+}else{
+    args <- commandArgs(TRUE)
+    parse_args <- function(options, args){
+        out <- lapply(options, function(.ele){
+            if(any(.ele[-3] %in% args)){
+                if(.ele[3]=="logical"){
+                    TRUE
+                }else{
+                    id <- which(args %in% .ele[-3])[1]
+                    x <- args[id+1]
+                    mode(x) <- .ele[3]
+                    x
+                }
+            }
+        })
+    }
+    option_list <- list("gtf"=c("--gtf", "-g", "character"),
+                        "chromsize"=c("--chromsize", "-s", "character"),
+                        "restrict"=c("--restrict", "-x", "character"),
+                        "resolution"=c("--resolution", "-r", "integer"),
+                        "gap"=c("--gap", "-d", "integer"),
+                        "readlength"=c("--readlength", "-l", "integer"),
+                        "maxevents"=c("--maxevents", "-m", "integer"),
+                        "output"=c("--output", "-o", "character"),
+                        "cores"=c("--cores", "-c", "integer"),
+                        "events"=c("--events", "-e", "character"))
+    opt <- parse_args(option_list, args)
+}
 
-opt_parser <- OptionParser(option_list=option_list)
-opt <- parse_args(opt_parser)
 gtf <- opt$gtf
 resolution <- opt$resolution
 gap <- 2 * resolution
@@ -56,11 +86,21 @@ if(!is.null(opt$maxevents)){
 }
 cools <- dir(".", "mcool$", full.names = TRUE, recursive = TRUE)
 pairfiles <- dir(".", ".unselected.pairs.gz$", full.names = TRUE, recursive = TRUE)
-evts <- dir(".", ".anno.csv$", full.names = TRUE, recursive = TRUE)
-if(length(evts)<1) stop("No events file.")
-evts <- lapply(evts, read.csv)
-evts <- do.call(rbind, evts)
+if(!is.null(opt$events)){
+    evts <- read.csv(opt$events)
+    if(!"fdr" %in% colnames(evts)){
+        evts$fdr <- rep(1, nrow(evts))
+    }
+}else{
+    evts <- dir(".", ".anno.csv$", full.names = TRUE, recursive = TRUE)
+    if(length(evts)<1) stop("No events file.")
+    evts <- lapply(evts, read.csv)
+    evts <- do.call(rbind, evts)
+}
+stopifnot(nrow(evts)>0)
 colnames(evts) <- tolower(colnames(evts))
+stopifnot(all(c("chr1", "chr2", "start1", "start2", "end1", "end2", "fdr") %in%
+    colnames(evts)))
 evts <- evts[order(evts$fdr), , drop=FALSE]
 if(nrow(evts)<1) stop("No events in files.")
 dir.create(output, recursive = TRUE, showWarnings = FALSE)
@@ -192,34 +232,40 @@ for(i in seq_along(gr1)){
                 .ele
             })
             names(heat) <- paste("valid pairs", names(heat))
-            v4c <- lapply(seq_along(first(bait)), function(.e){
-                vp1 <- mapply(info$gi, total[names(info$gi)], FUN=function(.ele, .total){
-                    .ele <- subsetByOverlaps(.ele, first(bait)[.e], use.region="both")
-                    .ele <- GRanges(coverage(c(first(.ele), second(.ele))))
-                    .ele$score <- .ele$score*.total
-                    new("track", dat=.ele,
-                        type="data", format = "BED",
-                        name = paste0(seqnames(first(bait)[.e]), ":",
-                                    start(first(bait)[.e]), "-",
-                                    end(first(bait)[.e])))
+            get_v4c <- function(bait1, bait2){
+                v4c <- lapply(seq_along(bait1), function(.e){
+                    vp1 <- mapply(info$gi, total[names(info$gi)], FUN=function(.ele, .total){
+                        .ele <- subsetByOverlaps(.ele, bait1[.e], use.region="both")
+                        .ele <- GRanges(coverage(c(first(.ele), second(.ele))))
+                        .ele$score <- .ele$score*.total
+                        new("track", dat=.ele,
+                            type="data", format = "BED",
+                            name = paste0(seqnames(bait1[.e]), ":",
+                                        start(bait1[.e]), "-",
+                                        end(bait1[.e])))
+                    })
+                    maxY <- sapply(vp1, FUN = function(.ele){
+                        max(subsetByOverlaps(.ele$dat, bait2[.e])$score)
+                    })
+                    maxY <- prettyMax(max(maxY))
+                    vp1 <- lapply(vp1, function(.ele){
+                        setTrackStyleParam(.ele, "ylim", c(0, maxY))
+                        setTrackStyleParam(.ele, "color", "gray80")
+                        .ele
+                    })
                 })
-                maxY <- sapply(vp1, FUN = function(.ele){
-                    max(subsetByOverlaps(.ele$dat, second(bait)[.e])$score)
-                })
-                maxY <- prettyMax(max(maxY))
-                vp1 <- lapply(vp1, function(.ele){
-                    setTrackStyleParam(.ele, "ylim", c(0, maxY))
-                    .ele
-                })
-            })
-            names(v4c) <- paste0(seqnames(first(bait)), ":",
-                                start(first(bait)), "-",
-                                end(first(bait)))
-            v4c <- unlist(v4c, recursive = FALSE)
+                names(v4c) <- paste0(seqnames(bait1), ":",
+                                    start(bait1), "-",
+                                    end(bait1))
+                v4c <- unlist(v4c, recursive = FALSE)
+            }
+            v4c_first <- get_v4c(first(bait), second(bait))
+            v4c_second <- get_v4c(second(bait), first(bait))
             ids <- getGeneIDsFromTxDb(gr, txdb)
             genes <- geneTrack(ids, txdb, map[ids], asList=FALSE)
-            tL <- trackList(genes, link, heat, v4c,
-                            heightDist = c(1, 1, 2*length(heat), 2*length(v4c)))
+            tL <- trackList(genes, link, heat, v4c_first, v4c_second,
+                            heightDist = c(1, 1, 2*length(heat),
+                            2*length(v4c_first), 2*length(v4c_second)))
             names(tL)[2] <- "called links"
             pdf(file.path(output, paste0("event_", i, "_", seqnames(gr), ":", start(gr), "-", end(gr), ".pdf")),
                 width = 9, height = length(tL))

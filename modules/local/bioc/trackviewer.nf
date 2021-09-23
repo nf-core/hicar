@@ -19,9 +19,6 @@ process BIOC_TRACKVIEWER {
         container "quay.io/biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0"
     }
 
-    when:
-    !workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container
-
     input:
     tuple val(bin_size), path(events), path(mcools)
     path raw_pairs // .unselected.pairs.gz of samfrag

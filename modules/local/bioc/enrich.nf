@@ -19,9 +19,6 @@ process BIOC_ENRICH {
         container "quay.io/biocontainers/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0"
     }
 
-    when:
-    !workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container
-
     input:
     tuple val(bin_size), path(diff)
     val ucscname
