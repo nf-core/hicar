@@ -161,7 +161,7 @@ readPairFile <- function(chunks, ranges){
 }
 restrict_pos <- import(restrict_cut, format = "BED")
 seqlen <- read.delim(chrom_size, header=FALSE, row.names=1)
-seql <- as.numeric(seqlen)
+seql <- as.numeric(seqlen[, 1])
 names(seql) <- rownames(seqlen)
 txdb <- makeTxDbFromGFF(gtf)
 gtf <- import(gtf, format = "GTF")
