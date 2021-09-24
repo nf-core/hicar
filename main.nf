@@ -40,6 +40,12 @@ WorkflowMain.initialise(workflow, params, log)
 
 include { HICAR } from './workflows/hicar'
 
+// Save AWS IGenomes file containing annotation version
+if (anno_readme && file(anno_readme).exists()) {
+    file("${params.outdir}/genome/").mkdirs()
+    file(anno_readme).copyTo("${params.outdir}/genome/")
+}
+
 //
 // WORKFLOW: Run main nf-core/hicar analysis pipeline
 //
