@@ -20,8 +20,10 @@ nextflow.enable.dsl = 2
 params.fasta      = WorkflowMain.getGenomeAttribute(params, 'fasta')
 params.bwa_index  = WorkflowMain.getGenomeAttribute(params, 'bwa')
 params.gtf        = WorkflowMain.getGenomeAttribute(params, 'gtf')
+params.gff        = WorkflowMain.getGenomeAttribute(params, 'gff')
 params.gene_bed   = WorkflowMain.getGenomeAttribute(params, 'bed12')
 params.macs_gsize = WorkflowMain.getGenomeAttribute(params, 'macs_gsize')
+params.blacklist  = WorkflowMain.getGenomeAttribute(params, 'blacklist')
 anno_readme       = WorkflowMain.getGenomeAttribute(params, 'readme')
 
 /*
