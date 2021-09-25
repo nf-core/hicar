@@ -140,7 +140,6 @@ readPairFile <- function(chunks, ranges){
                 subsetByOverlaps(chunk, ranges = ranges, use.region="both")
         }
         rm(chunk)
-        rm(gi)
     }
     ## split by group
     f <- sub("_REP\\d+", "", names(out))
@@ -200,7 +199,7 @@ for(i in seq_along(gr1)){
             start(gr) <- start(gr) - 2* resolution
             end(gr) <- end(gr) + 2* resolution
             seqlevelsStyle(gr) <- seqlevelsStyle(txdb)[1]
-            seqlengths(gr) <- seql
+            seqlengths(gr) <- seql[seqlevels(gr)]
             gr <- GenomicRanges::trim(gr)
             chr_gr <- as(seqinfo(gr), "GRanges")[seqnames(gr)[1]]
             bait <- subsetByOverlaps(grs, gr, use.region="both")

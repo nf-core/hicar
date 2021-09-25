@@ -269,8 +269,8 @@ workflow HICAR {
     //
     // Create igv index.html file
     //
-    ATAC_PEAK.out.bws.map{it[0].id}.collect().mix(MAPS_PEAK.out.peak.map{it[0].id+'.'+it[1]+'.contacts'}.collect()).collect().toList()
-            .combine(ATAC_PEAK.out.bws.map{it[1]}.collect().mix(MAPS_PEAK.out.peak.map{it[2]}.collect()).collect().toList())
+    ATAC_PEAK.out.bws.map{it[0].id}.collect().ifEmpty([]).mix(MAPS_PEAK.out.peak.map{it[0].id+'.'+it[1]+'.contacts'}.collect()).collect().toList()
+            .combine(ATAC_PEAK.out.bws.map{it[1]}.collect().ifEmpty([]).mix(MAPS_PEAK.out.peak.map{it[2]}.collect()).collect().toList())
             .set{ igv_track_files }
     //igv_track_files.view()
     IGV(igv_track_files, PREPARE_GENOME.out.ucscname)
