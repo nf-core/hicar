@@ -247,10 +247,18 @@
                     "help_text": "Bin size for singal resampling.",
                     "default": "5000_10000"
                 },
+                "maps_digest_file": {
+                    "type": "string",
+                    "description": "output of restriction_cut_multipleenzyme.py.",
+                    "help_text": "See https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/restriction_cut_multipleenzyme.py.",
+                    "default": "None",
+                    "hidden": false,
+                    "fa_icon": "fas fa-stream"
+                },
                 "maps_cutoff_counts": {
                     "type": "integer",
                     "description": "MAPS regression cutoff value",
-                    "fa_icon": "fas fa-stream",
+                    "fa_icon": "fas fa-filter",
                     "hidden": false,
                     "help_text": "See help from MAPS documentation, default 12.",
                     "default": 12

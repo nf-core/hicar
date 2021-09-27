@@ -22,8 +22,15 @@ workflow MAPS_MULTIENZYME {
     chromsizes   // channel: [ path(chromsizes) ]
 
     main:
-    ch_version = MAPS_CUT(fasta, cool_bin).version
-    MAPS_FEND(MAPS_CUT.out.cut, chromsizes)
+    if(params.maps_digest_file && params.enzyme.toLowerCase() != "mnase"){
+        ch_version = Channel.empty()
+        ch_digest = cool_bin.combine(Channel.fromPath(params.maps_digest_file))
+        MAPS_FEND(ch_digest, chromsizes)
+    }else{
+        ch_version = MAPS_CUT(fasta, cool_bin).version
+        ch_digest = MAPS_CUT.out.cut
+        MAPS_FEND(ch_digest, chromsizes)
+    }
     if(!params.mappability){
         GENMAP_INDEX(fasta).index | GENMAP_MAPPABILITY
         ch_version = ch_version.mix(GENMAP_MAPPABILITY.out.version)
@@ -43,7 +50,7 @@ workflow MAPS_MULTIENZYME {
         UCSC_BIGWIGAVERAGEOVERBED(MAPS_FEND.out.bed.map{[['id':'background', 'bin_size':it[0]], it[1]]}, mappability)
     }
     ch_version = ch_version.mix(UCSC_BIGWIGAVERAGEOVERBED.out.version)
-    MAPS_MERGE(MAPS_CUT.out.cut.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]})
+    MAPS_MERGE(ch_digest.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]})
 
     MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes)
 

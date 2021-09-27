@@ -15,7 +15,7 @@ from Bio.SeqUtils import GC
 import re
 import multiprocessing as mp
 
-def worker(seq_record, mnase, seqs, sizes, poses, q):
+def worker(seq_record, mnase, seqs, sizes, poses, binsize, q):
     outstr = ''
     if not mnase:
         sys.stderr.write("processing "+seq_record.id+"\n")
@@ -100,7 +100,7 @@ def find_site(fasta,seq,outfile,pos,cores, binsize):
     watcher = pool.apply_async(listener, (outfile, q))
     jobs = []
     for seq_record in SeqIO.parse(fasta, "fasta"):
-        job = pool.apply_async(worker, (seq_record, mnase, seqs, sizes, poses, q))
+        job = pool.apply_async(worker, (seq_record, mnase, seqs, sizes, poses, binsize, q))
         jobs.append(job)
 
     for job in jobs:
