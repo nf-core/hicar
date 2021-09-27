@@ -93,6 +93,9 @@ for(det in detbl){
 
 if(packageVersion("ChIPpeakAnno")>="3.23.12"){
     if(length(resList)>0){
+        if(is.list(resList)){
+            resList <- GRangesList(resList[lengths(resList)>0])
+        }
         out <- genomicElementDistribution(resList,
                                         TxDb = txdb,
                                         promoterRegion=c(upstream=2000, downstream=500),
@@ -106,11 +109,11 @@ if(packageVersion("ChIPpeakAnno")>="3.23.12"){
                                                     "#FFAD65", "#FF8E32")),
                                         plot = FALSE)
 
-    ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".pdf")), plot=out$plot, width=9, height=9)
-    ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".png")), plot=out$plot)
-    out <- metagenePlot(resList, txdb)
-    ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".pdf")), plot=out, width=9, height=9)
-    ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".png")), plot=out)
+        ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".pdf")), plot=out$plot, width=9, height=9)
+        ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".png")), plot=out$plot)
+        out <- metagenePlot(resList, txdb)
+        ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".pdf")), plot=out, width=9, height=9)
+        ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".png")), plot=out)
     }
     if(length(peaks)>0){
         peaks <- GRangesList(peaks[lengths(peaks)>0])
