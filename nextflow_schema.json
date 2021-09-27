@@ -118,24 +118,32 @@
                 },
                 "gtf": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
                     "fa_icon": "fas fa-map-marked-alt",
                     "description": "Path to annotation gtf file.",
                     "help_text": "Annotation gtf or gff file is required for annotation and quality control. This parameter is *mandatory* if `--genome` is not specified."
                 },
                 "gff": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
                     "fa_icon": "fas fa-map-marked-alt",
                     "description": "Path to annotation gff file.",
                     "help_text": "Annotation gff or gff file is required for annotation and quality control. This parameter is *mandatory* if `--genome` is not specified."
                 },
                 "gene_bed": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
                     "fa_icon": "fas fa-file-medical-alt",
                     "description": "Path to annotation gene bed file.",
                     "help_text": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
                 },
                 "mappability": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
                     "fa_icon": "fas fa-file-contract",
                     "description": "Path to genome mappability file.",
                     "help_text": "If you have no genome mappability available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
@@ -154,6 +162,8 @@
                 },
                 "blacklist": {
                     "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
                     "description": "Path to blacklist regions in BED format, used for filtering alignments.",
                     "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
                     "fa_icon": "fas fa-book-dead"
