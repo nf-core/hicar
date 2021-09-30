@@ -105,59 +105,7 @@ evts <- evts[order(evts$fdr), , drop=FALSE]
 if(nrow(evts)<1) stop("No events in files.")
 dir.create(output, recursive = TRUE, showWarnings = FALSE)
 
-## read file and summary counts
-loadPairFire <- function(filenames){
-    stopifnot(is.character(filenames))
-    stopifnot(all(file.exists(filenames)))
-    out <- list()
-    for(fn in filenames){
-        f <- gzfile(fn, open = "r")
-        chunk <- readLines(f)
-        close(f)
-        chunk <- chunk[!grepl("^#", chunk)]
-        if(length(chunk)){
-            dt <- do.call(rbind, strsplit(chunk, "\\t"))
-            dt <- unique(dt) # remove duplicates
-            gi <- GInteractions(anchor1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 3]), width = readwidth), strand = dt[, 6]),
-                                anchor2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 5]), width = readwidth), strand = dt[, 7]),
-                                restrict1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 10]), as.numeric(dt[, 11]), names = dt[, 9])),
-                                restrict2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 13]), as.numeric(dt[, 14]), names = dt[, 12])))
-            out[[sub(".unselected.pairs.gz", "", basename(fn))]] <- gi
-        }
-    }
-    return(out)
-}
-chunks <- loadPairFire(pairfiles)
-readPairFile <- function(chunks, ranges){
-    stopifnot(is(ranges, "GRanges"))
-    out <- list()
-    total <- list()
-    for(fn in names(chunks)){
-        chunk <- chunks[[fn]]
-        if(length(chunk)){
-            total[[fn]] <- length(chunk)
-            out[[fn]] <-
-                subsetByOverlaps(chunk, ranges = ranges, use.region="both")
-        }
-        rm(chunk)
-    }
-    ## split by group
-    f <- sub("_REP\\d+", "", names(out))
-    out <- split(out, f)
-    giRbind <- function(a, b){
-        GInteractions(anchor1 = c(first(a), first(b)),
-                    anchor2 = c(second(a), second(b)),
-                    restrict1 = c(a$restrict1, b$restrict1),
-                    restrict2 = c(a$restrict2, b$restrict2))
-    }
-    out <- lapply(out, function(.ele){
-        Reduce(giRbind, .ele)
-    })
-    total <- split(unlist(total), f)
-    total <- sapply(total, sum)
-    total <- median(total)/total
-    return(list(gi=out, norm_factor=total))
-}
+## get events ranges
 restrict_pos <- import(restrict_cut, format = "BED")
 seqlen <- read.delim(chrom_size, header=FALSE, row.names=1)
 seql <- as.numeric(seqlen[, 1])
@@ -166,6 +114,7 @@ txdb <- makeTxDbFromGFF(gtf)
 gtf <- import(gtf, format = "GTF")
 map <- gtf$gene_name
 names(map) <- gtf$gene_id
+map <- map[!duplicated(names(map))]
 grs <- with(evts, GInteractions(anchor1 = GRanges(chr1, IRanges(start1, end1)),
                                 anchor2 = GRanges(chr2, IRanges(start2, end2)),
                                 mode = "strict",
@@ -192,6 +141,75 @@ prettyMax <- function(x){
     n <- 10^ceiling(log10(x))
     return(n*ceiling(x/n))
 }
+
+## read file and summary counts
+loadPairFire <- function(filenames, ranges, resolution){
+    stopifnot(is.character(filenames))
+    stopifnot(all(file.exists(filenames)))
+    start(ranges) <- start(ranges) - 2*resolution
+    end(ranges) <- end(ranges) + 2*resolution
+    out <- list(gi=list(), total=list())
+    for(fn in filenames){
+        f <- gzfile(fn, open = "r")
+        chunk <- readLines(f)
+        close(f)
+        chunk <- chunk[!grepl("^#", chunk)]
+        if(length(chunk)){
+            out[["total"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- 0
+            out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- NULL
+            chunk <- split(chunk, ceiling(seq_along(chunk)/500000))
+            for(i in seq_along(chunk)){
+                dt <- do.call(rbind, strsplit(chunk[[i]], "\\t"))
+                dt <- unique(dt) # remove duplicates
+                gi <- GInteractions(anchor1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 3]), width = readwidth), strand = dt[, 6]),
+                                    anchor2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 5]), width = readwidth), strand = dt[, 7]),
+                                    restrict1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 10]), as.numeric(dt[, 11]), names = dt[, 9])),
+                                    restrict2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 13]), as.numeric(dt[, 14]), names = dt[, 12])))
+                out[["total"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- length(gi) + out[["total"]][[sub(".unselected.pairs.gz", "", basename(fn))]]
+                gi <- subsetByOverlaps(gi, ranges, use.region="both")
+                out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- c(out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]], gi)
+            }
+            if(is.list(out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]])){
+                out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- do.call(c, out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]])
+                out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- unique(out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]])
+            }
+        }
+        rm(chunk)
+    }
+    return(out)
+}
+chunks <- loadPairFire(pairfiles, gr1, resolution)
+readPairFile <- function(chunks, ranges){
+    stopifnot(is(ranges, "GRanges"))
+    out <- list()
+    total <- list()
+    for(fn in names(chunks[["gi"]])){
+        chunk <- chunks[["gi"]][[fn]]
+        if(length(chunk)){
+            total[[fn]] <- chunks[["total"]][[fn]]
+            out[[fn]] <-
+                subsetByOverlaps(chunk, ranges = ranges, use.region="both")
+        }
+        rm(chunk)
+    }
+    ## split by group
+    f <- sub("_REP\\d+", "", names(out))
+    out <- split(out, f)
+    giRbind <- function(a, b){
+        GInteractions(anchor1 = c(first(a), first(b)),
+                    anchor2 = c(second(a), second(b)),
+                    restrict1 = c(a$restrict1, b$restrict1),
+                    restrict2 = c(a$restrict2, b$restrict2))
+    }
+    out <- lapply(out, function(.ele){
+        Reduce(giRbind, .ele)
+    })
+    total <- split(unlist(total), f)
+    total <- sapply(total, sum)
+    total <- median(total)/total
+    return(list(gi=out, norm_factor=total))
+}
+
 for(i in seq_along(gr1)){
     if(i < maxEvent){
         tryCatch({
