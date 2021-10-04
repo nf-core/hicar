@@ -3,7 +3,6 @@
  */
 params.options = [:]
 
-include { PAIRTOOLS_SELECT    } from '../../modules/nf-core/modules/pairtools/select/main'           addParams(options: params.options.pairtools_select)
 include { PAIRTOOLS_SELECT
     as  PAIRTOOLS_SELECT_SHORT} from '../../modules/nf-core/modules/pairtools/select/main'           addParams(options: params.options.pairtools_select_short)
 include { SHIFTREADS          } from '../../modules/local/atacreads/shiftreads'       addParams(options: params.options.shift_reads)
@@ -27,15 +26,14 @@ include { UCSC_BEDGRAPHTOBIGWIG
 
 workflow ATAC_PEAK {
     take:
-    raw_pairs  // channel: [ val(meta), [pairs] ]
+    validpair  // channel: [ val(meta), [pairs] ]
     chromsizes // channel: [ path(size) ]
     macs_gsize // channel: value
     gtf        // channel: [ path(gtf) ]
 
     main:
     // extract ATAC reads, split the pairs into longRange_Trans pairs and short pairs
-    ch_version = PAIRTOOLS_SELECT(raw_pairs).version
-    PAIRTOOLS_SELECT_SHORT(PAIRTOOLS_SELECT.out.selected)
+    ch_version = PAIRTOOLS_SELECT_SHORT(validpair).version
     // shift Tn5 insertion for longRange_Trans pairs
     SHIFTREADS(PAIRTOOLS_SELECT_SHORT.out.unselected)
     ch_version = ch_version.mix(SHIFTREADS.out.version)

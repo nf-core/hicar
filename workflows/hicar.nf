@@ -66,6 +66,7 @@ def getSubWorkFlowParam(modules, mods) {
 //
 include { GET_SOFTWARE_VERSIONS  } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
 include { CHECKSUMS              } from '../modules/local/checksums' addParams( options: getParam(modules, 'checksums') )
+include { CALL_HIPEAK            } from '../modules/local/callhipeak' addParams(options: getParam(modules, 'hipeak'))
 include { DIFFHICAR              } from '../modules/local/bioc/diffhicar' addParams(options: getParam(modules, 'diffhicar'))
 include { BIOC_CHIPPEAKANNO      } from '../modules/local/bioc/chippeakanno' addParams(options: getParam(modules, 'chippeakanno'))
 include { BIOC_CHIPPEAKANNO
@@ -83,7 +84,8 @@ include { PREPARE_GENOME         } from '../subworkflows/local/preparegenome' ad
 include { BAM_STAT               } from '../subworkflows/local/bam_stats' addParams(options: getSubWorkFlowParam(modules, ['samtools_sort', 'samtools_index', 'samtools_stats', 'samtools_flagstat', 'samtools_idxstats']))
 include { PAIRTOOLS_PAIRE        } from '../subworkflows/local/pairtools' addParams(options: getSubWorkFlowParam(modules, ['paritools_dedup', 'pairtools_flip', 'pairtools_parse', 'pairtools_restrict', 'pairtools_select', 'pairtools_select_long', 'pairtools_sort', 'pairix', 'reads_stat', 'reads_summary', 'pairsqc', 'pairsplot']))
 include { COOLER                 } from '../subworkflows/local/cooler' addParams(options: getSubWorkFlowParam(modules, ['cooler_cload', 'cooler_merge', 'cooler_zoomify', 'cooler_dump_per_group', 'cooler_dump_per_sample', 'dumpintrareads_per_group', 'dumpintrareads_per_sample', 'juicer']))
-include { ATAC_PEAK              } from '../subworkflows/local/callatacpeak' addParams(options: getSubWorkFlowParam(modules, ['pairtools_select', 'pairtools_select_short', 'merge_reads', 'shift_reads', 'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample', 'merge_peak', 'atacqc', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedclip', 'ucsc_bedgraphtobigwig_per_group', 'ucsc_bedgraphtobigwig_per_sample']))
+include { ATAC_PEAK              } from '../subworkflows/local/callatacpeak' addParams(options: getSubWorkFlowParam(modules, ['pairtools_select_short', 'merge_reads', 'shift_reads', 'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample', 'merge_peak', 'atacqc', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedclip', 'ucsc_bedgraphtobigwig_per_group', 'ucsc_bedgraphtobigwig_per_sample']))
+include { R1_PEAK                } from '../subworkflows/local/calldistalpeak' addParams(options: getSubWorkFlowParam(modules, ['merge_r1reads', 'r1reads', 'macs2_callr1peak', 'dump_r1_reads_per_group', 'dump_r1_reads_per_sample', 'merge_r1peak', 'r1qc', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedclip', 'ucsc_bedgraphtobigwig_per_r1_group', 'ucsc_bedgraphtobigwig_per_r1_sample']))
 include { MAPS_MULTIENZYME       } from '../subworkflows/local/multienzyme'   addParams(options: getSubWorkFlowParam(modules, ['maps_cut', 'maps_fend', 'genmap_index', 'genmap_mappability', 'ucsc_wigtobigwig', 'maps_mapability', 'maps_merge', 'maps_feature', 'ensembl_ucsc_convert']))
 include { MAPS_PEAK              } from '../subworkflows/local/maps_peak' addParams(options: getSubWorkFlowParam(modules, ['maps_maps', 'maps_callpeak', 'maps_stats', 'maps_reformat']))
 
@@ -242,7 +244,7 @@ workflow HICAR {
     // calling ATAC peaks, output ATAC narrowPeak and reads in peak
     //
     ATAC_PEAK(
-        PAIRTOOLS_PAIRE.out.raw,
+        PAIRTOOLS_PAIRE.out.validpair,
         PREPARE_GENOME.out.chrom_sizes,
         PREPARE_GENOME.out.gsize,
         PREPARE_GENOME.out.gtf
@@ -267,6 +269,32 @@ workflow HICAR {
                 .set{ maps_input }
     MAPS_PEAK(maps_input)
     ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.version.ifEmpty(null))
+
+    //
+    // calling R1 peaks, output R1 narrowPeak and reads in peak
+    //
+    if(params.high_resolution_R1){
+        R1_PEAK(
+            PAIRTOOLS_PAIRE.out.distalpair,
+            PREPARE_GENOME.out.chrom_sizes,
+            PREPARE_GENOME.out.gsize,
+            PREPARE_GENOME.out.gtf
+        )
+        ch_software_versions = ch_software_versions.mix(R1_PEAK.out.version.ifEmpty(null))
+
+        // merge ATAC_PEAK with R1_PEAK by group id
+        distalpair = PAIRTOOLS_PAIRE.out.distalpair.map{meta, bed -> [meta.group, bed]}
+                                            .groupTuple()
+        grouped_reads_peak = ATAC_PEAK.out.peak.map{[it[0].id, it[1]]}
+                                .join(R1_PEAK.out.peak.map{[it[0].id, it[1]]})
+                                .join(distalpair)
+                                .combine(MAPS_MULTIENZYME.out.mappability)
+                                .combine(PREPARE_GENOME.out.fasta)
+                                .combine(PREPARE_GENOME.out.digest_genome)
+                                .combine(PREPARE_GENOME.out.chrom_sizes)
+                                .map{[[id:it[0]], it[1], it[2], it[3], it[4], it[5], it[6], it[7]]}
+        CALL_HIPEAK(grouped_reads_peak)
+    }
 
     //
     // Create igv index.html file

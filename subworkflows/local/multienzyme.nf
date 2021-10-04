@@ -55,6 +55,7 @@ workflow MAPS_MULTIENZYME {
     MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes)
 
     emit:
+    mappability              = mappability                       // channel: [ path(bw) ]
     bin_feature              = MAPS_FEATURE.out.bin_feature      // channel: [ val(bin_size), path(bin_feature) ]
     version                  = ch_version                        // channel: [ path(version) ]
 }

@@ -100,7 +100,7 @@ custom_data:
     maps_qc:
         parent_id: 'pairs_qc'
         section_name: 'MAPS peak calling summary'
-        description: '<a href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006982">MAPS summary</a>.'
+        description: '<a href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006982">MAPS summary</a> is output of MAPS.<br/>"AND" set: Bin pairs with <em>both</em> ends overlapping two anchors of interaction. <br/>"XOR" set: Bin pairs with one end overlapping one anchor of the interaction.<br/>Singletons are defined as isolated significant bin pairs without adjacent ones.'
         file_format: 'csv'
         plot_type: 'table'
         pconfig:

@@ -230,6 +230,12 @@
                     "hidden": false,
                     "help_text": "See help from MACS2 documentation",
                     "default": 0.01
+                },
+                "high_resolution_R1": {
+                    "type": "boolean",
+                    "description": "read peak calling for R1 by MACS2",
+                    "fa_icon": "fas fa-mountain",
+                    "hidden": false
                 }
             }
         },

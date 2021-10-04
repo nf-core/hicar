@@ -56,6 +56,7 @@ workflow PAIRTOOLS_PAIRE {
     stat = READS_SUMMARY.out.summary      // channel: [ path(summary) ]
     qc   = PAIRSQC.out.qc                 // channel: [ val(meta), [qc]]
     raw  = PAIRTOOLS_PARSE.out.pairsam    // channel: [ val(meta), [pairsam] ]
+    validpair  = PAIRTOOLS_SELECT.out.selected        // channel: [val(meta), [validpair]]
     distalpair = PAIRTOOLS_SELECT_LONG.out.unselected // channel: [val(meta), [valid.pair.gz]]
     version = PAIRTOOLS_PARSE.out.version // channel: [ path(version) ]
 }
