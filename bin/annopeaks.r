@@ -23,7 +23,7 @@ gtf <- args[1]
 pf <- file.path(args[2], "anno")
 bin_size <- args[2]
 
-detbl <- dir(".", "DEtable.*.csv|sig3Dinteractions.bedpe", recursive = TRUE, full.names = TRUE)
+detbl <- dir(".", "DEtable.*.csv|sig3Dinteractions.bedpe|peaks", recursive = TRUE, full.names = TRUE)
 detbl <- detbl[!grepl("anno.csv", detbl)] ## in case of re-run
 
 txdb <- makeTxDbFromGFF(gtf)
@@ -51,7 +51,11 @@ for(det in detbl){
     if(grepl("csv$", det)) {
         DB <- read.csv(det)
     }else{
-        DB <- read.delim(det)
+        if(grepl("peaks$", det)){
+            DB <- read.table(det, header=TRUE)
+        }else{
+            DB <- read.delim(det)
+        }
     }
     if(nrow(DB)<1) next
     rownames(DB) <- paste0("p", seq.int(nrow(DB)))
@@ -85,7 +89,7 @@ for(det in detbl){
     DB.anno <- merge(DB.anno1, DB.anno2, by="peak",
                     suffixes = c(".anchor1",".anchor2"))
     DB <- cbind(DB[DB.anno$peak, ], DB.anno)
-    pff <- file.path(pf, sub(".(csv|bedpe)", ".anno.csv", det))
+    pff <- file.path(pf, sub(".(csv|bedpe|peaks)", ".anno.csv", det))
     dir.create(dirname(pff), recursive = TRUE, showWarnings = FALSE)
     write.csv(DB, pff, row.names = FALSE)
 }

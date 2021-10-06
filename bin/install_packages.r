@@ -23,12 +23,12 @@ if(length(pkgs)>0){
                     if(retryCount>1){
                         .libPaths(c(file.path(getwd(), "lib"), .libPaths()))
                     }
-                    install.packages("BiocManager",
+                    install.packages("BiocManager", lib=file.path(getwd(), "lib"),
                                     repos = "https://cloud.r-project.org/",
                                     quiet = TRUE)
                 },
                 error = function(.e){
-                    message("retry package installation.")
+                    message("retry BiocManager installation.")
                 }
             )
             retryCount <- retryCount + 1
@@ -46,7 +46,7 @@ if(length(pkgs)>0){
                     biocLite("BiocInstaller")
                 },
                 error = function(.e){
-                    message("retry package installation.")
+                    message("retry BiocInstaller installation.")
                 }
             )
             retryCount <- retryCount + 1
@@ -71,14 +71,14 @@ if(length(pkgs)>0){
                             .libPaths(c(file.path(getwd(), "lib"), .libPaths()))
                         }
                         if(biocm) {
-                            BiocManager::install(pkg, update = FALSE, ask = FALSE)
+                            BiocManager::install(pkg, lib=file.path(getwd(), "lib"), update = FALSE, ask = FALSE)
 
                         } else {
                             BiocInstaller::biocLite(pkg, suppressUpdates=TRUE, suppressAutoUpdate=TRUE, ask=FALSE)
                         }
                     },
                     error = function(.e){
-                        message("retry package installation.")
+                        message("retry ", pkg, " installation.")
                         #Sys.sleep(60)
                     }
                 )

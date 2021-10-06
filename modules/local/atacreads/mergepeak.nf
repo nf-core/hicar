@@ -21,7 +21,7 @@ process MERGE_PEAK {
     path peak
 
     output:
-    path "ATAC_merged_peak.bed"    , emit: peak
+    path "merged_peak.bed"    , emit: peak
     path  "*.version.txt"          , emit: version
 
     script:
@@ -29,7 +29,7 @@ process MERGE_PEAK {
     """
     cat *.narrowPeak | cut -f1-3 | sort -k1,1 -k2,2n |
     bedtools merge $options.args \\
-        -i stdin > ATAC_merged_peak.bed
+        -i stdin > merged_peak.bed
 
     echo \$(bedtools --version) | sed -e "s/bedtools v//g" > ${software}.version.txt
     """

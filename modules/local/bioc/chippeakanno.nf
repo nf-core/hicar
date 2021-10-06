@@ -12,11 +12,11 @@ process BIOC_CHIPPEAKANNO {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) }
 
-    conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.24.1" : null)
+    conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.26.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.24.1--r40hdfd78af_0"
+        container "https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0"
     } else {
-        container "quay.io/biocontainers/bioconductor-chippeakanno:3.24.1--r40hdfd78af_0"
+        container "quay.io/biocontainers/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0"
     }
 
     input:

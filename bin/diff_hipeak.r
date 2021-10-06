@@ -12,13 +12,15 @@ dir.create(pwd)
 .libPaths(c(pwd, .libPaths()))
 
 library(edgeR)
+library(InteractionSet)
 writeLines(as.character(packageVersion("edgeR")), "edgeR.version.txt")
+writeLines(as.character(packageVersion("InteractionSet")), "InteractionSet.version.txt")
 
-binsize = "diffhic_bin5000"
+prefix <- "diffhicar"
 ## load n.cores
 args <- commandArgs(trailingOnly=TRUE)
 if(length(args)>0){
-    binsize <- args[[1]]
+    prefix <- args[[1]]
     args <- args[-1]
 }
 if(length(args)>0){
@@ -29,39 +31,47 @@ if(length(args)>0){
 
 
 ## get peaks
-pf <- dir("peaks", "bedpe", full.names = TRUE)
-peaks <- lapply(pf, read.delim)
+pf <- dir("peaks", "peaks", full.names = TRUE)
+peaks <- lapply(pf, read.table, header=TRUE)
 ### reduce the peaks
 peaks <- unique(do.call(rbind, peaks)[, c("chr1", "start1", "end1",
                                         "chr2", "start2", "end2")])
+peaks <- with(peaks, GInteractions(GRanges(chr1, IRanges(start1, end1)),
+                                    GRanges(chr2, IRanges(start2, end2))))
+reducePeaks <- function(x){
+    y <- reduce(x)
+    ol <- findOverlaps(x, y)
+    stopifnot(all(seq_along(x) %in% queryHits(ol)))
+    ol <- as.data.frame(ol)
+    y[ol[match(seq_along(x), ol$queryHits), "subjectHits"]]
+}
+first <- reducePeaks(first(peaks))
+second <- reducePeaks(second(peaks))
+peaks <- unique(GInteractions(first, second))
 
 ## get counts
-pc <- dir("long", "bedpe", full.names = FALSE)
-cnts <- lapply(file.path("long", pc), read.table)
-samples <- sub("(_REP\\d+)\\.(.*?)\\.long.intra.bedpe", "\\1", pc)
-cnts <- lapply(split(cnts, samples), do.call, what=rbind)
-sizeFactor <- vapply(cnts, FUN=function(.ele) sum(.ele[, 7], na.rm = TRUE),
+pc <- dir("pairs", "pairs.gz", full.names = FALSE)
+countByOverlaps <- function(pairs){
+    ps <- read.delim(pairs, comment.char="#", header=FALSE)
+    ps <- with(ps, GInteractions(GRanges(V2, IRanges(V3, width=150)),
+                                GRanges(V4, IRanges(V5, width=150))))
+    counts_tab <- countOverlaps(peaks, ps, use.region="same")
+    counts_total <- length(ps)
+    list(count=counts_tab, total=counts_total)
+}
+
+cnts <- lapply(file.path("pairs", pc), countByOverlaps)
+samples <- sub("(_REP\\d+)\\.(.*?)unselected.pairs.gz", "\\1", pc)
+sizeFactor <- vapply(cnts, FUN=function(.ele) .ele$total,
                     FUN.VALUE = numeric(1))
+names(sizeFactor) <- samples
+cnts <- lapply(cnts, function(.ele) .ele$count)
+cnts <- do.call(cbind, cnts)
+colnames(cnts) <- samples
+rownames(cnts) <- seq_along(peaks)
+mcols(peaks) <- cnts
 
-getID <- function(mat) gsub("\\s+", "", apply(mat[, seq.int(6)], 1, paste, collapse="_"))
-getID1 <- function(mat) gsub("\\s+", "", apply(mat[, seq.int(3)], 1, paste, collapse="_"))
-getID2 <- function(mat) gsub("\\s+", "", apply(mat[, 4:6], 1, paste, collapse="_"))
-## prefilter
-peaks_id1 <- getID1(peaks)
-peaks_id2 <- getID2(peaks)
-cnts <- lapply(cnts, function(.ele) .ele[getID1(.ele) %in% peaks_id1, , drop=FALSE])
-cnts <- lapply(cnts, function(.ele) .ele[getID2(.ele) %in% peaks_id2, , drop=FALSE])
-rm(peaks_id1, peaks_id2, getID1, getID2)
-## match all the counts for peaks
-peaks_id <- getID(peaks)
-cnts <- do.call(cbind, lapply(cnts, function(.ele){
-    .ele[match(peaks_id, getID(.ele)), 7]
-}))
-cnts[is.na(cnts)] <- 0
-names(peaks_id) <- paste0(rep("p", length(peaks_id)), seq_along(peaks_id))
-rownames(cnts) <- names(peaks_id)
-
-pf <- as.character(binsize)
+pf <- as.character(prefix)
 dir.create(pf)
 
 fname <- function(subf, ext, ...){
@@ -71,7 +81,7 @@ fname <- function(subf, ext, ...){
 }
 
 ## write counts
-write.csv(cbind(peaks, cnts), fname(NA, "csv", "raw.counts"), row.names = FALSE)
+write.csv(peaks, fname(NA, "csv", "raw.counts"), row.names = FALSE)
 ## write sizeFactors
 write.csv(sizeFactor, fname(NA, "csv", "library.size"), row.names = TRUE)
 
@@ -135,7 +145,7 @@ if(length(contrasts.lev)>1 || any(table(condition)>1)){
             paste(unlist(json), collapse=", "),
             "}",
             "}")
-    writeLines(json, fname(NA, "json", "Multidimensional.scaling.qc"))
+    writeLines(json, fname(NA, "json", "HiPeak.Multidimensional.scaling.qc"))
     }, error=function(e) message(e))
 
     ## plot dispersion
@@ -162,7 +172,8 @@ if(length(contrasts.lev)>1 || any(table(condition)>1)){
         dev.off()
         ## save res
         res <- as.data.frame(rs)
-        res <- cbind(peaks, res[names(peaks_id), ])
+        res <- cbind(peaks[as.numeric(rownames(res))], res)
+        colnames(res) <- sub("seqnames", "chr", colnames(res))
         write.csv(res, fname(name, "csv", "edgeR.DEtable", name), row.names = FALSE)
         ## save metadata
         elementMetadata <- do.call(rbind, lapply(c("adjust.method","comparison","test"), function(.ele) rs[[.ele]]))

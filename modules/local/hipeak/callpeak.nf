@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -19,18 +19,17 @@ process CALL_HIPEAK {
     }
 
     input:
-    tuple val(meta), path(r2peak, stageAs:"R2peak/*"), path(r1peak, stageAs: "R1peak/*"), path(distalpair, stageAs: "pairs/*"), path(mappability), path(fasta), path(cut), path(chromsize)
+    tuple val(meta), path(counts)
 
     output:
-    tuple val(meta), path("${meta.id}/summary.*.txt"), optional: true, emit: summary
-    tuple val(meta), path("${meta.id}/*.peaks"), optional: true, emit: peak
-    path "*.version.txt"          , emit: version
+    tuple val(meta), path("${meta.id}.peaks.csv"), emit: peak
+    path "*.version.txt"                         , emit: version
 
     script:
     def software = "CALL_HIPEAK"
     """
     install_packages.r VGAM MASS
-    regression_and_peak_caller.r ${meta.id} $r2peak $r1peak pairs $fasta $mappability $cut $options.args
-    echo '1.0.0' > ${software}.version.txt
+    call_hipeak.r $options.args \\
+        --count $counts --output ${meta.id}.peaks.csv
     """
 }

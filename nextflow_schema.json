@@ -55,6 +55,13 @@
                     "fa_icon": "fas fa-comment-slash",
                     "hidden": false
                 },
+                "skip_enrichment": {
+                    "type": "boolean",
+                    "description": "skip enrichment or not",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": false,
+                    "default": true
+                },
                 "skip_diff_analysis": {
                     "type": "boolean",
                     "description": "skip differential analysis or not",
@@ -236,6 +243,14 @@
                     "description": "read peak calling for R1 by MACS2",
                     "fa_icon": "fas fa-mountain",
                     "hidden": false
+                },
+                "r1_qval_thresh": {
+                    "type": "number",
+                    "description": "cutoff qvalue for R1 by MACS2",
+                    "fa_icon": "fas fa-filter",
+                    "hidden": false,
+                    "help_text": "See help from MACS2 documentation",
+                    "default": 0.1
                 }
             }
         },
