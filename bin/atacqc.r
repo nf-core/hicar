@@ -35,21 +35,14 @@ writeLines(as.character(packageVersion("rtracklayer")), "rtracklayer.version.txt
 
 ## import reads
 readls <- lapply(readsFiles, function(f){
-    reads <- NULL
-    con <- file(f, "r")
-    on.exit(close(con))
-    while(length(line <- readLines(con, n = 1e6))){
-        line <- sub("\\t\\*\\t\\*", "", line)
-        tab <- table(line)
-        tab <- as.data.frame(tab)
-        reads <- rbind(reads, tab)
-        reads <- aggregate(Freq ~ line, data = reads, FUN = sum, drop = FALSE)
-    }
-    reads <- cbind(reads, do.call(rbind, strsplit(as.character(reads[, 1]), "\\t")))
-    reads <- GRanges(reads[, 3],
-                    IRanges(as.numeric(reads[, 4])+1, as.numeric(reads[, 4])+150),
-                    strand = reads[, 6],
-                    score = reads[, 2])
+    reads <- read.table(f, colClasses=c(chrom="character", start="integer", end="integer",
+                            name="character", score="character", strand="character"))
+    reads <- reads[, c(1, 2, 6), drop=FALSE]
+    reads <- aggregate(cbind(reads[0],numdup=1), reads, length)
+    reads <- GRanges(reads[, 1],
+                    IRanges(as.numeric(reads[, 2])+1, as.numeric(reads[, 2])+150),
+                    strand = reads[, 3],
+                    score = reads[, 4])
 })
 
 ## import peaks

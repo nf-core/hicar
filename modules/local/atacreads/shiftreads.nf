@@ -30,7 +30,7 @@ process SHIFTREADS {
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     zcat < $pair | \\
-    awk 'BEGIN {OFS="\t"} ;  /^[^#]/ { if (\$7 == "+") {\$5 = \$5 + 4} else if (\$7 == "-") {\$5 = \$5 - 5};  print \$4, \$5, \$5+1, "*", "*", \$7}' | \\
+    awk 'BEGIN {OFS="\t"} ;  /^[^#]/ { if (\$7 == "+") {\$5 = \$5 + 4} else if (\$7 == "-") {\$5 = \$5 - 5};  print \$4, \$5, \$5+1, "*", "0", \$7}' | \\
     sort -k1,1 -k2,2n | uniq  | gzip -nc > ${prefix}.R2.ATAC.bed.gz
 
     echo \$(awk --version 2>&1 || awk -W version 2>&1) | sed 's/[[:alpha:]|(|)|[:space:]]//g; s/,.*\$//' > ${software}.version.txt
