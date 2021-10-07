@@ -23,7 +23,7 @@ if(length(pkgs)>0){
                     if(retryCount>1){
                         .libPaths(c(file.path(getwd(), "lib"), .libPaths()))
                     }
-                    install.packages("BiocManager", lib=file.path(getwd(), "lib"),
+                    install.packages("BiocManager", #lib=file.path(getwd(), "lib"),
                                     repos = "https://cloud.r-project.org/",
                                     quiet = TRUE)
                 },
@@ -70,9 +70,8 @@ if(length(pkgs)>0){
                         if(retryCount>1){
                             .libPaths(c(file.path(getwd(), "lib"), .libPaths()))
                         }
-                        if(biocm) {
-                            BiocManager::install(pkg, lib=file.path(getwd(), "lib"), update = FALSE, ask = FALSE)
-
+                        if(bicm) {
+                            BiocManager::install(pkg, update = FALSE, ask = FALSE)
                         } else {
                             BiocInstaller::biocLite(pkg, suppressUpdates=TRUE, suppressAutoUpdate=TRUE, ask=FALSE)
                         }
