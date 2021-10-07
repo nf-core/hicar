@@ -36,7 +36,7 @@ process JUICER {
         fi
     done
     res=\$(join_by , \${res[@]})
-    java -Xms512m -Xmx2048m -jar $projectDir/bin/juicer_tools_1.22.01.jar pre \
+    java -Xms512m -Xmx4096m -jar $projectDir/bin/juicer_tools_1.22.01.jar pre \
         -r \$res \
         $options.args --threads $task.cpus ${gi}.sorted ${prefix}.${meta.bin}.hic $chromsize
 
