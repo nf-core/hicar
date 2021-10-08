@@ -35,14 +35,11 @@ writeLines(as.character(packageVersion("rtracklayer")), "rtracklayer.version.txt
 
 ## import reads
 readls <- lapply(readsFiles, function(f){
-    reads <- read.table(f, colClasses=c(chrom="character", start="integer", end="integer",
-                            name="character", score="character", strand="character"))
-    reads <- reads[, c(1, 2, 6), drop=FALSE]
-    reads <- aggregate(cbind(reads[0],numdup=1), reads, length)
+    reads <- read.table(f, colClasses=c("character", "integer", "NULL",
+                            "NULL", "NULL", "character"))
     reads <- GRanges(reads[, 1],
                     IRanges(as.numeric(reads[, 2])+1, as.numeric(reads[, 2])+150),
-                    strand = reads[, 3],
-                    score = reads[, 4])
+                    strand = reads[, 3])
 })
 
 ## import peaks
@@ -53,16 +50,16 @@ txs <- exons(txdb)
 
 stats <- mapply(peakls, readls, FUN = function(peaks, reads){
     ## calculate FRiP score (fraction of reads in peaks), must over 1%
-    readsInPeaks <- subsetByOverlaps(reads, peaks)
-    FRiP <- 100*sum(readsInPeaks$score)/sum(reads$score)
+    readsInPeaks <- countOverlaps(peaks, reads)
+    FRiP <- 100*sum(readsInPeaks)/length(reads)
 
-    gal <- as(reads, "GAlignments")
-    gal <- rep(gal, mcols(gal)$score)
+    reads <- as(reads, "GAlignments")
     ## calculate Transcription Start Site Enrichment Score
-    tsse <- TSSEscore(gal, txs)
+    tsse <- TSSEscore(reads, txs)
 
     ## Promoter/Transcript body (PT) score
-    pt <- PTscore(gal, txs)
+    pt <- PTscore(reads, txs)
+    pt <- pt[!is.na(pt$promoter) & !is.na(pt$transcriptBody) & !is.na(pt$PT_score)]
     pt <- pt[(pt$promoter>0 | pt$transcriptBody>0) & pt$PT_score!=0]
     promoterEnriched <- table(pt$PT_score>0)
     names(promoterEnriched) <-

@@ -62,8 +62,11 @@ FASTA <- opt$fasta
 CUT <- opt$restrict
 MAPPABILITY <- opt$mappability
 pairs <- dir(opt$pairs, full.names=TRUE)
+names(pairs) <- sub("\\.unselected.pairs.gz", "", basename(pairs))
 R1PEAK <- import(opt$r1peak)
 R2PEAK <- import(opt$r2peak)
+mcols(R1PEAK) <- NULL
+mcols(R2PEAK) <- NULL
 ## split by chromsome
 R1PEAK <- split(R1PEAK, seqnames(R1PEAK))
 R2PEAK <- split(R2PEAK, seqnames(R2PEAK))
@@ -75,18 +78,34 @@ if(length(chromosomes)==0){
 }
 ## loading data
 
-
-countByOverlaps <- function(gi, pairs){
-    counts_tab <- 0
-    counts_r2 <- 0
-    for(ps in pairs){
-        ps <- read.delim(ps, comment.char="#", header=FALSE)
-        ps <- with(ps, GInteractions(GRanges(V2, IRanges(V3, width=100)),
-                                    GRanges(V4, IRanges(V5, width=100))))
-        counts_tab <- counts_tab + countOverlaps(gi, ps, use.region="same")
-        counts_r2 <- counts_r2 + countOverlaps(second(gi), second(ps))
+readPairs <- function(pair, chrom){
+    if(file.exists(paste0(pair, ".rds"))){
+        if(file.exists(paste0(pair, ".", chrom, ".rds"))){
+            pc <- readRDS(paste0(pair, ".", chrom, ".rds"))
+        }else{
+            NULL
+        }
+    }else{
+        pc <- read.table(pair,
+                colClasses=c("NULL", "character",
+                            "integer", "character",
+                            "integer", rep("NULL", 9)))
+        pc <- pc[pc[, 1]==pc[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
+        pc <- split(pc, pc[, 1])
+        null <- mapply(saveRDS, pc, paste0(pair, ".", names(pc), ".rds"))
+        saveRDS(TRUE, paste0(pair, ".rds"))
+        if(chrom %in% names(pc)){
+            pc[[chrom]]
+        }else{
+            NULL
+        }
     }
-    list(count=counts_tab, shortCount=counts_r2)
+}
+
+countByOverlaps <- function(gi, reads){
+    gi$count <- countOverlaps(gi, reads)
+    gi$shortCount <- countOverlaps(second(gi), second(reads))
+    gi[gi$count>0 & gi$shortCount>0]
 }
 
 getMscore <- function(mscore, gr){
@@ -104,15 +123,20 @@ getMscore <- function(mscore, gr){
 
 ### load counts
 gis <- NULL
+
+gc(reset=TRUE)
 for(chrom in chromosomes){
     r1peak <- R1PEAK[[chrom]]
     r2peak <- R2PEAK[[chrom]]
     peak_pair <- expand.grid(seq_along(r1peak), seq_along(r2peak))
     gi <- GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
-    cnt <- countByOverlaps(gi, pairs)
-    gi$count <- cnt$count
-    gi$shortCount <- cnt$shortCount
-    gi <- gi[gi$count>0]
+    rm(peak_pair)
+    gc(reset=TRUE)
+    reads <- lapply(pairs, readPairs, chrom=chrom)
+    reads <- do.call(rbind, c(reads, make.row.names = FALSE))
+    reads <- with(reads, GInteractions(GRanges(V2, IRanges(V3, width=150)),
+                                GRanges(V4, IRanges(V5, width=150))))
+    gi <- countByOverlaps(gi, reads)
     if(length(gi)>0){
         gis <- c(gis, gi)
     }
