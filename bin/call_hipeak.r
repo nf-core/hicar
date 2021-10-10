@@ -63,7 +63,7 @@ if(!all(c("chr1", "start1", "end1", "width1",
 ## doing statistics and resampling
 
 pospoisson_regression <- function(mm) {
-    mf <- mm[, c("count", "logl", "loggc", "logm", "logdist", "logShortCount", "logn")]
+    mf <- vglm(count ~ logl + loggc + logm + logdist + logShortCount + logn, family = pospoisson(), data = mm, method="model.frame")
     y <- model.response(mf, "any")
     lambda.init <- Init.mu(y = y, w = rep(1, length(y)), imethod = 1, imu = NULL)
     eta <- theta2eta(lambda.init, "loglink", earg = list(
