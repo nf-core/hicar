@@ -84,10 +84,15 @@ classify_peaks <- function(final) {
     group <- unique(rbind(as.data.frame(ol1), as.data.frame(ol2)))
     colnames(group) <- c("from", "to")
     group$weight <- 1
-    group <- graphBAM(group)
-    group <- connectedComp(ugraph(group))
-    group <- lapply(group, as.numeric)
-    group <- data.frame(id=unlist(group), g=rep(seq_along(group), lengths(group)))
+    group$chr <- seqnames(first(gi)[group$from])
+    group <- split(group, group$chr)
+    group <- lapply(group, function(.ele){
+        .ele <- graphBAM(.ele)
+        .ele <- connectedComp(ugraph(.ele))
+        .ele <- lapply(.ele, as.numeric)
+        data.frame(id=unlist(.ele), g=rep(seq_along(.ele), lengths(.ele)))
+    })
+    group <- do.call(rbind, group)
 
     final$Cluster <- NA
     final$Cluster[group$id] <- group$g
@@ -95,6 +100,8 @@ classify_peaks <- function(final) {
     final$ClusterSize[group$id] <- table(group$g)[group$g]
     final$Cluster[is.na(final$Cluster)] <- seq(from=max(group$g)+1, to=max(group$g)+sum(is.na(final$Cluster)))
     final$NegLog10P <- -log10( final$p_val_reg2 )
+    final$NegLog10P[is.na(final$NegLog10P)] <- 0
+    final$NegLog10P[is.infinite(final$NegLog10P)] <- max(final$NegLog10P[!is.infinite(final$NegLog10P)]+1)
     NegLog10P <- rowsum(final$NegLog10P, final$Cluster)
     final$NegLog10P <- NegLog10P[final$Cluster, 1]
 
@@ -112,15 +119,15 @@ classify_peaks <- function(final) {
     # keep a record of z before normalization
     z0 <- z
 
-    z[,1]<-z[,1]/max(z[,1])
-    z[,2]<-z[,2]/max(z[,2])
+    z[,1]<-z[,1]/max(z[,1], na.rm=TRUE)
+    z[,2]<-z[,2]/max(z[,2], na.rm=TRUE)
 
     u<-z
     u[,1] <-  1/sqrt(2)*z[,1] + 1/sqrt(2)*z[,2]
     u[,2] <- -1/sqrt(2)*z[,1] + 1/sqrt(2)*z[,2]
 
     v<-cbind(u, seq(1,nrow(u),1) )
-    RefPoint <- v[ v[,2]==min(v[,2]) , 3]
+    RefPoint <- v[ v[,2]==min(v[,2], na.rm=TRUE) , 3]
     RefValue <- z0[RefPoint,2]
 
     # define peak cluster type
