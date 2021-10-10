@@ -63,6 +63,17 @@ if(!all(c("chr1", "start1", "end1", "width1",
 ## doing statistics and resampling
 
 pospoisson_regression <- function(mm) {
+    mf <- list(mm[, c("count", "logl", "loggc", "logm", "logdist", "logShortCount", "logn")])
+    y <- model.response(mf, "any")
+    lambda.init <- Init.mu(y = y, w = rep(1, length(y)), imethod = 1, imu = NULL)
+    eta <- theta2eta(lambda.init, "loglink", earg = list(
+            theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+            short = TRUE, tag = FALSE))
+    lambda <- eta2theta(eta, "loglink", earg = list(theta = NULL,
+        bvalue = NULL, inverse = FALSE, deriv = 0, short = TRUE,
+        tag = FALSE))
+    ll.elts <- dgaitpois(y, lambda, truncate = 0, log = TRUE)
+    mm <- mm[!is.infinite(ll.elts), , drop=FALSE]
     fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount + logn, family = pospoisson(), data = mm)
     # fit <- vglm(count ~ loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm)
     mm$expected = fitted(fit)
