@@ -83,9 +83,8 @@ classify_peaks <- function(final) {
 
     group <- unique(rbind(as.data.frame(ol1), as.data.frame(ol2)))
     colnames(group) <- c("from", "to")
-    group$weight <- 1
-    group$chr <- seqnames(first(gi)[group$from])
-    group <- split(group, group$chr)
+    group$weight <- 1L
+    group <- split(group, seqnames(first(gi)[group$from]))
     group <- lapply(group, function(.ele){
         .ele <- graphBAM(.ele)
         .ele <- connectedComp(ugraph(.ele))
@@ -140,13 +139,13 @@ classify_peaks <- function(final) {
     return(final)
 }
 
-mm = classify_peaks(mm)
-
 peaks <- if(nrow(mm)>0) subset(mm, count >= COUNT_CUTOFF & ratio2 >= RATIO_CUTOFF & -log10(fdr) > FDR) else data.frame()
 if (dim(peaks)[1] == 0) {
     print(paste('ERROR caller_hipeak.r: 0 bin pairs with count >= ',COUNT_CUTOFF,' observed/expected ratio >= ',RATIO_CUTOFF,' and -log10(fdr) > ',fdr_cutoff,sep=''))
     quit()
 }
+
+peaks = classify_peaks(peaks)
 
 outf_name = paste(OUTPUT, '.',FDR,'.peaks',sep='')
 dir.create(OUTPUT, recursive=TRUE)
