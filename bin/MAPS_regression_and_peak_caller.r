@@ -103,13 +103,38 @@ dataset_length_xor = length(mm_combined_xor$bin1_mid)
 dataset_length = dataset_length_and + dataset_length_xor
 
 ## doing statistics and resampling
-
+checkdata <- function(mm){
+    mf <- vglm(count ~ loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm, method="model.frame")
+    y <- model.response(mf, "any")
+    w <- model.weights(mf)
+    if (!length(w)) {
+        w <- rep_len(1, nrow(mf))
+    }
+    lambda.init <- Init.mu(y = y, w = w, imethod = 1, imu = NULL)
+    eta <- theta2eta(lambda.init, "loglink", earg = list(
+            theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
+            short = TRUE, tag = FALSE))
+    lambda <- eta2theta(eta, "loglink", earg = list(theta = NULL,
+        bvalue = NULL, inverse = FALSE, deriv = 0, short = TRUE,
+        tag = FALSE))
+    ll.elts <- dgaitpois(y, lambda, truncate = 0, log = TRUE)
+}
+trimData <- function(mm){
+    ll.elts <- checkdata(mm)
+    while(any(is.infinite(ll.elts))){
+        mm <- mm[!is.infinite(ll.elts), , drop=FALSE]
+        ll.elts <- checkdata(mm)
+    }
+    mm
+}
 pospoisson_regression <- function(mm, dataset_length) {
+    mm <- trimData(mm)
     # fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm)
     fit <- vglm(count ~ loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm)
     mm$expected = fitted(fit)
     mm$p_val = ppois(mm$count, mm$expected, lower.tail = FALSE, log.p = FALSE) / ppois(0, mm$expected, lower.tail = FALSE, log.p = FALSE)
     m1 = mm[ mm$p_val > 1/length(mm$p_val),]
+    m1 <- trimData(m1)
     # fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount, family = pospoisson(), data = m1)
     fit <- vglm(count ~  loggc + logm + logdist + logShortCount, family = pospoisson(), data = m1)
     coeff<-round(coef(fit),10)

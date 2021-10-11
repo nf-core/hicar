@@ -61,11 +61,14 @@ if(!all(c("chr1", "start1", "end1", "width1",
 }
 
 ## doing statistics and resampling
-
-pospoisson_regression <- function(mm) {
+checkdata <- function(mm){
     mf <- vglm(count ~ logl + loggc + logm + logdist + logShortCount + logn, family = pospoisson(), data = mm, method="model.frame")
     y <- model.response(mf, "any")
-    lambda.init <- Init.mu(y = y, w = rep(1, length(y)), imethod = 1, imu = NULL)
+    w <- model.weights(mf)
+    if (!length(w)) {
+        w <- rep_len(1, nrow(mf))
+    }
+    lambda.init <- Init.mu(y = y, w = w, imethod = 1, imu = NULL)
     eta <- theta2eta(lambda.init, "loglink", earg = list(
             theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
             short = TRUE, tag = FALSE))
@@ -73,12 +76,24 @@ pospoisson_regression <- function(mm) {
         bvalue = NULL, inverse = FALSE, deriv = 0, short = TRUE,
         tag = FALSE))
     ll.elts <- dgaitpois(y, lambda, truncate = 0, log = TRUE)
-    mm <- mm[!is.infinite(ll.elts), , drop=FALSE]
+}
+trimData <- function(mm){
+    ll.elts <- checkdata(mm)
+    while(any(is.infinite(ll.elts))){
+        mm <- mm[!is.infinite(ll.elts), , drop=FALSE]
+        ll.elts <- checkdata(mm)
+    }
+    mm
+}
+pospoisson_regression <- function(mm) {
+    dataset_length<- nrow(mm)
+    mm <- trimData(mm)
     fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount + logn, family = pospoisson(), data = mm)
     # fit <- vglm(count ~ loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm)
     mm$expected = fitted(fit)
     mm$p_val = ppois(mm$count, mm$expected, lower.tail = FALSE, log.p = FALSE) / ppois(0, mm$expected, lower.tail = FALSE, log.p = FALSE)
     m1 = mm[ mm$p_val > 1/length(mm$p_val),]
+    m1 <- trimData(m1)
     fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount + logn, family = pospoisson(), data = m1)
     # fit <- vglm(count ~  loggc + logm + logdist + logShortCount, family = pospoisson(), data = m1)
     coeff<-round(coef(fit),10)
@@ -87,7 +102,7 @@ pospoisson_regression <- function(mm) {
     mm$expected2 <- mm$expected2 /(1-exp(-mm$expected2))
     mm$ratio2 <- mm$count / mm$expected2
     mm$p_val_reg2 = ppois(mm$count, mm$expected2, lower.tail = FALSE, log.p = FALSE) / ppois(0, mm$expected2, lower.tail = FALSE, log.p = FALSE)
-    mm$p_bonferroni = mm$p_val_reg2 * nrow(mm)
+    mm$p_bonferroni = mm$p_val_reg2 * dataset_length
     mm$fdr <- p.adjust(mm$p_val_reg2, method='fdr')
     return(mm)
 }
