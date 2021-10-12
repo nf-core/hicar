@@ -50,23 +50,67 @@ second <- reducePeaks(second(peaks))
 peaks <- unique(GInteractions(first, second))
 
 ## get counts
+readPairs <- function(pair, chrom){
+    if(file.exists(paste0(pair, ".rds"))){
+        if(file.exists(paste0(pair, ".", chrom, ".rds"))){
+            pc <- readRDS(paste0(pair, ".", chrom, ".rds"))
+        }else{
+            NULL
+        }
+    }else{
+        pc <- read.table(pair,
+                colClasses=c("NULL", "character",
+                            "integer", "character",
+                            "integer", rep("NULL", 9)))
+        pc <- split(pc, pc[, 1])
+        null <- mapply(saveRDS, pc, paste0(pair, ".", names(pc), ".rds"))
+        saveRDS(TRUE, paste0(pair, ".rds"))
+        if(chrom %in% names(pc)){
+            pc[[chrom]]
+        }else{
+            NULL
+        }
+    }
+}
 pc <- dir("pairs", "pairs.gz", full.names = FALSE)
-countByOverlaps <- function(pairs){
-    ps <- read.delim(pairs, comment.char="#", header=FALSE)
-    ps <- with(ps, GInteractions(GRanges(V2, IRanges(V3, width=150)),
-                                GRanges(V4, IRanges(V5, width=150))))
-    counts_tab <- countOverlaps(peaks, ps, use.region="same")
-    counts_total <- length(ps)
+countByOverlaps <- function(pairs, peaks){
+    cnt <- lapply(names(peaks), function(chr){
+        ps <- readPairs(pairs, chr)
+        counts_total <- nrow(ps)
+        ps <- ps[ps[, 1]==ps[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
+        if(nrow(ps)<1){
+            return(NULL)
+        }
+        ps <- GInteractions(GRanges(ps[, 1], IRanges(ps[, 2], width=150)),
+                            GRanges(ps[, 3], IRanges(ps[, 4], width=150)))
+        .peak <- peaks[[chr]]
+        counts_tab <- countOverlaps(.peak, ps, use.region="same")
+        counts_tab <- cbind(ID=.peak$ID, counts_tab)
+        list(count=counts_tab, total=counts_total)
+    })
+    cnt <- cnt[lengths(cnt)>0]
+    counts_total <- vapply(cnt, FUN=function(.ele) .ele$total,
+                        FUN.VALUE = numeric(1))
+    counts_total <- sum(counts_total)
+    counts_tab <- do.call(rbind, lapply(cnt, function(.ele) .ele$count))
     list(count=counts_tab, total=counts_total)
 }
 
-cnts <- lapply(file.path("pairs", pc), countByOverlaps)
+peaks$ID <- seq_along(peaks)
+peaks.s <- split(peaks, seqnames(first(peaks)))
+cnts <- lapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s)
 samples <- sub("(_REP\\d+)\\.(.*?)unselected.pairs.gz", "\\1", pc)
 sizeFactor <- vapply(cnts, FUN=function(.ele) .ele$total,
                     FUN.VALUE = numeric(1))
 names(sizeFactor) <- samples
 cnts <- lapply(cnts, function(.ele) .ele$count)
-cnts <- do.call(cbind, cnts)
+cnts <- mapply(cnts, samples, FUN=function(.d, .n){
+    colnames(.d)[colnames(.d)!="ID"] <- .n
+    .d
+}, SIMPLIFY=FALSE)
+cnts <- Reduce(function(x, y) merge(x, y, by="ID"), cnts)
+cnts <- cnts[match(peaks$ID, cnts[, "ID"]), ]
+cnts <- cnts[, colnames(cnts)!="ID"]
 colnames(cnts) <- samples
 rownames(cnts) <- seq_along(peaks)
 mcols(peaks) <- cnts

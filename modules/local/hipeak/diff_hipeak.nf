@@ -23,9 +23,9 @@ process DIFF_HIPEAK {
     path distalpair, stageAs: "pairs/*"
 
     output:
-    path "${prefix}/*"                      , emit: diff
-    path "${prefix}/*.qc.json"              , emit: stats
-    path "*.version.txt"                    , emit: version
+    path "${prefix}/*"                        , emit: diff
+    path "${prefix}/*.qc.json", optional: true, emit: stats
+    path "*.version.txt"                      , emit: version
 
     script:
     prefix   = options.suffix ? "${options.suffix}" : "diffhicar"
