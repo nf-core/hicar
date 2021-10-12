@@ -72,7 +72,7 @@ readPairs <- function(pair, chrom){
         }
     }
 }
-pc <- dir("pairs", "pairs.gz", full.names = FALSE)
+pc <- dir("pairs", "pairs.gz$", full.names = FALSE)
 countByOverlaps <- function(pairs, peaks){
     cnt <- lapply(names(peaks), function(chr){
         ps <- readPairs(pairs, chr)
@@ -99,6 +99,7 @@ countByOverlaps <- function(pairs, peaks){
 peaks$ID <- seq_along(peaks)
 peaks.s <- split(peaks, seqnames(first(peaks)))
 cnts <- lapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s)
+rm(peaks.s)
 samples <- sub("(_REP\\d+)\\.(.*?)unselected.pairs.gz", "\\1", pc)
 sizeFactor <- vapply(cnts, FUN=function(.ele) .ele$total,
                     FUN.VALUE = numeric(1))
@@ -109,8 +110,8 @@ cnts <- mapply(cnts, samples, FUN=function(.d, .n){
     .d
 }, SIMPLIFY=FALSE)
 cnts <- Reduce(function(x, y) merge(x, y, by="ID"), cnts)
-cnts <- cnts[match(peaks$ID, cnts[, "ID"]), ]
-cnts <- cnts[, colnames(cnts)!="ID"]
+cnts <- cnts[match(peaks$ID, cnts[, "ID"]), , drop=FALSE]
+cnts <- cnts[, colnames(cnts)!="ID", drop=FALSE]
 colnames(cnts) <- samples
 rownames(cnts) <- seq_along(peaks)
 mcols(peaks) <- cnts
