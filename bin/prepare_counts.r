@@ -78,10 +78,11 @@ if(length(chromosomes)==0){
 }
 ## loading data
 
-readPairs <- function(pair, chrom){
+readPairs <- function(pair, chrom1, chrom2){
+    fn <- paste(pair, chrom1, chrom2, "rds", sep=".")
     if(file.exists(paste0(pair, ".rds"))){
-        if(file.exists(paste0(pair, ".", chrom, ".rds"))){
-            pc <- readRDS(paste0(pair, ".", chrom, ".rds"))
+        if(file.exists(fn)){
+            pc <- readRDS(fn)
         }else{
             NULL
         }
@@ -90,12 +91,12 @@ readPairs <- function(pair, chrom){
                 colClasses=c("NULL", "character",
                             "integer", "character",
                             "integer", rep("NULL", 9)))
-        pc <- pc[pc[, 1]==pc[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
-        pc <- split(pc, pc[, 1])
+        #pc <- pc[pc[, 1]==pc[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
+        pc <- split(pc, paste(pc[, 1], pc[, 3], sep="."))
         null <- mapply(saveRDS, pc, paste0(pair, ".", names(pc), ".rds"))
         saveRDS(TRUE, paste0(pair, ".rds"))
-        if(chrom %in% names(pc)){
-            pc[[chrom]]
+        if(paste(chrom1, chrom2, sep=".") %in% names(pc)){
+            pc[[paste(chrom1, chrom2, sep=".")]]
         }else{
             NULL
         }
@@ -125,20 +126,22 @@ getMscore <- function(mscore, gr){
 gis <- NULL
 
 gc(reset=TRUE)
-for(chrom in chromosomes){
-    r1peak <- R1PEAK[[chrom]]
-    r2peak <- R2PEAK[[chrom]]
-    peak_pair <- expand.grid(seq_along(r1peak), seq_along(r2peak))
-    gi <- GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
-    rm(peak_pair)
-    gc(reset=TRUE)
-    reads <- lapply(pairs, readPairs, chrom=chrom)
-    reads <- do.call(rbind, c(reads, make.row.names = FALSE))
-    reads <- with(reads, GInteractions(GRanges(V2, IRanges(V3, width=150)),
-                                GRanges(V4, IRanges(V5, width=150))))
-    gi <- countByOverlaps(gi, reads)
-    if(length(gi)>0){
-        gis <- c(gis, gi)
+for(chrom1 in chromosomes){
+    for(chrom2 in chromosomes){
+        r1peak <- R1PEAK[[chrom1]]
+        r2peak <- R2PEAK[[chrom2]]
+        peak_pair <- expand.grid(seq_along(r1peak), seq_along(r2peak))
+        gi <- GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
+        rm(peak_pair)
+        gc(reset=TRUE)
+        reads <- lapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2)
+        reads <- do.call(rbind, c(reads, make.row.names = FALSE))
+        reads <- with(reads, GInteractions(GRanges(V2, IRanges(V3, width=150)),
+                                    GRanges(V4, IRanges(V5, width=150))))
+        gi <- countByOverlaps(gi, reads)
+        if(length(gi)>0){
+            gis <- c(gis, gi)
+        }
     }
 }
 gis <- do.call(c, gis)
@@ -158,6 +161,7 @@ m2 <- getMscore(mscore, second(gis))
 gis$mappability <- m1*m2 + 1e-6
 ### get distance of the anchors
 gis$dist <- distance(first(gis), second(gis))+1
+gis$dist[is.na(gis$dist)] <- max(gis$dist, na.rm=TRUE)*100 ##trans interactions
 gis$length <- width(first(gis))*width(second(gis))
 
 mm <- log(as.data.frame(mcols(gis)[, c("length", "cut", "gc", "mappability", "dist", "shortCount")]))

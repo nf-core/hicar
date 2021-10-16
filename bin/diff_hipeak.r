@@ -50,10 +50,11 @@ second <- reducePeaks(second(peaks))
 peaks <- unique(GInteractions(first, second))
 
 ## get counts
-readPairs <- function(pair, chrom){
+readPairs <- function(pair, chrom1, chrom2){
+    fn <- paste(pair, chrom1, chrom2, "rds", sep=".")
     if(file.exists(paste0(pair, ".rds"))){
-        if(file.exists(paste0(pair, ".", chrom, ".rds"))){
-            pc <- readRDS(paste0(pair, ".", chrom, ".rds"))
+        if(file.exists(fn)){
+            pc <- readRDS(fn)
         }else{
             NULL
         }
@@ -62,22 +63,27 @@ readPairs <- function(pair, chrom){
                 colClasses=c("NULL", "character",
                             "integer", "character",
                             "integer", rep("NULL", 9)))
-        pc <- split(pc, pc[, 1])
+        #pc <- pc[pc[, 1]==pc[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
+        pc <- split(pc, paste(pc[, 1], pc[, 3], sep="."))
         null <- mapply(saveRDS, pc, paste0(pair, ".", names(pc), ".rds"))
         saveRDS(TRUE, paste0(pair, ".rds"))
-        if(chrom %in% names(pc)){
-            pc[[chrom]]
+        if(paste(chrom1, chrom2, sep=".") %in% names(pc)){
+            pc[[paste(chrom1, chrom2, sep=".")]]
         }else{
             NULL
         }
     }
 }
 pc <- dir("pairs", "pairs.gz$", full.names = FALSE)
-countByOverlaps <- function(pairs, peaks){
+countByOverlaps <- function(pairs, peaks, sep="___"){
     cnt <- lapply(names(peaks), function(chr){
-        ps <- readPairs(pairs, chr)
+        chr_ <- strsplit(chr, sep)[[1]]
+        chrom1 <- chr_[1]
+        chrom2 <- chr_[2]
+        ps <- readPairs(pairs, chrom1, chrom2)
         counts_total <- nrow(ps)
-        ps <- ps[ps[, 1]==ps[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
+        #ps <- ps[ps[, 1]==ps[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
+        ps <- ps[ps[, 1] %in% chrom1 & ps[, 3] %in% chrom2, , drop=FALSE]
         if(nrow(ps)<1){
             return(NULL)
         }
@@ -97,8 +103,8 @@ countByOverlaps <- function(pairs, peaks){
 }
 
 peaks$ID <- seq_along(peaks)
-peaks.s <- split(peaks, seqnames(first(peaks)))
-cnts <- lapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s)
+peaks.s <- split(peaks, paste(seqnames(first(peaks)), seqnames(second(peaks)), sep="___"))
+cnts <- lapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s, sep="___")
 rm(peaks.s)
 samples <- sub("(_REP\\d+)\\.(.*?)unselected.pairs.gz", "\\1", pc)
 sizeFactor <- vapply(cnts, FUN=function(.ele) .ele$total,
@@ -140,7 +146,7 @@ write.csv(coldata, fname(NA, "csv", "designTab"), row.names = TRUE)
 
 contrasts.lev <- levels(coldata$condition)
 
-if(length(contrasts.lev)>1 || any(table(condition)>1)){
+if(length(unique(contrasts.lev))>1 || any(table(condition)>1)){
     contrasts <- combn(contrasts.lev, 2, simplify = FALSE)
     ## create DGEList
     group <- coldata$condition
