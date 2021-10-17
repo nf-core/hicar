@@ -85,7 +85,7 @@ write.csv(coldata, fname(NA, "csv", "designTab"), row.names = TRUE)
 
 contrasts.lev <- levels(coldata$condition)
 
-if(length(contrasts.lev)>1 || any(table(condition)>1)){
+if(length(contrasts.lev)>1 && any(table(condition)>1)){
     contrasts <- combn(contrasts.lev, 2, simplify = FALSE)
     ## create DGEList
     group <- coldata$condition
