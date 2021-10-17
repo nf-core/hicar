@@ -83,7 +83,6 @@ countByOverlaps <- function(pairs, peaks, sep="___"){
         ps <- readPairs(pairs, chrom1, chrom2)
         counts_total <- nrow(ps)
         #ps <- ps[ps[, 1]==ps[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
-        ps <- ps[ps[, 1] %in% chrom1 & ps[, 3] %in% chrom2, , drop=FALSE]
         if(nrow(ps)<1){
             return(NULL)
         }

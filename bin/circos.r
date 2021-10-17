@@ -100,6 +100,12 @@ rg <- rg[rg$score>0, c("seqnames", "start", "end", "score"), drop=FALSE]
 write.table(rg, file.path(outfolder, "hist.link.txt"),
             quote=FALSE, col.names=FALSE, row.names=FALSE,
             sep=" ")
+seqn <- sort(as.character(unique(rg$seqnames)))[1]
+labelA <- labelB <- c(seqn, 0, 5000)
+labelA <- c(labelA, "interaction-density")
+labelB <- c(labelB, "exon-density")
+writeLines(labelA, file.path(outfolder, "labelA.txt"), sep=" ")
+writeLines(labelB, file.path(outfolder, "labelB.txt"), sep=" ")
 
 gtf <- import(gtf)
 gtf <- gtf[gtf$type %in% "exon"]

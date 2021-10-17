@@ -61,7 +61,7 @@ if(!is.null(opt$output)){
 FASTA <- opt$fasta
 CUT <- opt$restrict
 MAPPABILITY <- opt$mappability
-pairs <- dir(opt$pairs, full.names=TRUE)
+pairs <- dir(opt$pairs, "unselected.pairs.gz", full.names=TRUE)
 names(pairs) <- sub("\\.unselected.pairs.gz", "", basename(pairs))
 R1PEAK <- import(opt$r1peak)
 R2PEAK <- import(opt$r2peak)
@@ -73,6 +73,7 @@ R2PEAK <- split(R2PEAK, seqnames(R2PEAK))
 R1PEAK <- R1PEAK[lengths(R1PEAK)>0]
 R2PEAK <- R2PEAK[lengths(R2PEAK)>0]
 chromosomes <- intersect(names(R1PEAK), names(R2PEAK))
+chromosomes <- chromosomes[!grepl("_", chromosomes)]
 if(length(chromosomes)==0){
     stop("no valid data in same chromosome.")
 }
