@@ -54,7 +54,8 @@ workflow HI_PEAK {
     }
 
     emit:
-    peak         = ASSIGN_TYPE.out.peak         // channel: [ path(bedpe) ]
+    peak         = ASSIGN_TYPE.out.peak         // channel: [ path(peak) ]
+    bedpe        = ASSIGN_TYPE.out.bedpe        // channel: [ path(bedpe) ]
     stats        = stats                        // channel: [ path(stats) ]
     diff         = diff                         // channel: [ path(diff) ]
     version      = ch_version                   // channel: [ path(version) ]

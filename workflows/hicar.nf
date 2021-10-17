@@ -38,6 +38,7 @@ params.restriction_sites = RE_cutsite[params.enzyme.toLowerCase()]
 
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+ch_circos_config         = Channel.fromPath("$projectDir/assets/circos.conf")
 
 /*
 ========================================================================================
@@ -88,7 +89,7 @@ include { R1_PEAK                } from '../subworkflows/local/calldistalpeak' a
 include { HI_PEAK                } from '../subworkflows/local/hipeak' addParams(options: getSubWorkFlowParam(modules, ['parepare_counts', 'call_hipeak', 'assign_type', 'diff_hipeak', 'chippeakanno_hipeak', 'chippeakanno_diffhipeak', 'pair2bam']))
 include { MAPS_MULTIENZYME       } from '../subworkflows/local/multienzyme'   addParams(options: getSubWorkFlowParam(modules, ['maps_cut', 'maps_fend', 'genmap_index', 'genmap_mappability', 'ucsc_wigtobigwig', 'maps_mapability', 'maps_merge', 'maps_feature', 'ensembl_ucsc_convert']))
 include { MAPS_PEAK              } from '../subworkflows/local/maps_peak' addParams(options: getSubWorkFlowParam(modules, ['maps_maps', 'maps_callpeak', 'maps_stats', 'maps_reformat']))
-
+include { RUN_CIRCOS             } from '../subworkflows/local/circos' addParams(options: getSubWorkFlowParam(modules, ['prepare_circos', 'circos']))
 /*
 ========================================================================================
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -297,6 +298,15 @@ workflow HICAR {
             MAPS_MULTIENZYME.out.mappability
         )
         ch_software_versions = ch_software_versions.mix(HI_PEAK.out.version.ifEmpty(null))
+
+        RUN_CIRCOS(
+            HI_PEAK.out.bedpe,
+            PREPARE_GENOME.out.gtf,
+            PREPARE_GENOME.out.chrom_sizes,
+            PREPARE_GENOME.out.ucscname,
+            ch_circos_config
+        )
+        ch_software_versions = ch_software_versions.mix(RUN_CIRCOS.out.version.ifEmpty(null))
     }
 
     //
