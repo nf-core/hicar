@@ -76,7 +76,7 @@ cid <- cut(sqrt(mcols(pes)$score/10), breaks = seq(scores[1], scores[2]))
 levels(cid) <- seq_along(levels(cid))
 out <- cbind(out[, c("first.seqnames", "first.start", "first.end",
                     "second.seqnames", "second.start", "second.end")],
-             thickness=paste0("thickness=", cid))
+            thickness=paste0("thickness=", cid))
 
 write.table(out, file.path(outfolder, "link.txt"),
     quote=FALSE, col.names=FALSE, row.names=FALSE,
