@@ -63,38 +63,55 @@ for(i in c("interaction", "gtf", "chromsize", "ucscname")){
 dir.create(outfolder, showWarnings = FALSE)
 
 pe <- import(interaction, format="BEDPE")
-scores <- range(mcols(pe)$score)
+seqlevelsStyle(first(pe)) <- seqlevelsStyle(second(pe)) <- "UCSC"
+pes <- pe[order(mcols(pe)$score, decreasing=TRUE)]
+pes_cis <- pes[seqnames(first(pe))==seqnames(second(pe))]
+pes_trans <- pes[seqnames(first(pe))!=seqnames(second(pe))]
+pes <- sort(c(pes_cis[seq.int(min(1e4, length(pes_cis)))],
+            pes_trans[seq.int(min(1e4, length(pes_trans)))])) ## keep top 10K links only. otherwise hard to plot.
+out <- as.data.frame(pes)
+scores <- sqrt(range(mcols(pe)$score)/10)
 scores <- c(floor(scores[1]), ceiling(scores[2]))
-cid <- cut(mcols(pe)$score, breaks = seq(scores[1], scores[2]))
-colors <- rainbow(length(levels(cid)))
-levels(cid) <- colors
-out <- as.data.frame(pe)
+cid <- cut(sqrt(mcols(pes)$score/10), breaks = seq(scores[1], scores[2]))
+levels(cid) <- seq_along(levels(cid))
 out <- cbind(out[, c("first.seqnames", "first.start", "first.end",
                     "second.seqnames", "second.start", "second.end")],
-            color=paste0("color=", cid))
-out <- split(out, out[, 1])
-mapply(out, names(out), FUN=function(.d, .n){
-    write.table(.d, file.path(outfolder, "link.txt"),
-                quote=FALSE, col.names=FALSE, row.names=FALSE,
-                sep=" ")
-})
+             thickness=paste0("thickness=", cid))
+
+write.table(out, file.path(outfolder, "link.txt"),
+    quote=FALSE, col.names=FALSE, row.names=FALSE,
+    sep=" ")
+
 
 chromsize <- read.delim(chromsize, header=FALSE)
+seqlevelsStyle(chromsize[, 1]) <- "UCSC"
 chromsize <- cbind("chr", "-", chromsize[, c(1, 1)], 0, chromsize[, 2],
-                    chromsize[, 1])
+                    paste0("chr", sub("^chr", "", chromsize[, 1])))
 colnames(chromsize) <- c("chr", "-", "chrname", "chrlabel",
                         0, "chrlen", "chrcolor")
+chromsize <- chromsize[order(as.numeric(sub("chr", "", chromsize[, "chrname"])),
+                        chromsize[, "chrname"]), , drop=FALSE]
 write.table(chromsize, file.path(outfolder, "karyotype.tab"),
             quote=FALSE, col.names=FALSE, row.names=FALSE, sep=" ")
 
+getScore <- function(seql, rg){
+    gtile <- tileGenome(seqlengths = seql, tilewidth = 1e5)
+    gtile <- unlist(gtile)
+    gtile <- split(gtile, seqnames(gtile))
+    sharedChr <- intersect(names(rg), names(gtile))
+    rg <- rg[sharedChr]
+    gtile <- gtile[names(rg)]
+    vw <- Views(rg, gtile)
+    vm <- viewSums(vw, na.rm = TRUE)
+    stopifnot(identical(names(vm), names(gtile)))
+    gtile <- unlist(gtile, use.names = FALSE)
+    gtile$score <- unlist(vm, use.names = FALSE)
+    gtile
+}
 rg <- coverage(c(first(pe), second(pe)))
 seql <- chromsize$chrlen
 names(seql) <- chromsize$chrname
-gtile <- tileGenome(seqlengths = seql, tilewidth = 1e4)
-gtile <- unlist(gtile)
-vw <- Views(rg, gtile)
-vm <- viewSums(vw, na.rm = TRUE)
-gtile$score <- unlist(vm)
+gtile <- getScore(seql, rg)
 rg <- as.data.frame(gtile)
 rg <- rg[rg$score>0, c("seqnames", "start", "end", "score"), drop=FALSE]
 write.table(rg, file.path(outfolder, "hist.link.txt"),
@@ -109,10 +126,9 @@ writeLines(labelB, file.path(outfolder, "labelB.txt"), sep=" ")
 
 gtf <- import(gtf)
 gtf <- gtf[gtf$type %in% "exon"]
+seqlevelsStyle(gtf) <- "UCSC"
 rg <- coverage(gtf)
-vw <- Views(rg, gtile)
-vm <- viewSums(vw, na.rm = TRUE)
-gtile$score <- unlist(vm)
+gtile <- getScore(seql, rg)
 rg <- as.data.frame(gtile)
 rg <- rg[rg$score>0, c("seqnames", "start", "end", "score"), drop=FALSE]
 write.table(rg, file.path(outfolder, "hist.exon.txt"),
@@ -127,6 +143,9 @@ tryCatch({
                 ideo$chromStart, ideo$chromEnd, ideo$gieStain)
     colnames(ideo) <- colnames(chromsize)
     ideo <- rbind(chromsize, ideo)
+    for(i in c("chrname", "chrlabel")){
+        ideo[ideo[, i]=="", i] <- make.names(ideo[ideo[, i]=="", 2], unique=TRUE)
+    }
     write.table(ideo, file.path(outfolder, "karyotype.tab"),
                 quote=FALSE, col.names=FALSE, row.names=FALSE, sep=" ")
 }, error=function(.e) message(.e))
