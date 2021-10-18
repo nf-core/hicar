@@ -67,8 +67,15 @@ seqlevelsStyle(first(pe)) <- seqlevelsStyle(second(pe)) <- "UCSC"
 pes <- pe[order(mcols(pe)$score, decreasing=TRUE)]
 pes_cis <- pes[seqnames(first(pe))==seqnames(second(pe))]
 pes_trans <- pes[seqnames(first(pe))!=seqnames(second(pe))]
-pes <- sort(c(pes_cis[seq.int(min(1e4, length(pes_cis)))],
-            pes_trans[seq.int(min(1e4, length(pes_trans)))])) ## keep top 10K links only. otherwise hard to plot.
+if(length(pes_cis)>0){
+    pes <- pes_cis[seq.int(min(1e4, length(pes_cis)))]
+}else{
+    pes <- NULL
+}
+if(length(pes_trans)>0){
+    pes <- sort(c(pes,
+                pes_trans[seq.int(min(1e4, length(pes_trans)))])) ## keep top 10K links only. otherwise hard to plot.
+}
 out <- as.data.frame(pes)
 scores <- sqrt(range(mcols(pe)$score)/10)
 scores <- c(floor(scores[1]), ceiling(scores[2]))
