@@ -468,6 +468,14 @@
                     "pattern": "^(\\d+\\.?\\s*(s|m|h|day)\\s*)+$",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
+                },
+                "juicer_jvm": {
+                    "type": "string",
+                    "description": "JVM heap parameters for juicer",
+                    "default": "-Xms512m -Xmx4096m",
+                    "fa_icon": "far fa-clock",
+                    "hidden": false,
+                    "help_text": "For 64bit system, you may want to set the Xmx > 4g, eg. '-Xms1024m -Xmx32g'"
                 }
             }
         },
