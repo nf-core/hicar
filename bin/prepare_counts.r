@@ -61,7 +61,7 @@ if(!is.null(opt$output)){
 FASTA <- opt$fasta
 CUT <- opt$restrict
 MAPPABILITY <- opt$mappability
-pairs <- dir(opt$pairs, "unselected.pairs.gz", full.names=TRUE)
+pairs <- dir(opt$pairs, "unselected.pairs.gz$", full.names=TRUE)
 names(pairs) <- sub("\\.unselected.pairs.gz", "", basename(pairs))
 R1PEAK <- import(opt$r1peak)
 R2PEAK <- import(opt$r2peak)
