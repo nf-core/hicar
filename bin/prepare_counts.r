@@ -111,6 +111,7 @@ countByOverlaps <- function(gi, reads){
 }
 
 getMscore <- function(mscore, gr){
+    mscore <- import(MAPPABILITY, which=gr, as="RleList")
     vw <- Views(mscore, unique(gr))
     sc <- viewMeans(vw)
     vs <- ranges(vw)
@@ -156,7 +157,6 @@ cut <- import(CUT)
 start(cut) <- end(cut)
 gis$cut <- countOverlaps(first(gis), cut)+0.1
 ### load mapping score
-mscore <- import(MAPPABILITY, as="RleList")
 m1 <- getMscore(mscore, first(gis))
 m2 <- getMscore(mscore, second(gis))
 gis$mappability <- m1*m2 + 1e-6
