@@ -74,6 +74,7 @@ R1PEAK <- R1PEAK[lengths(R1PEAK)>0]
 R2PEAK <- R2PEAK[lengths(R2PEAK)>0]
 chromosomes <- intersect(names(R1PEAK), names(R2PEAK))
 chromosomes <- chromosomes[!grepl("_", chromosomes)]
+chromosomes <- chromosomes[!grepl("M", chromosomes)] ## remove chrM/chrMT
 if(length(chromosomes)==0){
     stop("no valid data in same chromosome.")
 }
