@@ -111,9 +111,18 @@ countByOverlaps <- function(gi, reads){
     gi[gi$count>0 & gi$shortCount>0]
 }
 
-getMscore <- function(mscore, gr){
-    mscore <- import(MAPPABILITY, which=gr, as="RleList")
-    vw <- Views(mscore, unique(gr))
+getMscore <- function(gr){
+    gr1 <- split(unique(gr), as.character(seqnames(unique(gr))))
+    gr0 <- lapply(gr1, function(.ele) .ele[seq.int(min(50, length(.ele)))])
+    available_chr <- vapply(gr0, FUN=function(chr){
+        out <- try(ms <- import(MAPPABILITY, which=chr))
+        if(inherits(out, "try-error")) return(FALSE)
+        return(length(ms)>0)
+    }, FUN.VALUE=logical(1))
+    available_chr <- names(available_chr)[available_chr]
+    mscore <- import(MAPPABILITY, which=gr[seqnames(gr) %in% available_chr], as="RleList")
+    chr <- intersect(names(mscore), names(gr1))
+    vw <- Views(mscore[chr], gr1[chr])
     sc <- viewMeans(vw)
     vs <- ranges(vw)
     vs <- as(vs, "GRanges")
@@ -158,8 +167,8 @@ cut <- import(CUT)
 start(cut) <- end(cut)
 gis$cut <- countOverlaps(first(gis), cut)+0.1
 ### load mapping score
-m1 <- getMscore(mscore, first(gis))
-m2 <- getMscore(mscore, second(gis))
+m1 <- getMscore(first(gis))
+m2 <- getMscore(second(gis))
 gis$mappability <- m1*m2 + 1e-6
 ### get distance of the anchors
 gis$dist <- distance(first(gis), second(gis))+1
