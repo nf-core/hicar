@@ -6,7 +6,11 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+HiC on Accessible Regulatory DNA (HiCAR) is a feasible tool to study the long-range interactions
+of the cis- and trans-regulatory elements (cREs/TREs) especially for the low input
+samples and the samples with no available antibodies. To facilitate the analysis of HiCAR
+data, the Nextflow platform based nf-core/hicar pipeline can detect the chromatin interaction
+in single nucleotide resolution within and among chromosomes.
 
 ## Samplesheet input
 
