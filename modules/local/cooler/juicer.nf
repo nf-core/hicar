@@ -12,6 +12,13 @@ process JUICER {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
+    conda (params.enable_conda ? "bioconda::java-jdk=8.0.112" : null)
+    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+        container "https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--1"
+    } else {
+        container "quay.io/biocontainers/java-jdk:8.0.112--1"
+    }
+
     input:
     tuple val(meta), path(gi)
     path chromsize

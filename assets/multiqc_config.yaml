@@ -30,21 +30,21 @@ table_columns_visible:
 # See https://multiqc.info/docs/#optimise-file-search-patterns for details
 sp:
     pairs_reads_stats:
-        fn: "reads_summary.csv"
+        fn: reads_summary.csv
     pairs_reads_detailed_summary:
-        fn: "pairsqc_summary_out.csv"
+        fn: pairsqc_summary_out.csv
     pairs_reads_proportion:
-        fn: "dist.prop.qc.json"
+        fn: dist.prop.qc.json
     atac_peaks_qc:
-        fn: "TSSEscore_FRiP.csv"
+        fn: TSSEscore_FRiP.csv
     maps_qc:
-        fn: "MAPS_summary_out.csv"
+        fn: MAPS_summary_out.csv
     sample_pca:
-        fn: "Multidimensional.scaling.qc.json"
+        fn: Multidimensional.scaling.qc.json
     pairs_peaks_genomic_dist:
-        fn: "genomicElementDistribuitonOfEachPeakList.*.png"
+        fn: genomicElementDistribuitonOfEachPeakList.*.png
     other_side_genomic_dist:
-        fn: "genomicElementDistribuitonOfremoteInteractionPeaks.*.png"
+        fn: genomicElementDistribuitonOfremoteInteractionPeaks.*.png
 ignore_images: false
 
 # See https://github.com/ewels/MultiQC_TestData/blob/master/data/custom_content/with_config/table_headerconfig/multiqc_config.yaml
@@ -54,7 +54,19 @@ custom_data:
         parent_name: 'PAIRS QC'
         parent_description: "Pairs QC report"
         section_name: 'PAIRS reads stats'
-        description: 'Table of mapped reads stats. The duplication rate should be lower than 50%. 20%~30% is a good level for 60M PE reads for human genome. For shallow seq, <30% duplication rate should be the cutting value for further deep sequence. Too low duplication rate (<5%) may indicate low specific chromatin interacts. Those number is estimated by several hypothesis. We set the actual mappable genome size is 70% of the original genome size. And the open chromatin interacts region is about 2% of the genome. Take human genome as an example, the possible unique reads for 60M will be, (3G * 70% * 2%)/60M, about 70%. That is about 30% duplication rate. Those hypotheses are consistent with real data of ChIP-seq<a href="https://pubmed.ncbi.nlm.nih.gov/24782889/"></a>.'
+        description: |
+            Table of mapped reads stats. The duplication rate should be lower
+            than 50%. 20%~30% is a good level for 60M PE reads for human genome.
+            For shallow seq, <30% duplication rate should be the cutting value
+            for further deep sequence. Too low duplication rate (<5%) may
+            indicate low specific chromatin interacts. Those number is estimated
+            by several hypothesis. We set the actual mappable genome size is 70%
+            of the original genome size. And the open chromatin interacts region
+            is about 2% of the genome. Take human genome as an example, the
+            possible unique reads for 60M will be, (3G * 70% * 2%)/60M, about
+            70%. That is about 30% duplication rate. Those hypotheses are
+            consistent with real data of
+            [ChIP-seq](https://pubmed.ncbi.nlm.nih.gov/24782889/).
         file_format: "csv"
         plot_type: 'table'
         pconfig:
@@ -64,7 +76,21 @@ custom_data:
     pairs_reads_detailed_summary:
         parent_id: 'pairs_qc'
         section_name: 'PAIRS reads detailed summary'
-        description: "Cis-to-trans ratio is computed as the ratio of long-range cis reads (>20kb) to trans reads plus long-range cis reads. Typically, <strong>cis-to-trans ratio higher than 40% is required</strong>. Percentage of long-range cis reads is the ratio of long-range cis reads to total number of reads. <strong>Minimum 15% is required and 40% or higher suggests a good library</strong>(<a href='https://pubmed.ncbi.nlm.nih.gov/25497547/'>doi:10.1016/j.cell.2014.11.021</a>). Convergence is determined as standard deviation of proportions of four read orientations to be <0.002 (Very good) or <0.05 (Good) (See section Proportion of read orientation versus genomic separation in the pairsqc_report file under pairs/QC/). The slope of log10 contact probability vs distance between 10kb ~ 300kb representing TAD is also provided as well. (See section Contact probability versus genomic separation in the pairsqc_report file under pairs/QC/)"
+        description: |
+            Cis-to-trans ratio is computed as the ratio of long-range cis reads
+            (>20kb) to trans reads plus long-range cis reads. Typically,
+            *cis-to-trans ratio higher than 40% is required*. Percentage of
+            long-range cis reads is the ratio of long-range cis reads to total
+            number of reads. *Minimum 15% is required and 40% or higher suggests
+            a good library*([doi:10.1016/j.cell.2014.11.021](https://pubmed.ncbi.nlm.nih.gov/25497547/)).
+            Convergence is determined as standard deviation of proportions of
+            four read orientations to be <0.002 (Very good) or <0.05 (Good)
+            (See section Proportion of read orientation versus genomic
+            separation in the pairsqc_report file under pairs/QC/). The slope of
+            log10 contact probability vs distance between 10kb ~ 300kb
+            representing TAD is also provided as well. (See section Contact
+            probability versus genomic separation in the pairsqc_report file
+            under pairs/QC/)
         file_format: "csv"
         plot_type: 'table'
         pconfig:
@@ -75,7 +101,10 @@ custom_data:
     pairs_reads_proportion:
         parent_id: 'pairs_qc'
         section_name: 'Proportion of read orientation versus genomic separation'
-        description: "Contact proportion of reads are shown, stratified by read orientation. Good four cutter samples would show no bias in propotion >3kb(10^3.5)."
+        description: |
+            Contact proportion of reads are shown, stratified by read
+            orientation. Good four cutter samples would show no bias in
+            propotion >3kb(10^3.5).
         file_format: "json"
         plot_type: 'scatter'
         pconfig:
@@ -90,7 +119,28 @@ custom_data:
     atac_peaks_qc:
         parent_id: 'pairs_qc'
         section_name: 'ATAC R2 reads quality control'
-        description: '<strong>Fraction of reads in peaks (FRiP)</strong> – Fraction of all mapped reads that fall into the called peak regions, i.e. usable reads in significantly enriched peaks divided by all usable reads. In general, FRiP scores correlate positively with the number of regions. (<a href="https://pubmed.ncbi.nlm.nih.gov/22955991/">Landt et al, Genome Research Sept. 2012, 22(9): 1813–1831</a>). <strong>FRiP should be greater than 1%</strong>. <br/><br/><strong>TSS enrichment score</strong> is a raio between aggregate distribution of reads centered on TSSs and that flanking the corresponding TSSs. TSS score = the depth of TSS (each 100bp window within 1000 bp each side) / the depth of end flanks (100bp each end). TSSE score = max(mean(TSS score in each window)). TSS enrichment score is calculated according to the definition at <a href="https://www.encodeproject.org/data-standards/terms/#enrichment">ENCODE TSSE score</a>. Transcription start site (TSS) enrichment values are dependent on the reference files used; cutoff values for high quality data are listed in the following table from <a href="https://www.encodeproject.org/atac-seq/">ENCODE ATAC-seq QC</a>. For HiCAR, only R2 reads is used in TSSE score calculation and reads enrichment is following exponential ratio, we adjusted the TSSE score range. TSSEscore < 2.5: concerning; TSSEscore 2.5-3.5: acceptable; TSSEscore > 3.5: Ideal. <br/><br/>Promoter/Transcript body proportions is test for the R2 reads enriched in promoters or in transcript body.'
+        description: |
+            *Fraction of reads in peaks (FRiP)* – Fraction of all mapped reads that fall into the called peak regions,
+            i.e. usable reads in significantly enriched peaks divided by all usable reads.
+            In general, FRiP scores correlate positively with the number of regions.
+            ([Landt et al, Genome Research Sept. 2012, 22(9): 1813–1831](https://pubmed.ncbi.nlm.nih.gov/22955991/).
+            *FRiP should be greater than 1%*
+
+            *TSS enrichment score* is a ratio between aggregate distribution of reads centered on TSSs
+            and that flanking the corresponding TSSs.
+            TSS score = the depth of TSS (each 100bp window within 1000 bp each side) / the depth of end flanks (100bp each end).
+            TSSE score = max(mean(TSS score in each window)).
+            TSS enrichment score is calculated according to the definition at [ENCODE TSSE score](https://www.encodeproject.org/data-standards/terms/#enrichment).
+            Transcription start site (TSS) enrichment values are dependent on the reference files used;
+            cutoff values for high quality data are listed in the following table from
+            [ENCODE ATAC-seq QC](https://www.encodeproject.org/atac-seq/).
+            For HiCAR, only R2 reads is used in TSSE score calculation and reads enrichment is following
+            exponential ratio, we adjusted the TSSE score range.
+            TSSEscore < 2.5: concerning;
+            TSSEscore 2.5-3.5: acceptable;
+            TSSEscore > 3.5: Ideal.
+
+            Promoter/Transcript body proportions is test for the R2 reads enriched in promoters or in transcript body.
         file_format: 'csv'
         plot_type: 'table'
         pconfig:
@@ -100,7 +150,14 @@ custom_data:
     maps_qc:
         parent_id: 'pairs_qc'
         section_name: 'MAPS peak calling summary'
-        description: '<a href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006982">MAPS summary</a> is output of MAPS.<br/>"AND" set: Bin pairs with <em>both</em> ends overlapping two anchors of interaction. <br/>"XOR" set: Bin pairs with one end overlapping one anchor of the interaction.<br/>Singletons are defined as isolated significant bin pairs without adjacent ones.'
+        description: |
+            [MAPS summary](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006982) is output of MAPS.
+
+            "AND" set: Bin pairs with `both` ends overlapping two anchors of interaction.
+
+            "XOR" set: Bin pairs with one end overlapping one anchor of the interaction.
+
+            Singletons are defined as isolated significant bin pairs without adjacent ones.
         file_format: 'csv'
         plot_type: 'table'
         pconfig:
@@ -122,10 +179,17 @@ custom_data:
     pairs_peaks_genomic_dist:
         parent_id: 'pairs_qc'
         section_name: 'Peaks genomic element distribution'
-        description: "The genomic element distribution of the peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defeined as downstream 2000 from TES."
+        description: |
+            The genomic element distribution of the peaks. Promoter region is
+            defined as upstream 2000 and downstream 500 from TSS. geneDownstream
+            is defeined as downstream 2000 from TES.
         file_format: "png"
     other_side_genomic_dist:
         parent_id: 'pairs_qc'
         section_name: 'The genomeic element distribution for the peaks interacting with promoters'
-        description: "The genomic element distribution of the other sites of promoter peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defeined as downstream 2000 from TES."
+        description: |
+            The genomic element distribution of the other sites of promoter
+            peaks. Promoter region is defined as upstream 2000 and downstream
+            500 from TSS. geneDownstream is defeined as downstream 2000 from
+            TES.
         file_format: "png"

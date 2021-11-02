@@ -16,7 +16,7 @@
 
 ## Introduction
 
-**nf-core/hicar** is a bioinformatics best-practice analysis pipeline for HiCAR data, a robust and sensitive multi-omic co-assay for simultaneous measurement of transcriptome, chromatin accessibility and cis-regulatory chromatin contacts.
+**nf-core/hicar** is a bioinformatics best-practice analysis pipeline for HiC on Accessible Regulatory DNA (HiCAR) data, a robust and sensitive assay for simultaneous measurement of chromatin accessibility and cis-regulatory chromatin contacts. Unlike the immunoprecipitation-based methods such as HiChIP, PlAC-seq and ChIA-PET, HiCAR does not need antibody available. HiCAR utilize the Assay of Transposase-Acessible Chromatin to anchor the chromatin interactions. HiCAR is a feasible tool to study the chromatin interactions for low input samples nad the samples with no available antibodies.  
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
@@ -57,7 +57,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
 4. Start running your own analysis!
 
     ```console
-    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> --input samplesheet.csv --genome GRCh38
+    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> -c profile.config
     ```
 
     Run it on cluster.
@@ -77,7 +77,6 @@ The nf-core/hicar pipeline comes with documentation about the pipeline [usage](h
 
 nf-core/hicar was originally written by Jianhong Ou, Yu Xiang, Yarui Diao.
 
-We thank the following people for their extensive assistance in the development of this pipeline:
 
 ## Contributions and Support
 

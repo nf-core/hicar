@@ -14,7 +14,6 @@
             },
             "replicate": {
                 "type": "integer",
-                "pattern": "^[1-9]+$",
                 "errorMessage": "Replicate must start from 1"
             },
             "fastq_1": {

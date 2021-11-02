@@ -37,43 +37,6 @@
                     "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
                     "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
                 },
-                "skip_cutadapt": {
-                    "type": "boolean",
-                    "description": "skip trim 5'end TAC",
-                    "fa_icon": "fas fa-remove-format",
-                    "hidden": false
-                },
-                "skip_fastqc": {
-                    "type": "boolean",
-                    "description": "skip fastqc or not",
-                    "fa_icon": "fab fa-creative-commons-pd",
-                    "hidden": false
-                },
-                "skip_peak_annotation": {
-                    "type": "boolean",
-                    "description": "skip peak annotation or not",
-                    "fa_icon": "fas fa-comment-slash",
-                    "hidden": false
-                },
-                "skip_enrichment": {
-                    "type": "boolean",
-                    "description": "skip enrichment or not",
-                    "fa_icon": "fas fa-comment-slash",
-                    "hidden": false,
-                    "default": true
-                },
-                "skip_diff_analysis": {
-                    "type": "boolean",
-                    "description": "skip differential analysis or not",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": false
-                },
-                "skip_multiqc": {
-                    "type": "boolean",
-                    "description": "skip multiqc or not",
-                    "fa_icon": "far fa-calendar-times",
-                    "hidden": false
-                },
                 "multiqc_title": {
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
@@ -219,7 +182,7 @@
                     "description": "shift size for MACS2",
                     "fa_icon": "fas fa-arrows-alt-h",
                     "hidden": false,
-                    "help_text": "See help from MACS2 documentation",
+                    "help_text": "How reads will be shift to increase the peak/noise ratios. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
                     "default": -75
                 },
                 "smooth_window": {
@@ -227,7 +190,7 @@
                     "description": "extsize for MACS2",
                     "fa_icon": "fas fa-compress",
                     "hidden": false,
-                    "help_text": "See help from MACS2 documentation",
+                    "help_text": "How reads will be extend in 5'->3' direction to increase the fragment size. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
                     "default": 150
                 },
                 "qval_thresh": {
@@ -235,7 +198,7 @@
                     "description": "cutoff qvalue",
                     "fa_icon": "fas fa-filter",
                     "hidden": false,
-                    "help_text": "See help from MACS2 documentation",
+                    "help_text": "The minimum FDR cutoff to call significant peak for R2 reads. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
                     "default": 0.01
                 },
                 "high_resolution_R1": {
@@ -249,7 +212,7 @@
                     "description": "cutoff qvalue for R1 by MACS2",
                     "fa_icon": "fas fa-filter",
                     "hidden": false,
-                    "help_text": "See help from MACS2 documentation",
+                    "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noise compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
                     "default": 0.1
                 }
             }
@@ -281,7 +244,7 @@
                     "description": "MAPS regression cutoff value",
                     "fa_icon": "fas fa-filter",
                     "hidden": false,
-                    "help_text": "See help from MAPS documentation, default 12.",
+                    "help_text": "Minimal cutoff value for coverage in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 12.",
                     "default": 12
                 },
                 "maps_cutoff_fold_change": {
@@ -289,7 +252,7 @@
                     "description": "MAPS regression fold change cutoff value",
                     "fa_icon": "fas fa-check-double",
                     "hidden": false,
-                    "help_text": "See help from MAPS documentation, default 2.",
+                    "help_text": "Miniaml cutoff value for fold change from signal to expected values. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2.",
                     "default": 2
                 },
                 "maps_cutoff_fdr": {
@@ -297,7 +260,7 @@
                     "description": "MAPS regression -log10(fdr) cutoff value",
                     "fa_icon": "fas fa-percent",
                     "hidden": false,
-                    "help_text": "See help from MAPS documentation, default 2 (=fdr 0.05).",
+                    "help_text": "Minimal cutoff -log10(FDR) value in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2 (=fdr 0.05).",
                     "default": 2
                 },
                 "maps_filter": {
@@ -577,6 +540,52 @@
                     "help_text": "This may be useful for example if you are unable to directly pull Singularity containers to run the pipeline due to http/https proxy issues."
                 }
             }
+        },
+        "pipeline_controls": {
+            "title": "Pipeline controler",
+            "type": "object",
+            "fa_icon": "fas fa-file-import",
+            "description": "To skip some processes or workflows.",
+            "help_text": "These options allow you to customise some of the pipeline steps for how the pipeline runs.",
+            "properties": {
+                "skip_cutadapt": {
+                    "type": "boolean",
+                    "description": "skip trim 5'end TAC",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false
+                },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "description": "skip fastqc or not",
+                    "fa_icon": "fab fa-creative-commons-pd",
+                    "hidden": false
+                },
+                "skip_peak_annotation": {
+                    "type": "boolean",
+                    "description": "skip peak annotation or not",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": false
+                },
+                "skip_enrichment": {
+                    "type": "boolean",
+                    "description": "skip enrichment or not",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": false,
+                    "default": true
+                },
+                "skip_diff_analysis": {
+                    "type": "boolean",
+                    "description": "skip differential analysis or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "description": "skip multiqc or not",
+                    "fa_icon": "far fa-calendar-times",
+                    "hidden": false
+                }
+            }
         }
     },
     "allOf": [
@@ -609,6 +618,9 @@
         },
         {
             "$ref": "#/definitions/generic_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_controls"
         }
     ]
 }
