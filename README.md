@@ -77,7 +77,6 @@ The nf-core/hicar pipeline comes with documentation about the pipeline [usage](h
 
 nf-core/hicar was originally written by Jianhong Ou, Yu Xiang, Yarui Diao.
 
-
 ## Contributions and Support
 
 If you would like to contribute to this pipeline, please see the [contributing guidelines](.github/CONTRIBUTING.md).

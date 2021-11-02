@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0.2dev - [11/02/2021]
 
-- merge the reviewer comments from https://github.com/nf-core/hicar/pull/1/
+- merge the reviewer comments from [#1](https://github.com/nf-core/hicar/pull/1/)
 - change the filename from design.csv to test_samplesheet.csv
 - change teh filename from samplesheet.csv to test_full_samplesheet.csv
 - use nf-core repository URL
