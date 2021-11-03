@@ -18,9 +18,12 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 * [bwa](#alignment) - The alignments of trimmed reads.
 * [pairs](#pairs) - The interaction pairs and their quality control reports.
 * [cooler](#cooler) - Cooler files for visualization
-* [ATACpeak](#call-peaks-for-short-reads) - The peaks called ATAC reads (R2 reads).
-* [MAPSpeak](#tads-and-loops) - The TADs and loops determined by MAPS.
-* [DifferentialAnalyis](#differential-analysis) - Differential analysis for the TADs and loops.
+* [ATACpeak](#call-peaks-for-r2-reads) - The peaks called for ATAC reads (R2 reads).
+* [MAPSpeak](#chromatin-interactions) - The chromatin interactions determined by MAPS.
+* [DifferentialAnalyis](#differential-analysis) - Differential analysis for chromatin interactions.
+* [R1peak](#call-peaks-for-r1-reads) - The peaks called for R1 reads.
+* [HiCARpeak](#high-resolution-interactions) - The high resolution loops called for R1 and R2 peaks for motif analysis.
+* [circos](#circos) - The circos plots.
 * [igv.js](#igv) - The track files which can be viewed by web-server.
 
 ### MultiQC
@@ -148,7 +151,7 @@ higlass-manage view cooler/mcool/your.mcool
 [Juicebox](https://github.com/aidenlab/Juicebox) can be used to view the `.hic` file.
 `.hic` file is the second choices for visualization in case installation of `higlass-manage` is impossible.
 
-### Call peaks for short reads
+### Call peaks for R2 reads
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -161,20 +164,27 @@ higlass-manage view cooler/mcool/your.mcool
 </details>
 
 The peaks called ATAC reads (R2 reads) by [MACS2](https://github.com/macs3-project/MACS).
+Different from ATAC-seq peak calling, the ATAC reads in HiCAR is single end.
+By default, the peaks are called by `--no-model` parameter for the R2 reads in BED format.
 
-### TADs and loops
+### Chromatin interactions
 
 <details markdown="1">
 <summary>Output files</summary>
 
 * `MAPSpeak/`
     * `bin*/*`: The annotated TADs and loops.
-    * `*`: The tables of TADs and loops with p-value and fdr.
+    * `*`: The tables of chromatin interactions with p-value and fdr.
 
 </details>
 
-The TADs and loops are called by [MAPS](https://pubmed.ncbi.nlm.nih.gov/30986246/).
-MAPS is a model-based analysis of long-range chromatin interactions.
+The chromatin interactions are called by [MAPS](https://pubmed.ncbi.nlm.nih.gov/30986246/).
+MAPS is a model-based analysis of long-range chromatin interactions for `AND` or `XOR` reads.
+`AND` set: bin pairs with `both` ends overlapping two anchors of interaction.
+`XOR` set: bin pairs with one end overlapping one anchor of the interaction.
+It will remove the systematic bias by accessibility.
+By default, the interactions are called by `positive poisson` regression model
+and then filtered by coverage (default is 12 per bin), fold change (default is 2 times over expected value) and fdr (default is 0.01).
 
 ### Differential analysis
 
@@ -185,11 +195,58 @@ MAPS is a model-based analysis of long-range chromatin interactions.
 
 </details>
 
-Differential analysis for the TADs and loops by [edgeR](https://pubmed.ncbi.nlm.nih.gov/19910308/).
+Differential analysis for the loops by [edgeR](https://pubmed.ncbi.nlm.nih.gov/19910308/).
 The input counts are filtered counts dumped by pairtools for each samples.
-The differential analysis is done for validated TADs and loops by MAPs.
+The differential analysis is done for validated chromatin interactions by MAPs.
 Annotation is done by [ChIPpeakAnno](https://pubmed.ncbi.nlm.nih.gov/20459804/)
 for the overlap features (gene level) or nearest features.
+
+### Call peaks for r1 reads
+
+<details markdown="1">
+<summary>Output files</summary>
+
+* `R1peak/`
+    * `R1_bigwig/`
+        * `byGroup/*`: The bigWig files of R1_reads for each group.
+        * `pos1/*`: The bigWig files of 5' ends of R1_reads.
+    * `merged_peaks/merged_peak.bed`: The bed file with merged R1 peaks from all samples.
+    * `peaks_per_Group/*`: The MACS2 output for each group.
+
+</details>
+
+The peaks called R1 reads by [MACS2](https://github.com/macs3-project/MACS).
+R1 reads will be more noisy compare to R2 reads and the FDR cutoff will be higher to get proper peaks for interaction calling.
+
+### High resolution interactions
+
+<details markdown="1">
+<summary>Output files</summary>
+
+* `HiPeak`
+    * `distalpair_in_peak_bams_4_igv/*`: The psuedo-bam file for visualization.
+    * `*/`: The high resolution interactions in bedpe format and tab delimited format.
+
+</details>
+
+The HiCAR `fastq` files are paired ends (PE). But it will be difficult to check the reads in pairs for [IGV](https://software.broadinstitute.org/software/igv/).
+In order to view the reads located in the R1 and R2 peaks, the `psuedo-bam` files are created by adding insertion to the PE and converted as single ends.
+When the `psuedo-bam` file is load to IGV, the PEs will be linked by a line, which will help user to double check the reads located in the chromation interactions.
+The high resolution chromatin interactions (HiPeak) are called by similar methods like [MAPS](https://pubmed.ncbi.nlm.nih.gov/30986246/) to remove the systematic bias by accessibility.
+The difference is that HiPeak will also consider the trans-interactions.
+The output of HiPeak is designed for motif enrichment analysis.
+
+### circos
+
+<details markdown="1">
+<summary>Output files</summary>
+
+* `circos/*`: circos plots.
+
+</details>
+
+[circos](http://circos.ca/) is a perl package for visualizing data in a circular layout.
+circos is used to produce the genomic view of chromatin interactions for HiPeak.
 
 ### IGV
 

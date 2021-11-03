@@ -28,8 +28,9 @@ process CALL_HIPEAK {
     script:
     def software = "CALL_HIPEAK"
     """
-    install_packages.r VGAM MASS
     call_hipeak.r $options.args \\
         --count $counts --output ${meta.id}.peaks.csv
+
+    # *.version.txt files will be created in the rscripts
     """
 }

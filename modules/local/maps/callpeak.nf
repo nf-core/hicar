@@ -29,7 +29,6 @@ process MAPS_CALLPEAK {
     script:
     def software = "MAPS"
     """
-    install_packages.r VGAM MASS
     mv maps_out ${meta.id}_${bin_size}
     ## arguments:
     ## INFDIR - dir with reg files, output folder of maps/maps.nf::MAP_MAPS

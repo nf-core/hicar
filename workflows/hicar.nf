@@ -42,6 +42,14 @@ ch_circos_config         = Channel.fromPath("$projectDir/assets/circos.conf")
 
 /*
 ========================================================================================
+    JUICER_TOOLS FILE
+========================================================================================
+*/
+
+ch_juicer_tools        = params.juicer_tools_jar ? Channel.fromPath(params.juicer_tools_jar, checkIfExists: true) : Channel.empty()
+
+/*
+========================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ========================================================================================
 */
@@ -89,7 +97,7 @@ include { R1_PEAK                } from '../subworkflows/local/calldistalpeak' a
 include { HI_PEAK                } from '../subworkflows/local/hipeak' addParams(options: getSubWorkFlowParam(modules, ['parepare_counts', 'call_hipeak', 'assign_type', 'diff_hipeak', 'chippeakanno_hipeak', 'chippeakanno_diffhipeak', 'pair2bam']))
 include { MAPS_MULTIENZYME       } from '../subworkflows/local/multienzyme'   addParams(options: getSubWorkFlowParam(modules, ['maps_cut', 'maps_fend', 'genmap_index', 'genmap_mappability', 'ucsc_wigtobigwig', 'maps_mapability', 'maps_merge', 'maps_feature', 'ensembl_ucsc_convert']))
 include { MAPS_PEAK              } from '../subworkflows/local/maps_peak' addParams(options: getSubWorkFlowParam(modules, ['maps_maps', 'maps_callpeak', 'maps_stats', 'maps_reformat']))
-include { RUN_CIRCOS             } from '../subworkflows/local/circos' addParams(options: getSubWorkFlowParam(modules, ['prepare_circos', 'circos']))
+include { RUN_CIRCOS             } from '../subworkflows/local/circos' addParams(options: getSubWorkFlowParam(modules, ['circos_prepare', 'circos']))
 /*
 ========================================================================================
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -237,7 +245,9 @@ workflow HICAR {
             .set{cool_input}
     COOLER(
         cool_input,
-        PREPARE_GENOME.out.chrom_sizes
+        PREPARE_GENOME.out.chrom_sizes,
+        params.juicer_jvm_params,
+        ch_juicer_tools
     )
     ch_software_versions = ch_software_versions.mix(COOLER.out.version.ifEmpty(null))
 
@@ -295,7 +305,9 @@ workflow HICAR {
             PREPARE_GENOME.out.gtf,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.digest_genome,
-            MAPS_MULTIENZYME.out.mappability
+            MAPS_MULTIENZYME.out.mappability,
+            params.skip_peak_annotation,
+            params.skip_diff_analysis
         )
         ch_software_versions = ch_software_versions.mix(HI_PEAK.out.version.ifEmpty(null))
 
@@ -355,31 +367,34 @@ workflow HICAR {
             .map{ peak, long_bedpe -> [peak[0], peak[1].flatten(), long_bedpe[1].flatten()] }//bin_size, meta, peak, long_bedpe
             .groupTuple()
             .map{[it[0], it[1].flatten().unique(), it[2].flatten()]}
+            .filter{it[1].size > 1} // filter by the bedpe files. Single bedpe means single group, no need to do differential analysis
             .set{ch_diffhicar}
         //ch_diffhicar.view()
-        DIFFHICAR(ch_diffhicar)
-        ch_software_versions = ch_software_versions.mix(DIFFHICAR.out.version.ifEmpty(null))
-        //annotation
-        if(!params.skip_peak_annotation){
-            BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
-            ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.version.ifEmpty(null))
-            if(PREPARE_GENOME.out.ucscname && !params.skip_enrichment){
-                BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno.filter{it.size()>0}, PREPARE_GENOME.out.ucscname)
-                ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.version.ifEmpty(null))
-            }
-            if(params.virtual_4c){
-                BIOC_CHIPPEAKANNO.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
-                                            .groupTuple()
-                                            .map{bin, df -> [bin, df[0], df[1]]}
-                                            .set{ch_trackviewer}
-                //ch_trackviewer.view()
-                BIOC_TRACKVIEWER(
-                    ch_trackviewer,
-                    PAIRTOOLS_PAIRE.out.distalpair.collect{it[1]},
-                    PREPARE_GENOME.out.gtf,
-                    PREPARE_GENOME.out.chrom_sizes,
-                    PREPARE_GENOME.out.digest_genome)
-                ch_software_versions = ch_software_versions.mix(BIOC_TRACKVIEWER.out.version.ifEmpty(null))
+        if(ch_diffhicar){
+            DIFFHICAR(ch_diffhicar)
+            ch_software_versions = ch_software_versions.mix(DIFFHICAR.out.version.ifEmpty(null))
+            //annotation
+            if(!params.skip_peak_annotation){
+                BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
+                ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.version.ifEmpty(null))
+                if(PREPARE_GENOME.out.ucscname && !params.skip_enrichment){
+                    BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno.filter{it.size()>0}, PREPARE_GENOME.out.ucscname)
+                    ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.version.ifEmpty(null))
+                }
+                if(params.virtual_4c){
+                    BIOC_CHIPPEAKANNO.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
+                                                .groupTuple()
+                                                .map{bin, df -> [bin, df[0], df[1]]}
+                                                .set{ch_trackviewer}
+                    //ch_trackviewer.view()
+                    BIOC_TRACKVIEWER(
+                        ch_trackviewer,
+                        PAIRTOOLS_PAIRE.out.distalpair.collect{it[1]},
+                        PREPARE_GENOME.out.gtf,
+                        PREPARE_GENOME.out.chrom_sizes,
+                        PREPARE_GENOME.out.digest_genome)
+                    ch_software_versions = ch_software_versions.mix(BIOC_TRACKVIEWER.out.version.ifEmpty(null))
+                }
             }
         }
     }

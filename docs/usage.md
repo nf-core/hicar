@@ -61,46 +61,6 @@ TREATMENT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,,
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
-### Config file
-
-Users can also run the pipeline by provide a config file by `-c` parameter (see `-c` section below).
-
-```bash
-nextflow run nf-core/hicar -c 'path/to/the/profile/file' -profile docker
-```
-
-In the config file, the design table, and more options can be defined.
-
-Here is an example profile.config file for running nf-core/hicar on slurm cluster.
-
-```groovy
-// submit by slurm
-process.executor = "slurm"
-process.clusterOptions = "-J nextFlowHiCAR"
-
-params {
-    config_profile_name = 'profile name here'
-    config_profile_description = 'profile description here'
-    // report email
-    email = 'users@email.addr'
-    // resources
-    max_cpus   = 8
-    max_memory = 60.GB
-    max_time   = 48.h
-
-    // Input data
-    input = '/path/to/your/design/csv/file'
-    // Cut-off q-value for MACS2
-    qval_thresh = 0.01
-
-    // Genome References
-    genome = 'GRCh38'
-    // Calculate mappability automatically will be memory consuming.
-    // It will save lot of energy by provide the path of mappability if available.
-    mappability = '/path/mappability/bigWig/file'
-}
-```
-
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
@@ -223,9 +183,9 @@ The nf-core/hicar pipeline has a sub-workflow (see [terminology](https://github.
 
 When including the sub-workflow above in the main pipeline workflow we use the same `include` statement, however, we now have the ability to overwrite options for each of the tools in the sub-workflow including the [`macs2_atac`](https://github.com/nf-core/hicar/blob/master/workflows/hicar.nf#L84) variable that will be used specifically to overwrite the optional arguments passed to the `MACS2_CALLPEAK` module. In this case, the options to be provided to `MACS2_CALLPEAK` have been assigned sensible defaults by the developer(s) in the pipeline's [`modules.config`](https://github.com/nf-core/hicar/blob/master/conf/modules.config#L176-L179) and can be accessed and customised in the [parameters context](https://github.com/nf-core/hicar/blob/master/conf/modules.config#L177) too before eventually passing them to the sub-workflow. These options will then be propagated from `workflow -> sub-workflow -> module`.
 
-As mentioned at the beginning of this section it may also be necessary for users to overwrite the options passed to modules to be able to customise specific aspects of the way in which a particular tool is executed by the pipeline. Given that all of the default module options are stored in the pipeline's `modules.config` as a [`params` variable](hhttps://github.com/nf-core/hicar/blob/master/conf/modules.config#L176-L179) it is also possible to overwrite any of these options via a custom config file.
+As mentioned at the beginning of this section it may also be necessary for users to overwrite the options passed to modules to be able to customise specific aspects of the way in which a particular tool is executed by the pipeline. Given that all of the default module options are stored in the pipeline's `modules.config` as a [`params` variable](https://github.com/nf-core/hicar/blob/master/conf/modules.config#L176-L179) it is also possible to overwrite any of these options via a custom config file.
 
-Say for example we want to append an additional, non-mandatory parameter (i.e. `--shiftsize 0`) to the arguments passed to the `CUTADAPT` module. Firstly, we need to copy across the default `args` specified in the [`modules.config`](hhttps://github.com/nf-core/hicar/blob/master/conf/modules.config#L34-L38) and create a custom config file that is a composite of the default `args` as well as the additional options you would like to provide. This is very important because Nextflow will overwrite the default value of `args` that you provide via the custom config.
+Say for example we want to append an additional, non-mandatory parameter (i.e. `-a AACCGGTT`) to the arguments passed to the `CUTADAPT` module. Firstly, we need to copy across the default `args` specified in the [`modules.config`](https://github.com/nf-core/hicar/blob/master/conf/modules.config#L34-L38) and create a custom config file that is a composite of the default `args` as well as the additional options you would like to provide. This is very important because Nextflow will overwrite the default value of `args` that you provide via the custom config.
 
 As you will see in the example below, we have:
 
@@ -311,6 +271,14 @@ NXF_OPTS='-Xms1g -Xmx4g'
 
 ## Troubleshooting
 
+* Error: `The exit status of the task that caused the workflow execution to fail was: null.`
+
+Check the files are readable for the workflow.
+
+* Error:  `Session aborted -- Cause: Unable to execute HTTP request: ngi-igenomes.s3.amazonaws.com`
+
+The s3 connection reached the limitation of connection. Try to resume the analysis one hour later.
+
 * Error: `PaddingError: Placeholder of length '80' too short in package`
 
 There is no easy answer here. The new `conda` packages should having a longer prefix (255 characters).
@@ -321,10 +289,12 @@ The possible solution now is that try to run the pipeline in a shorter folder pa
 There is something going wrong with the conda environment building.
 Just try to remove the conda environment folder and resume the run.
 
-* Error: `The exit status of the task that caused the workflow execution to fail was: null.`
+* Error: `unable to load shared object 'work/conda/env-xxxxxx/lib/R/library/rtracklayer/libs/rtracklayer.dylib', dlopen(rtracklayer.dylib, 6) Library not loaded: @rpath/libssl.1.1.dylib`
 
-Check the files are readable for the workflow.
+The openssl installation have issues for `conda`. Try to reinstall it by
+`conda activate work/conda/env-xxxxxx && conda install --force-reinstall -y openssl`
 
-* Error:  `Session aborted -- Cause: Unable to execute HTTP request: ngi-igenomes.s3.amazonaws.com`
+* Error: `error Can't locate Statistics/Basic.pm`
 
-The s3 connection reached the limitation of connection. Try to resume the analysis one hour later.
+The perl-statistics-basic installed in wrong location. Try to reinstall it by
+`conda activate work/conda/env-xxxxx && perl -MCPAN -e 'CPAN::install(Statistics::Basic)'`

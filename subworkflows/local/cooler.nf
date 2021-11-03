@@ -16,8 +16,10 @@ include { JUICER         } from '../../modules/local/cooler/juicer'    addParams
 
 workflow COOLER {
     take:
-    valid_pairs  // channel: [ val(meta), val(bin), [pairs], [pairs.px] ]
-    chromsizes   // channel: [ path(chromsizes) ]
+    valid_pairs               // channel: [ val(meta), val(bin), [pairs], [pairs.px] ]
+    chromsizes                // channel: [ path(chromsizes) ]
+    juicer_jvm_params         // values
+    juicer_tools_jar          // channel: [ path(juicer_tool jar) ]
 
     main:
     // HiC-like contact matrix
@@ -36,8 +38,10 @@ workflow COOLER {
     COOLER_ZOOMIFY(COOLER_MERGE.out.cool)
     // dump long.intra.bedpe for each group for MAPS to call peaks
     COOLER_DUMP(COOLER_MERGE.out.cool).bedpe | DUMPINTRAREADS
-    JUICER(DUMPINTRAREADS.out.gi, chromsizes)
-    ch_version = ch_version.mix(JUICER.out.version)
+    if(juicer_tools_jar){
+        JUICER(DUMPINTRAREADS.out.gi.combine(juicer_tools_jar), chromsizes, juicer_jvm_params)
+        ch_version = ch_version.mix(JUICER.out.version)
+    }
 
     // dump long.intra.bedpe for each sample
     COOLER_DUMP_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool]})

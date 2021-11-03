@@ -30,9 +30,9 @@ process DIFFHICAR {
     script:
     prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
     """
-    install_packages.r edgeR
     diffhicar.r $prefix \\
         $options.args
-    ## must output the packages version as *.version.txt
+
+    # *.version.txt files will be created in the rscripts
     """
 }
