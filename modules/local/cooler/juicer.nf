@@ -20,8 +20,9 @@ process JUICER {
     }
 
     input:
-    tuple val(meta), path(gi)
+    tuple val(meta), path(gi), path(juicer_tools_jar)
     path chromsize
+    val juicer_jvm_params
 
     output:
     tuple val(meta), path("*.hic")               , emit: hic
@@ -43,10 +44,10 @@ process JUICER {
         fi
     done
     res=\$(join_by , \${res[@]})
-    java ${params.juicer_jvm} -jar $projectDir/bin/juicer_tools_1.22.01.jar pre \
+    java ${juicer_jvm_params} -jar ${juicer_tools_jar} pre \
         -r \$res \
         $options.args --threads $task.cpus ${gi}.sorted ${prefix}.${meta.bin}.hic $chromsize
 
-    echo 1.22.01 > ${software}.version.txt
+    echo \$(java -jar ${juicer_tools_jar} --version 2>&1) | sed 's/^.*?Version //; s/Usage.*\$//' > ${software}.version.txt
     """
 }

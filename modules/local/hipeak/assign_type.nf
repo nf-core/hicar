@@ -30,8 +30,9 @@ process ASSIGN_TYPE {
     script:
     def software = "CALL_HIPEAK"
     """
-    install_packages.r graph RBGL InteractionSet
     assign_interaction_type.r $options.args \\
         --interactions $counts --output ${meta.id}
+
+    # *.version.txt files will be created in the rscripts
     """
 }

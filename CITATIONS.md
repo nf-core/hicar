@@ -51,6 +51,15 @@
 * [trackViewer](https://pubmed.ncbi.nlm.nih.gov/31133757/)
     > Ou J, Zhu LJ. trackViewer: a Bioconductor package for interactive and integrative visualization of multi-omics data. Nat Methods. 2019 Jun;16(6):453-454. doi: 10.1038/s41592-019-0430-y. PMID: 31133757.
 
+* [circos](https://pubmed.ncbi.nlm.nih.gov/19541911/)
+    > Krzywinski M, Schein J, Birol I, Connors J, Gascoyne R, Horsman D, Jones SJ, Marra MA. Circos: an information aesthetic for comparative genomics. Genome Res. 2009 Sep;19(9):1639-45. doi: 10.1101/gr.092759.109. Epub 2009 Jun 18. PMID: 19541911; PMCID: PMC2752132.
+
+* [Juicer_tools](https://pubmed.ncbi.nlm.nih.gov/27467249/)
+    > Durand NC, Shamim MS, Machol I, Rao SS, Huntley MH, Lander ES, Aiden EL. Juicer Provides a One-Click System for Analyzing Loop-Resolution Hi-C Experiments. Cell Syst. 2016 Jul;3(1):95-8. doi: 10.1016/j.cels.2016.07.002. PMID: 27467249; PMCID: PMC5846465.
+
+* [igv.js](https://pubmed.ncbi.nlm.nih.gov/22517427/)
+    > Thorvaldsdóttir H, Robinson JT, Mesirov JP. Integrative Genomics Viewer (IGV): high-performance genomics data visualization and exploration. Brief Bioinform. 2013 Mar;14(2):178-92. doi: 10.1093/bib/bbs017. Epub 2012 Apr 19. PMID: 22517427; PMCID: PMC3603213.
+
 * [pairsqc](https://github.com/4dn-dcic/pairsqc)
 
 * [pairtools](https://github.com/open2c/pairtools)

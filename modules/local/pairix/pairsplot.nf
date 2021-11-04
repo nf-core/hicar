@@ -40,7 +40,6 @@ process PAIRSPLOT {
         "mnase": 4]
     def enzyme = RE_cutsite[params.enzyme.toLowerCase()]?:4
     """
-    install_packages.r stringr Nozzle.R1
     mv pairsqc_report ${meta.id}_report
     pairsqcplot.r $enzyme ${meta.id}_report
 

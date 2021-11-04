@@ -212,7 +212,7 @@
                     "description": "cutoff qvalue for R1 by MACS2",
                     "fa_icon": "fas fa-filter",
                     "hidden": false,
-                    "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noise compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
+                    "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noisy compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
                     "default": 0.1
                 }
             }
@@ -285,8 +285,8 @@
                 }
             }
         },
-        "Tracks_options": {
-            "title": "Options related to tracks",
+        "Visualization_options": {
+            "title": "Options related to tracks, juicer_tools, and circos",
             "type": "object",
             "fa_icon": "fab fa-wpforms",
             "description": "Options for tracks viewed by igv, ucsc genome browser and virtual 4c plot tools",
@@ -303,6 +303,22 @@
                     "fa_icon": "fas fa-water",
                     "hidden": false,
                     "default": 25
+                },
+                "juicer_jvm_params": {
+                    "type": "string",
+                    "description": "JVM heap parameters for juicer",
+                    "default": "-Xms512m -Xmx4096m",
+                    "fa_icon": "far fa-clock",
+                    "hidden": false,
+                    "help_text": "For 64bit system, you may want to set the Xmx > 4g, eg. '-Xms1024m -Xmx32g'"
+                },
+                "juicer_tools_jar": {
+                    "type": "string",
+                    "description": "The juicer_tools path",
+                    "default": "https://s3.amazonaws.com/hicfiles.tc4ga.com/public/juicer/juicer_tools_1.22.01.jar",
+                    "fa_icon": "far fa-java",
+                    "hidden": false,
+                    "help_text": "The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/juicer/wiki/Download)"
                 }
             }
         },
@@ -431,14 +447,6 @@
                     "pattern": "^(\\d+\\.?\\s*(s|m|h|day)\\s*)+$",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
-                },
-                "juicer_jvm": {
-                    "type": "string",
-                    "description": "JVM heap parameters for juicer",
-                    "default": "-Xms512m -Xmx4096m",
-                    "fa_icon": "far fa-clock",
-                    "hidden": false,
-                    "help_text": "For 64bit system, you may want to set the Xmx > 4g, eg. '-Xms1024m -Xmx32g'"
                 }
             }
         },
@@ -605,7 +613,7 @@
             "$ref": "#/definitions/MAPS_peak_calling_options"
         },
         {
-            "$ref": "#/definitions/Tracks_options"
+            "$ref": "#/definitions/Visualization_options"
         },
         {
             "$ref": "#/definitions/Other_options_not_expose_yet"

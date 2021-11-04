@@ -33,7 +33,8 @@ process BIOC_TRACKVIEWER {
     script:
     prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
     """
-    install_packages.r trackViewer optparse
     trackviewer.r -g "${gtf}" -s "${chrom_sizes}" -x "${restrict}" -r $bin_size -o "${prefix}" $options.args
+
+    # *.version.txt files will be created in the rscripts
     """
 }

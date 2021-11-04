@@ -3,7 +3,7 @@
  */
 params.options = [:]
 
-include { PREPARE_CIRCOS            } from '../../modules/local/circos/prepare_circos'    addParams(options: params.options.prepare_circos)
+include { CIRCOS_PREPARE            } from '../../modules/local/circos/circos_prepare'    addParams(options: params.options.circos_prepare)
 include { CIRCOS                    } from '../../modules/local/circos/circos'            addParams(options: params.options.circos)
 
 workflow RUN_CIRCOS {
@@ -17,9 +17,9 @@ workflow RUN_CIRCOS {
     main:
     //create circos config
     //input=path(bedpe), val(ucscname), path(gtf), path(chromsize)
-    ch_version = PREPARE_CIRCOS(bedpe.combine(ucscname).combine(gtf).combine(chromsize)).version
+    ch_version = CIRCOS_PREPARE(bedpe.combine(ucscname).combine(gtf).combine(chromsize)).version
     //plot
-    CIRCOS(PREPARE_CIRCOS.out.circos.combine(config))
+    CIRCOS(CIRCOS_PREPARE.out.circos.combine(config))
     ch_version = ch_version.mix(CIRCOS.out.version)
 
     emit:

@@ -30,5 +30,7 @@ process ENSEMBL_UCSC_CONVERT {
     seqlevels_convert.r \\
         $options.args \\
         $fname
+
+    # *.version.txt files will be created in the rscripts
     """
 }

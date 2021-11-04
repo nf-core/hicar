@@ -30,6 +30,7 @@ process SEQLEVELS_STYLE {
 
     """
     seqlevelsstyle.r $bed > r.log.txt 2>&1
-    cat tmp.txt
+
+    # *.version.txt files will be created in the rscripts
     """
 }

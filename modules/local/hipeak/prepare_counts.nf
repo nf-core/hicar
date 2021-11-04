@@ -28,8 +28,6 @@ process PREPARE_COUNTS {
     script:
     def software = "CALL_HIPEAK"
     """
-    install_packages.r rtracklayer InteractionSet Biostrings Rsamtools
-
     prepare_counts.r --r2peak $r2peak --r1peak $r1peak \\
         --pairs pairs \\
         --fasta $fasta \\
@@ -37,5 +35,7 @@ process PREPARE_COUNTS {
         --restrict $cut \\
         --output counts.${meta.id}.csv \\
         $options.args
+
+    # *.version.txt files will be created in the rscripts
     """
 }
