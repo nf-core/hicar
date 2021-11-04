@@ -180,8 +180,10 @@ By default, the peaks are called by `--no-model` parameter for the R2 reads in B
 
 The chromatin interactions are called by [MAPS](https://pubmed.ncbi.nlm.nih.gov/30986246/).
 MAPS is a model-based analysis of long-range chromatin interactions for `AND` or `XOR` reads.
-`AND` set: bin pairs with `both` ends overlapping two anchors of interaction.
-`XOR` set: bin pairs with one end overlapping one anchor of the interaction.
+
+* `AND` set: bin pairs with `both` ends overlapping two anchors of interaction.
+* `XOR` set: bin pairs with one end overlapping one anchor of the interaction.
+
 It will remove the systematic bias by accessibility.
 By default, the interactions are called by `positive poisson` regression model
 and then filtered by coverage (default is 12 per bin), fold change (default is 2 times over expected value) and fdr (default is 0.01).

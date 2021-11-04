@@ -57,7 +57,11 @@ On release, automated continuous integration tests run the pipeline on a full-si
 4. Start running your own analysis!
 
     ```console
-    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> -c profile.config
+    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> \
+        --input samples.csv \   # Input data
+        --qval_thresh 0.01 \    # Cut-off q-value for MACS2
+        --genome GRCh38 \       # Genome Reference
+        --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
     ```
 
     Run it on cluster.

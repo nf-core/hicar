@@ -277,7 +277,7 @@ Check the files are readable for the workflow.
 
 * Error:  `Session aborted -- Cause: Unable to execute HTTP request: ngi-igenomes.s3.amazonaws.com`
 
-The s3 connection reached the limitation of connection. Try to resume the analysis one hour later.
+The internet connection reached the limitation. Try to resume the analysis one hour later.
 
 * Error: `PaddingError: Placeholder of length '80' too short in package`
 

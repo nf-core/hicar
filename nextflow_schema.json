@@ -315,7 +315,7 @@
                 "juicer_tools_jar": {
                     "type": "string",
                     "description": "The juicer_tools path",
-                    "default": null,
+                    "default": "https://s3.amazonaws.com/hicfiles.tc4ga.com/public/juicer/juicer_tools_1.22.01.jar",
                     "fa_icon": "far fa-java",
                     "hidden": false,
                     "help_text": "The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/juicer/wiki/Download)"
