@@ -32,7 +32,8 @@ process BIOC_CHIPPEAKANNO {
     script:
     prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
     """
-    install_packages.r ChIPpeakAnno ggplot2
     annopeaks.r ${gtf} ${prefix}
+
+    # *.version.txt files will be created in the rscripts
     """
 }

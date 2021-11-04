@@ -31,5 +31,7 @@ process PAIR2BAM {
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     pair2bam.r $peak
+
+    # *.version.txt files will be created in the rscripts
     """
 }

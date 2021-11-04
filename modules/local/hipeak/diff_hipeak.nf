@@ -30,9 +30,8 @@ process DIFF_HIPEAK {
     script:
     prefix   = options.suffix ? "${options.suffix}" : "diffhicar"
     """
-    install_packages.r edgeR
     diff_hipeak.r $prefix \\
         $options.args
-    ## must output the packages version as *.version.txt
+    # *.version.txt files will be created in the rscripts
     """
 }

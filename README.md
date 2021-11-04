@@ -16,7 +16,7 @@
 
 ## Introduction
 
-**nf-core/hicar** is a bioinformatics best-practice analysis pipeline for HiC on Accessible Regulatory DNA (HiCAR) data, a robust and sensitive assay for simultaneous measurement of chromatin accessibility and cis-regulatory chromatin contacts. Unlike the immunoprecipitation-based methods such as HiChIP, PlAC-seq and ChIA-PET, HiCAR does not need antibody available. HiCAR utilize the Assay of Transposase-Acessible Chromatin to anchor the chromatin interactions. HiCAR is a feasible tool to study the chromatin interactions for low input samples nad the samples with no available antibodies.  
+**nf-core/hicar** is a bioinformatics best-practice analysis pipeline for [HiC on Accessible Regulatory DNA (HiCAR)](https://doi.org/10.1101/2020.11.02.366062) data, a robust and sensitive assay for simultaneous measurement of chromatin accessibility and cis-regulatory chromatin contacts. Unlike the immunoprecipitation-based methods such as HiChIP, PlAC-seq and ChIA-PET, HiCAR does not require antibodies. HiCAR utilizes a Transposase-Accessible Chromatin assay to anchor the chromatin interactions. HiCAR is a tool to study chromatin interactions for low input samples and samples with no available antibodies.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
@@ -29,11 +29,11 @@ On release, automated continuous integration tests run the pipeline on a full-si
 3. Map reads ([`bwa mem`](http://bio-bwa.sourceforge.net/bwa.shtml))
 4. Filter reads ([`pairtools`](https://pairtools.readthedocs.io/en/latest/))
 5. Quality analysis ([`pairsqc`](https://github.com/4dn-dcic/pairsqc))
-6. Create cooler files for visualization ([`cooler`](https://cooler.readthedocs.io/en/latest/index.html))
-7. Call peaks for ATAC reads (R2 reads) ([`MACS2`](https://macs3-project.github.io/MACS/))
-8. Find TADs and loops ([`MAPS`](https://github.com/ijuric/MAPS))
-9. Differential analysis ([`edgeR`](https://bioconductor.org/packages/edgeR/))
-10. Annotation TADs and loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
+6. Call peaks for ATAC reads (R2 reads) ([`MACS2`](https://macs3-project.github.io/MACS/)) and/or call peaks for R1 reads.
+7. Find TADs and loops ([`MAPS`](https://github.com/ijuric/MAPS))
+8. Differential analysis ([`edgeR`](https://bioconductor.org/packages/edgeR/))
+9. Annotation TADs and loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
+10. Create cooler files ([`cooler`](https://cooler.readthedocs.io/en/latest/index.html), .hic files [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), and circos files [`circos`](http://circos.ca/)) for visualization.
 11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 ![work flow of the pipeline](docs/images/workflow.svg)
@@ -57,7 +57,11 @@ On release, automated continuous integration tests run the pipeline on a full-si
 4. Start running your own analysis!
 
     ```console
-    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> -c profile.config
+    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> \
+        --input samples.csv \   # Input data
+        --qval_thresh 0.01 \    # Cut-off q-value for MACS2
+        --genome GRCh38 \       # Genome Reference
+        --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
     ```
 
     Run it on cluster.

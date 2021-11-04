@@ -28,7 +28,6 @@ process MAPS_REFORMAT {
     script:
     def software = "MAPS"
     """
-    install_packages.r data.table
     MAPS_peak_formatting.r $bin_size ${peak}
 
     echo '1.1.0' > ${software}.version.txt

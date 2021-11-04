@@ -29,7 +29,8 @@ process ATACQC {
     script:
     def software = "ATACseqQC"
     """
-    install_packages.r ATACseqQC
     atacqc.r $gtf
+
+    # *.version.txt files will be created in the rscripts
     """
 }

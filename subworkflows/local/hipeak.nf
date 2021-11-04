@@ -15,11 +15,14 @@ include { PAIR2BAM                  } from '../../modules/local/bioc/pair2bam'  
 
 workflow HI_PEAK {
     take:
-    peaks            // channel: [ meta, r2peak, p1peak, distalpair ]
-    gtf              // channel: [ path(gtf) ]
-    fasta            // channel: [ path(fasta) ]
-    digest_genome    // channel: [ path(digest_genome) ]
-    mappability      // channel: [ path(mappability) ]
+    peaks                // channel: [ meta, r2peak, p1peak, distalpair ]
+    gtf                  // channel: [ path(gtf) ]
+    fasta                // channel: [ path(fasta) ]
+    digest_genome        // channel: [ path(digest_genome) ]
+    mappability          // channel: [ path(mappability) ]
+    skip_peak_annotation // value: params.skip_peak_annotation
+    skip_diff_analysis   // value: params.skip_diff_analysis
+
 
     main:
     //create count table
@@ -34,22 +37,25 @@ workflow HI_PEAK {
     ASSIGN_TYPE(CALL_HIPEAK.out.peak)
     ch_version = ch_version.mix(ASSIGN_TYPE.out.version)
     // annotation
-    if(!params.skip_peak_annotation){
+    if(!skip_peak_annotation){
         BIOC_CHIPPEAKANNO_HIPEAK(ASSIGN_TYPE.out.peak.map{it[1]}.collect().map{["HiPeak", it]}, gtf)
         ch_version = ch_version.mix(BIOC_CHIPPEAKANNO_HIPEAK.out.version.ifEmpty(null))
     }
     //differential analysis
     stats = Channel.empty()
     diff = Channel.empty()
-    if(!params.skip_diff_analysis){
-        DIFF_HIPEAK(ASSIGN_TYPE.out.peak.map{it[1]}.collect().ifEmpty([]),
-                    ASSIGN_TYPE.out.summary.map{it[1]}.collect().ifEmpty([]),
-                    peaks.map{it[3]}.collect().ifEmpty([]))
-        ch_version = ch_version.mix(DIFF_HIPEAK.out.version.ifEmpty(null))
-        stats = DIFF_HIPEAK.out.stats
-        diff = DIFF_HIPEAK.out.diff
-        if(!params.skip_peak_annotation){
-            BIOC_CHIPPEAKANNO_DIFFHIPEAK(DIFF_HIPEAK.out.diff.collect().map{["DiffHiPeak", it]}, gtf)
+    if(!skip_diff_analysis){
+        hipeaks = ASSIGN_TYPE.out.peak.map{it[1]}.collect().filter{it.size()>1}
+        if(hipeaks){
+            DIFF_HIPEAK(hipeaks,
+                        ASSIGN_TYPE.out.summary.map{it[1]}.collect(),
+                        peaks.map{it[3]}.collect())
+            ch_version = ch_version.mix(DIFF_HIPEAK.out.version.ifEmpty(null))
+            stats = DIFF_HIPEAK.out.stats
+            diff = DIFF_HIPEAK.out.diff
+            if(!skip_peak_annotation){
+                BIOC_CHIPPEAKANNO_DIFFHIPEAK(DIFF_HIPEAK.out.diff.collect().map{["DiffHiPeak", it]}, gtf)
+            }
         }
     }
 

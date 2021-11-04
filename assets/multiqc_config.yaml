@@ -54,19 +54,7 @@ custom_data:
         parent_name: 'PAIRS QC'
         parent_description: "Pairs QC report"
         section_name: 'PAIRS reads stats'
-        description: |
-            Table of mapped reads stats. The duplication rate should be lower
-            than 50%. 20%~30% is a good level for 60M PE reads for human genome.
-            For shallow seq, <30% duplication rate should be the cutting value
-            for further deep sequence. Too low duplication rate (<5%) may
-            indicate low specific chromatin interacts. Those number is estimated
-            by several hypothesis. We set the actual mappable genome size is 70%
-            of the original genome size. And the open chromatin interacts region
-            is about 2% of the genome. Take human genome as an example, the
-            possible unique reads for 60M will be, (3G * 70% * 2%)/60M, about
-            70%. That is about 30% duplication rate. Those hypotheses are
-            consistent with real data of
-            [ChIP-seq](https://pubmed.ncbi.nlm.nih.gov/24782889/).
+        description: 'Table of mapped reads stats. The duplication rate should be lower than 50%. 20%~30% is a good level for 60M PE reads for human genome. For shallow seq, <30% duplication rate should be the cutting value for further deep sequence. Too low duplication rate (<5%) may indicate low specific chromatin interacts. Those number is estimated by several hypothesis. We set the actual mappable genome size is 70% of the original genome size. And the open chromatin interacts region is about 2% of the genome. Take human genome as an example, the possible unique reads for 60M will be, (3G * 70% * 2%)/60M, about 70%. That is about 30% duplication rate. Those hypotheses are consistent with real data of ChIP-seq<a href="https://pubmed.ncbi.nlm.nih.gov/24782889/"></a>.'
         file_format: "csv"
         plot_type: 'table'
         pconfig:
@@ -76,21 +64,7 @@ custom_data:
     pairs_reads_detailed_summary:
         parent_id: 'pairs_qc'
         section_name: 'PAIRS reads detailed summary'
-        description: |
-            Cis-to-trans ratio is computed as the ratio of long-range cis reads
-            (>20kb) to trans reads plus long-range cis reads. Typically,
-            *cis-to-trans ratio higher than 40% is required*. Percentage of
-            long-range cis reads is the ratio of long-range cis reads to total
-            number of reads. *Minimum 15% is required and 40% or higher suggests
-            a good library*([doi:10.1016/j.cell.2014.11.021](https://pubmed.ncbi.nlm.nih.gov/25497547/)).
-            Convergence is determined as standard deviation of proportions of
-            four read orientations to be <0.002 (Very good) or <0.05 (Good)
-            (See section Proportion of read orientation versus genomic
-            separation in the pairsqc_report file under pairs/QC/). The slope of
-            log10 contact probability vs distance between 10kb ~ 300kb
-            representing TAD is also provided as well. (See section Contact
-            probability versus genomic separation in the pairsqc_report file
-            under pairs/QC/)
+        description: "Cis-to-trans ratio is computed as the ratio of long-range cis reads (>20kb) to trans reads plus long-range cis reads. Typically, <strong>cis-to-trans ratio higher than 40% is required</strong>. Percentage of long-range cis reads is the ratio of long-range cis reads to total number of reads. <strong>Minimum 15% is required and 40% or higher suggests a good library</strong>(<a href='https://pubmed.ncbi.nlm.nih.gov/25497547/'>doi:10.1016/j.cell.2014.11.021</a>). Convergence is determined as standard deviation of proportions of four read orientations to be <0.002 (Very good) or <0.05 (Good) (See section Proportion of read orientation versus genomic separation in the pairsqc_report file under pairs/QC/). The slope of log10 contact probability vs distance between 10kb ~ 300kb representing TAD is also provided as well. (See section Contact probability versus genomic separation in the pairsqc_report file under pairs/QC/)"
         file_format: "csv"
         plot_type: 'table'
         pconfig:
@@ -101,10 +75,7 @@ custom_data:
     pairs_reads_proportion:
         parent_id: 'pairs_qc'
         section_name: 'Proportion of read orientation versus genomic separation'
-        description: |
-            Contact proportion of reads are shown, stratified by read
-            orientation. Good four cutter samples would show no bias in
-            propotion >3kb(10^3.5).
+        description: "Contact proportion of reads are shown, stratified by read orientation. Good four cutter samples would show no bias in propotion >3kb(10^3.5)."
         file_format: "json"
         plot_type: 'scatter'
         pconfig:
@@ -119,7 +90,8 @@ custom_data:
     atac_peaks_qc:
         parent_id: 'pairs_qc'
         section_name: 'ATAC R2 reads quality control'
-        description: |
+        description: 'ATAC reads quality control including FRiP, TSS enrichment score and so on.'
+        helptext: |
             *Fraction of reads in peaks (FRiP)* – Fraction of all mapped reads that fall into the called peak regions,
             i.e. usable reads in significantly enriched peaks divided by all usable reads.
             In general, FRiP scores correlate positively with the number of regions.
@@ -150,14 +122,7 @@ custom_data:
     maps_qc:
         parent_id: 'pairs_qc'
         section_name: 'MAPS peak calling summary'
-        description: |
-            [MAPS summary](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006982) is output of MAPS.
-
-            "AND" set: Bin pairs with `both` ends overlapping two anchors of interaction.
-
-            "XOR" set: Bin pairs with one end overlapping one anchor of the interaction.
-
-            Singletons are defined as isolated significant bin pairs without adjacent ones.
+        description: '<a href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006982">MAPS summary</a> is output of MAPS.<br/>"AND" set: Bin pairs with <em>both</em> ends overlapping two anchors of interaction. <br/>"XOR" set: Bin pairs with one end overlapping one anchor of the interaction.<br/>Singletons are defined as isolated significant bin pairs without adjacent ones.'
         file_format: 'csv'
         plot_type: 'table'
         pconfig:
@@ -179,17 +144,10 @@ custom_data:
     pairs_peaks_genomic_dist:
         parent_id: 'pairs_qc'
         section_name: 'Peaks genomic element distribution'
-        description: |
-            The genomic element distribution of the peaks. Promoter region is
-            defined as upstream 2000 and downstream 500 from TSS. geneDownstream
-            is defeined as downstream 2000 from TES.
+        description: "The genomic element distribution of the peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defeined as downstream 2000 from TES."
         file_format: "png"
     other_side_genomic_dist:
         parent_id: 'pairs_qc'
         section_name: 'The genomeic element distribution for the peaks interacting with promoters'
-        description: |
-            The genomic element distribution of the other sites of promoter
-            peaks. Promoter region is defined as upstream 2000 and downstream
-            500 from TSS. geneDownstream is defeined as downstream 2000 from
-            TES.
+        description: "The genomic element distribution of the other sites of promoter peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defeined as downstream 2000 from TES."
         file_format: "png"
