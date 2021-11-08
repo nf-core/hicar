@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -25,7 +25,7 @@ process DIFFHICAR {
     output:
     tuple val(bin_size), path("${prefix}/*"), emit: diff
     path "${prefix}/*.qc.json"               , emit: stats
-    path "*.version.txt"                    , emit: version
+    path "versions.yml"                      , emit: versions
 
     script:
     prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
@@ -34,5 +34,9 @@ process DIFFHICAR {
         $options.args
 
     # *.version.txt files will be created in the rscripts
+    echo "${getProcessName(task.process)}:" > versions.yml
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

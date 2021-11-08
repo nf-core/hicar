@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,7 +23,7 @@ process SEQLEVELS_STYLE {
 
     output:
     stdout emit: seqlevels_style
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
     def software = "GenomeInfoDb"
@@ -32,5 +32,9 @@ process SEQLEVELS_STYLE {
     seqlevelsstyle.r $bed > r.log.txt 2>&1
 
     # *.version.txt files will be created in the rscripts
+    echo "${getProcessName(task.process)}:" > versions.yml
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

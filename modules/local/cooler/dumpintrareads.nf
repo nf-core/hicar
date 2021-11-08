@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -24,7 +24,7 @@ process DUMPINTRAREADS {
     output:
     tuple val(meta), path("${outdir}/*.long.intra.bedpe")  , emit: bedpe
     tuple val(meta), path("*.ginteractions")               , emit: gi
-    path  "*.version.txt"                                  , emit: version
+    path  "versions.yml"                                   , emit: versions
 
     script:
     def software = "awk"
@@ -38,6 +38,9 @@ process DUMPINTRAREADS {
 
     awk -F "\t" '{print 0, \$1, \$2, 0, 0, \$4, \$5, 1, \$7}' $bedpe > ${prefix}.${meta.bin}.ginteractions
 
-    echo \$(awk --version 2>&1) | sed -e "s/GNU Awk //g; s/, API.*\$//" > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(echo \$(awk --version 2>&1) | sed -e "s/GNU Awk //g; s/, API.*\$//")
+    END_VERSIONS
     """
 }

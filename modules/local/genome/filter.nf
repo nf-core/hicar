@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,20 +23,25 @@ process GENOME_FILTER {
 
     output:
     path "*.bed",         emit: bed
-    path "*.version.txt", emit: version
+    path "versions.yml",  emit: versions
 
     script:
-    def software = "bedtools"
     def file_out = "${sizes.simpleName}.include_regions.bed"
     if (params.blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
-        echo \$(bedtools --version) | sed -e "s/bedtools v//g" > ${software}.version.txt
+        cat <<-END_VERSIONS > versions.yml
+        ${getProcessName(task.process)}:
+            bedtools: \$(echo \$(bedtools --version) | sed -e "s/bedtools v//g")
+        END_VERSIONS
         """
     } else {
         """
         awk '{print \$1, '0' , \$2}' OFS='\t' $sizes > $file_out
-        echo \$(bedtools --version) | sed -e "s/bedtools v//g" > ${software}.version.txt
+        cat <<-END_VERSIONS > versions.yml
+        ${getProcessName(task.process)}:
+            awk: \$(echo \$(awk --version 2>&1 || awk -W version 2>&1) | sed 's/[[:alpha:]|(|)|[:space:]]//g; s/,.*\$//')
+        END_VERSIONS
         """
     }
 }

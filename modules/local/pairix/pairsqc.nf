@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -25,10 +25,9 @@ process PAIRSQC {
 
     output:
     tuple val(meta), path("${meta.id}_report/*"), emit: qc
-    path "*.version.txt"          , emit: version
+    path "versions.yml"                          , emit: versions
 
     script:
-    def software = "pairsqc"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     MAX_LOGDISTANCE=`cat ${chrom_sizes} | awk '{ sum += \$2 } END { printf "%.1f", log(sum)/log(10) }'`
@@ -39,6 +38,9 @@ process PAIRSQC {
         -s $prefix \\
         -M \$MAX_LOGDISTANCE
 
-    echo "0.2.2" > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        pairsqc: "0.2.2"
+    END_VERSIONS
     """
 }

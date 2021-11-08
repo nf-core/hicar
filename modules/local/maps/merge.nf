@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,10 +23,9 @@ process MAPS_MERGE {
 
     output:
     tuple val(bin_size), path("${cut.getSimpleName()}")    , emit: map
-    path "*.version.txt"                                   , emit: version
+    path "versions.yml"                                    , emit: versions
 
     script:
-    def software = "MAPS"
     """
     merge_map.py \\
         -c $cut \\
@@ -34,6 +33,9 @@ process MAPS_MERGE {
         -o tmp.map
     awk "\\\$7>${options.args}" tmp.map > ${cut.getSimpleName()}
 
-    echo '1.1.0' > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        MAPS: 1.1.0
+    END_VERSIONS
     """
 }

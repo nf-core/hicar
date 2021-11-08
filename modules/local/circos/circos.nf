@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -24,13 +24,17 @@ process CIRCOS {
 
     output:
     path "*.png"                  , emit: circos
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
     def software = getSoftwareName(task.process)
     """
     circos
     mv circos.png ${meta.id}.png
-    echo \$(circos -v 2>&1) | sed 's/circos.*v //; s/ .*\$//'> ${software}.version.txt
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(echo \$(circos -v 2>&1) | sed 's/circos.*v //; s/ .*\$//')
+    END_VERSIONS
     """
 }

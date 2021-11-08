@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -28,7 +28,7 @@ process BIOC_TRACKVIEWER {
 
     output:
     path "${prefix}/*"            , emit: v4c
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
     prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
@@ -36,5 +36,9 @@ process BIOC_TRACKVIEWER {
     trackviewer.r -g "${gtf}" -s "${chrom_sizes}" -x "${restrict}" -r $bin_size -o "${prefix}" $options.args
 
     # *.version.txt files will be created in the rscripts
+    echo "${getProcessName(task.process)}:" > versions.yml
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

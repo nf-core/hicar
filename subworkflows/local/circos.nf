@@ -17,12 +17,12 @@ workflow RUN_CIRCOS {
     main:
     //create circos config
     //input=path(bedpe), val(ucscname), path(gtf), path(chromsize)
-    ch_version = CIRCOS_PREPARE(bedpe.combine(ucscname).combine(gtf).combine(chromsize)).version
+    ch_version = CIRCOS_PREPARE(bedpe.combine(ucscname).combine(gtf).combine(chromsize)).versions.first()
     //plot
     CIRCOS(CIRCOS_PREPARE.out.circos.combine(config))
-    ch_version = ch_version.mix(CIRCOS.out.version)
+    ch_version = ch_version.mix(CIRCOS.out.versions)
 
     emit:
     circos       = CIRCOS.out.circos            // channel: [ path(png) ]
-    version      = ch_version                   // channel: [ path(version) ]
+    versions     = ch_version                   // channel: [ path(version) ]
 }

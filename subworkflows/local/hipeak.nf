@@ -27,19 +27,23 @@ workflow HI_PEAK {
     main:
     //create count table
     //input=val(meta), path(r2peak), path(r1peak), path(distalpair)
-    ch_version = PREPARE_COUNTS(peaks.combine(mappability).combine(fasta).combine(digest_genome)).version
+    ch_version = PREPARE_COUNTS(peaks.combine(mappability).combine(fasta).combine(digest_genome)).versions
     //regression and peak calling
     CALL_HIPEAK(PREPARE_COUNTS.out.counts)
-    ch_version = ch_version.mix(CALL_HIPEAK.out.version)
+    ch_version = ch_version.mix(CALL_HIPEAK.out.versions)
     PAIR2BAM(CALL_HIPEAK.out.peak.join(peaks.map{[it[0], it[3]]}))
 
     //assign type for peak
     ASSIGN_TYPE(CALL_HIPEAK.out.peak)
-    ch_version = ch_version.mix(ASSIGN_TYPE.out.version)
+    ch_version = ch_version.mix(ASSIGN_TYPE.out.versions)
     // annotation
     if(!skip_peak_annotation){
-        BIOC_CHIPPEAKANNO_HIPEAK(ASSIGN_TYPE.out.peak.map{it[1]}.collect().map{["HiPeak", it]}, gtf)
-        ch_version = ch_version.mix(BIOC_CHIPPEAKANNO_HIPEAK.out.version.ifEmpty(null))
+        BIOC_CHIPPEAKANNO_HIPEAK(ASSIGN_TYPE.out.peak
+                                            .map{it[1]}
+                                            .filter{ it.readLines().size > 1 }
+                                            .collect()
+                                            .map{["HiPeak", it]}, gtf)
+        ch_version = ch_version.mix(BIOC_CHIPPEAKANNO_HIPEAK.out.versions.ifEmpty(null))
     }
     //differential analysis
     stats = Channel.empty()
@@ -50,11 +54,13 @@ workflow HI_PEAK {
             DIFF_HIPEAK(hipeaks,
                         ASSIGN_TYPE.out.summary.map{it[1]}.collect(),
                         peaks.map{it[3]}.collect())
-            ch_version = ch_version.mix(DIFF_HIPEAK.out.version.ifEmpty(null))
+            ch_version = ch_version.mix(DIFF_HIPEAK.out.versions.ifEmpty(null))
             stats = DIFF_HIPEAK.out.stats
             diff = DIFF_HIPEAK.out.diff
             if(!skip_peak_annotation){
-                BIOC_CHIPPEAKANNO_DIFFHIPEAK(DIFF_HIPEAK.out.diff.collect().map{["DiffHiPeak", it]}, gtf)
+                BIOC_CHIPPEAKANNO_DIFFHIPEAK(DIFF_HIPEAK.out.diff
+                                                        .collect()
+                                                        .map{["DiffHiPeak", it]}, gtf)
             }
         }
     }
@@ -64,5 +70,5 @@ workflow HI_PEAK {
     bedpe        = ASSIGN_TYPE.out.bedpe        // channel: [ path(bedpe) ]
     stats        = stats                        // channel: [ path(stats) ]
     diff         = diff                         // channel: [ path(diff) ]
-    version      = ch_version                   // channel: [ path(version) ]
+    versions     = ch_version                   // channel: [ path(version) ]
 }

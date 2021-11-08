@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -25,7 +25,7 @@ process IGV {
     output:
     path "{index.html,readme.txt}"   , emit: igv
     path "track.tgz", optional:true  , emit: raw
-    path "*.version.txt"             , emit: version
+    path "versions.yml"              , emit: versions
 
     script:
     def sampleLabel = name.join(' ')
@@ -33,11 +33,16 @@ process IGV {
     """
     n=($sampleLabel)
     s=($tracks)
-    paste <(printf '%s\n' "\${n[@]}") <(printf '%s\n' "\${s[@]}") > track_files.txt
+    for i in \$(seq 0 \$(( \${#n[@]} - 1 ))); do
+        echo "\${n[\$i]}\t\${s[\$i]}" >> track_files.txt
+    done
     create_igv.py track_files.txt $species
     echo "untar the track.tgz and copy all the files into same folder in a web-server." > readme.txt
     tar chvzf track.tgz $track
 
-    echo \$(python --version) | sed 's/Python //'> python.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        python: \$(echo \$(python --version) | sed 's/Python //')
+    END_VERSIONS
     """
 }

@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -24,16 +24,19 @@ process MAPS_FEND {
 
     output:
     tuple val(bin_size), path("*.bed")      , emit: bed
-    path "*.version.txt"                    , emit: version
+    path "versions.yml"                     , emit: versions
 
     script:
-    def software = "bedtools"
     """
     awk -vOFS="\t" '{print \$3,\$4,\$4,\$3"_"\$1,"0",\$2}' $cut | \\
     bedtools slop $options.args \\
         -r $bin_size -g $chrom_sizes > \\
         ${cut}.bed
 
-    bedtools --version | sed -e "s/bedtools v//g" > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        bedtools: \$(echo \$(bedtools --version) | sed -e "s/bedtools v//g")
+        MAPS: 1.1.0
+    END_VERSIONS
     """
 }

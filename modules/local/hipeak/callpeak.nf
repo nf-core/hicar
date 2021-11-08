@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,7 +23,7 @@ process CALL_HIPEAK {
 
     output:
     tuple val(meta), path("${meta.id}.peaks.csv"), emit: peak
-    path "*.version.txt"                         , emit: version
+    path "versions.yml"                          , emit: versions
 
     script:
     def software = "CALL_HIPEAK"
@@ -32,5 +32,9 @@ process CALL_HIPEAK {
         --count $counts --output ${meta.id}.peaks.csv
 
     # *.version.txt files will be created in the rscripts
+    echo "${getProcessName(task.process)}:" > versions.yml
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

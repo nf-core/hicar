@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,10 +23,9 @@ process CHECKSUMS {
 
     output:
     path "md5.*.txt"              , emit: md5
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
-    def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     touch md5.${prefix}.txt
@@ -53,6 +52,9 @@ process CHECKSUMS {
         fi
     fi
 
-    echo \$(python --version) | sed 's/Python //'> python.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        python: \$(echo \$(python --version) | sed 's/Python //')
+    END_VERSIONS
     """
 }

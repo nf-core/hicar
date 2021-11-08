@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,14 +23,16 @@ process READS_STAT {
 
     output:
     tuple val(meta), path("*.csv"), emit: stat
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
-    def software = "R"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     read_stat.R $raw $dedup ${prefix}.reads_stats.csv
 
-    echo \$(R --version 2>&1) | sed 's/R version //; s/Copyright.*\$//' > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        R: \$(echo \$(R --version 2>&1) | sed 's/R version //; s/Copyright.*\$//')
+    END_VERSIONS
     """
 }

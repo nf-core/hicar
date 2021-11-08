@@ -24,7 +24,7 @@ process CIRCOS_PREPARE {
 
     output:
     tuple val(meta), path("circos/*")               , emit: circos
-    path "*.version.txt"                            , emit: version
+    path "versions.yml"                             , emit: versions
 
     script:
     """
@@ -33,5 +33,11 @@ process CIRCOS_PREPARE {
         -g $gtf \\
         -c $chromsize \\
         -u $ucscname
+
+
+    echo "CIRCOS:" > versions.yml
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

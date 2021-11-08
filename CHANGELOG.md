@@ -5,6 +5,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0.0dev - [11/04/2021]
 
+- remove `paste` command from igv.nf
+- fix the bug that annopeaks.r does not creat folder
+- change version number output from txt to yml file.
 - update citation.md
 - change the juicer_tools download on fly
 - merge the reviewer comments from [#2](https://github.com/nf-core/hicar/pull/2/)

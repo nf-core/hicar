@@ -73,7 +73,6 @@ def getSubWorkFlowParam(modules, mods) {
 //
 // MODULE: Local to the pipeline
 //
-include { GET_SOFTWARE_VERSIONS  } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
 include { CHECKSUMS              } from '../modules/local/checksums' addParams( options: getParam(modules, 'checksums') )
 include { DIFFHICAR              } from '../modules/local/bioc/diffhicar' addParams(options: getParam(modules, 'diffhicar'))
 include { BIOC_CHIPPEAKANNO      } from '../modules/local/bioc/chippeakanno' addParams(options: getParam(modules, 'chippeakanno'))
@@ -115,6 +114,7 @@ include { CUTADAPT       } from '../modules/nf-core/modules/cutadapt/main' addPa
 include { BWA_MEM        } from '../modules/nf-core/modules/bwa/mem/main'  addParams(options: getParam(modules, 'bwa_mem'))
 include { SAMTOOLS_MERGE } from '../modules/nf-core/modules/samtools/merge/main'  addParams(options: getParam(modules, 'samtools_merge'))
 include { MULTIQC        } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
+include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main' addParams( options: [publish_files : ['_versions.yml':'']] )
 
 /*
 ========================================================================================
@@ -165,12 +165,13 @@ workflow HICAR {
     // check the input fastq files are correct and produce checksum for GEO submission
     //
     CHECKSUMS( ch_reads )
+    ch_software_versions = ch_software_versions.mix(CHECKSUMS.out.versions.ifEmpty(null))
 
     //
     // SUBWORKFLOW: Prepare genome
     //
     PREPARE_GENOME()
-    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PREPARE_GENOME.out.versions.ifEmpty(null))
 
     //
     // MODULE: Run FastQC
@@ -179,7 +180,7 @@ workflow HICAR {
         FASTQC (
             ch_reads
         )
-        ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(FASTQC.out.versions.first().ifEmpty(null))
     }
 
     //
@@ -189,7 +190,7 @@ workflow HICAR {
         CUTADAPT(
             ch_reads
         )
-        ch_software_versions = ch_software_versions.mix(CUTADAPT.out.version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(CUTADAPT.out.versions.ifEmpty(null))
         reads4mapping = CUTADAPT.out.reads
         ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
     }else{
@@ -203,7 +204,7 @@ workflow HICAR {
         reads4mapping,
         PREPARE_GENOME.out.bwa_index
     )
-    ch_software_versions = ch_software_versions.mix(BWA_MEM.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(BWA_MEM.out.versions.ifEmpty(null))
 
     //
     // Pool the technique replicates
@@ -218,14 +219,14 @@ workflow HICAR {
                 .map{[it[1][0], it[2].flatten()]}
                 .set{ mapped_bam }
     //mapped_bam.view()//no branch to multiple and single, need to rename the bam files
-    SAMTOOLS_MERGE(mapped_bam)
-    ch_software_versions = ch_software_versions.mix(SAMTOOLS_MERGE.out.version.ifEmpty(null))
+    SAMTOOLS_MERGE(mapped_bam, [])
+    ch_software_versions = ch_software_versions.mix(SAMTOOLS_MERGE.out.versions.ifEmpty(null))
 
     //
     // MODULE: mapping stats
     //
     BAM_STAT(SAMTOOLS_MERGE.out.bam)
-    ch_software_versions = ch_software_versions.mix(BAM_STAT.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(BAM_STAT.out.versions.ifEmpty(null))
 
     //
     // SUBWORKFLOW: filter reads, output pair (like hic pair), raw (pair), and stats
@@ -235,7 +236,7 @@ workflow HICAR {
         PREPARE_GENOME.out.chrom_sizes,
         PREPARE_GENOME.out.digest_genome
     )
-    ch_software_versions = ch_software_versions.mix(PAIRTOOLS_PAIRE.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(PAIRTOOLS_PAIRE.out.versions.ifEmpty(null))
 
     //
     // combine bin_size and create cooler file, and dump long_bedpe
@@ -249,7 +250,7 @@ workflow HICAR {
         params.juicer_jvm_params,
         ch_juicer_tools
     )
-    ch_software_versions = ch_software_versions.mix(COOLER.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COOLER.out.versions.ifEmpty(null))
 
     //
     // calling ATAC peaks, output ATAC narrowPeak and reads in peak
@@ -260,13 +261,13 @@ workflow HICAR {
         PREPARE_GENOME.out.gsize,
         PREPARE_GENOME.out.gtf
     )
-    ch_software_versions = ch_software_versions.mix(ATAC_PEAK.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
 
     //
     // calling distal peaks: [ meta, bin_size, path(macs2), path(long_bedpe), path(short_bed), path(background) ]
     //
     background = MAPS_MULTIENZYME(PREPARE_GENOME.out.fasta, cool_bin, PREPARE_GENOME.out.chrom_sizes).bin_feature
-    ch_software_versions = ch_software_versions.mix(MAPS_MULTIENZYME.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(MAPS_MULTIENZYME.out.versions.ifEmpty(null))
     reads_peak   = ATAC_PEAK.out.reads
                             .map{ meta, reads ->
                                     [meta.id, reads]} // here id is group
@@ -279,7 +280,7 @@ workflow HICAR {
                         [[id:reads[1]], background[0], reads[2], reads[3], reads[4], background[1]]}
                 .set{ maps_input }
     MAPS_PEAK(maps_input)
-    ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
 
     //
     // calling R1 peaks, output R1 narrowPeak and reads in peak
@@ -291,7 +292,7 @@ workflow HICAR {
             PREPARE_GENOME.out.gsize,
             PREPARE_GENOME.out.gtf
         )
-        ch_software_versions = ch_software_versions.mix(R1_PEAK.out.version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(R1_PEAK.out.versions.ifEmpty(null))
 
         // merge ATAC_PEAK with R1_PEAK by group id
         distalpair = PAIRTOOLS_PAIRE.out.distalpair.map{meta, bed -> [meta.group, bed]}
@@ -309,7 +310,7 @@ workflow HICAR {
             params.skip_peak_annotation,
             params.skip_diff_analysis
         )
-        ch_software_versions = ch_software_versions.mix(HI_PEAK.out.version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(HI_PEAK.out.versions.ifEmpty(null))
 
         RUN_CIRCOS(
             HI_PEAK.out.bedpe,
@@ -318,7 +319,7 @@ workflow HICAR {
             PREPARE_GENOME.out.ucscname,
             ch_circos_config
         )
-        ch_software_versions = ch_software_versions.mix(RUN_CIRCOS.out.version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))
     }
 
     //
@@ -336,10 +337,11 @@ workflow HICAR {
     if(!params.skip_peak_annotation){
         MAPS_PEAK.out.peak //[]
             .map{meta, bin_size, peak -> [bin_size, peak]}
+            .filter{ it[1].readLines().size > 1 }
             .groupTuple()
             .set{ch_maps_anno}
         BIOC_CHIPPEAKANNO_MAPS(ch_maps_anno, PREPARE_GENOME.out.gtf)
-        ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO_MAPS.out.version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO_MAPS.out.versions.ifEmpty(null))
         if(params.virtual_4c){
             BIOC_CHIPPEAKANNO_MAPS.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
                                         .groupTuple()
@@ -352,7 +354,7 @@ workflow HICAR {
                 PREPARE_GENOME.out.gtf,
                 PREPARE_GENOME.out.chrom_sizes,
                 PREPARE_GENOME.out.digest_genome)
-            ch_software_versions = ch_software_versions.mix(BIOC_TRACKVIEWER_MAPS.out.version.ifEmpty(null))
+            ch_software_versions = ch_software_versions.mix(BIOC_TRACKVIEWER_MAPS.out.versions.ifEmpty(null))
         }
     }
 
@@ -372,14 +374,14 @@ workflow HICAR {
         //ch_diffhicar.view()
         if(ch_diffhicar){
             DIFFHICAR(ch_diffhicar)
-            ch_software_versions = ch_software_versions.mix(DIFFHICAR.out.version.ifEmpty(null))
+            ch_software_versions = ch_software_versions.mix(DIFFHICAR.out.versions.ifEmpty(null))
             //annotation
             if(!params.skip_peak_annotation){
                 BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
-                ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.version.ifEmpty(null))
+                ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.versions.ifEmpty(null))
                 if(PREPARE_GENOME.out.ucscname && !params.skip_enrichment){
                     BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno.filter{it.size()>0}, PREPARE_GENOME.out.ucscname)
-                    ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.version.ifEmpty(null))
+                    ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.versions.ifEmpty(null))
                 }
                 if(params.virtual_4c){
                     BIOC_CHIPPEAKANNO.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
@@ -393,7 +395,7 @@ workflow HICAR {
                         PREPARE_GENOME.out.gtf,
                         PREPARE_GENOME.out.chrom_sizes,
                         PREPARE_GENOME.out.digest_genome)
-                    ch_software_versions = ch_software_versions.mix(BIOC_TRACKVIEWER.out.version.ifEmpty(null))
+                    ch_software_versions = ch_software_versions.mix(BIOC_TRACKVIEWER.out.versions.ifEmpty(null))
                 }
             }
         }
@@ -402,18 +404,10 @@ workflow HICAR {
     //
     // MODULE: Pipeline reporting
     //
-    ch_software_versions
-        .flatten()
-        .map { it -> if (it) [ it.baseName, it ] }
-        .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
-
-    GET_SOFTWARE_VERSIONS (
-        ch_software_versions.map { it }.collect()
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_software_versions.unique().collectFile()
     )
+
     if(!params.skip_multiqc){
         //
         // MODULE: MultiQC
@@ -421,10 +415,10 @@ workflow HICAR {
         workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
+        ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect().ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.yml.collect().ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-        ch_multiqc_files = ch_multiqc_files.mix(GET_SOFTWARE_VERSIONS.out.yaml.collect())
         ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
@@ -446,7 +440,7 @@ workflow HICAR {
             ch_multiqc_files.collect()
         )
         multiqc_report       = MULTIQC.out.report.toList()
-        ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
+        ch_software_versions = ch_software_versions.mix(MULTIQC.out.versions.ifEmpty(null))
     }
 }
 

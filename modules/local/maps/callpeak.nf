@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -24,10 +24,9 @@ process MAPS_CALLPEAK {
     output:
     tuple val(meta), val(bin_size), path("${meta.id}_${bin_size}/summary.*.txt"), optional: true, emit: summary
     tuple val(meta), val(bin_size), path("${meta.id}_${bin_size}/*.peaks"), optional: true, emit: peak
-    path "*.version.txt"          , emit: version
+    path "versions.yml"          , emit: versions
 
     script:
-    def software = "MAPS"
     """
     mv maps_out ${meta.id}_${bin_size}
     ## arguments:
@@ -40,6 +39,13 @@ process MAPS_CALLPEAK {
     ## FILTER - file containing bins that need to be filtered out. Format: two columns "chrom", "bin". "chrom" contains 'chr1','chr2',.. "bin" is bin label
     ## regresison_type - pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson
     MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id} $bin_size $options.args
-    echo '1.1.0' > ${software}.version.txt
+
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        MAPS: 1.1.0
+    END_VERSIONS
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

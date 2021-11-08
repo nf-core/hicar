@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -25,7 +25,7 @@ process ASSIGN_TYPE {
     tuple val(meta), path("${meta.id}/summary.*.txt"), optional: true, emit: summary
     tuple val(meta), path("${meta.id}/*.peaks"), optional: true, emit: peak
     tuple val(meta), path("${meta.id}/*.bedpe"), optional: true, emit: bedpe
-    path "*.version.txt"          , emit: version
+    path "versions.yml"                                        , emit: versions
 
     script:
     def software = "CALL_HIPEAK"
@@ -34,5 +34,9 @@ process ASSIGN_TYPE {
         --interactions $counts --output ${meta.id}
 
     # *.version.txt files will be created in the rscripts
+    echo "${getProcessName(task.process)}:" > versions.yml
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

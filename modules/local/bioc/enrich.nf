@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -25,7 +25,7 @@ process BIOC_ENRICH {
 
     output:
     tuple val(bin_size), path("${prefix}/enrichment/*"), emit: enrichment
-    path "*.version.txt"                               , emit: version
+    path "versions.yml"                                , emit: versions
 
     script:
     prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
@@ -33,5 +33,9 @@ process BIOC_ENRICH {
     enrich.r -s ${ucscname} -o "${prefix}/enrichment" $options.args
 
     # *.version.txt files will be created in the rscripts
+    echo "${getProcessName(task.process)}:" > versions.yml
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

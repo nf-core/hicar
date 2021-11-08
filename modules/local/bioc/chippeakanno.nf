@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -27,7 +27,7 @@ process BIOC_CHIPPEAKANNO {
     tuple val(bin_size), path("${prefix}/anno/*"), emit: anno
     tuple val(bin_size), path("${prefix}/anno/**.anno.csv"), emit: csv
     path "${prefix}/anno/*.png", optional:true, emit: png
-    path "*.version.txt"               , emit: version
+    path "versions.yml"                       , emit: versions
 
     script:
     prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
@@ -35,5 +35,9 @@ process BIOC_CHIPPEAKANNO {
     annopeaks.r ${gtf} ${prefix}
 
     # *.version.txt files will be created in the rscripts
+    echo "${getProcessName(task.process)}:" > versions.yml
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }

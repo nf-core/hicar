@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -22,13 +22,15 @@ process READS_SUMMARY {
 
     output:
     path "*.{csv,json}"           , emit: summary
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
-    def software = "R"
     """
     read_summary.R
 
-    echo \$(R --version 2>&1) | sed 's/R version //; s/Copyright.*\$//' > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        R: \$(echo \$(R --version 2>&1) | sed 's/R version //; s/Copyright.*\$//')
+    END_VERSIONS
     """
 }

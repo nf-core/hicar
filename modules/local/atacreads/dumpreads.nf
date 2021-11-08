@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,7 +23,7 @@ process DUMPREADS {
 
     output:
     tuple val(meta), path("${meta.id}/*.shrt.vip.bed") , emit: peak
-    path  "*.version.txt"                                                , emit: version
+    path "versions.yml"                                , emit: versions
 
     script:
     def software = "awk"
@@ -33,6 +33,9 @@ process DUMPREADS {
     mkdir -p $outdir
     cat $bed | zcat | awk -v setname=${prefix} -v outdir=${outdir}  -F \$"\t"  'BEGIN {OFS=FS};{print \$1,\$2,\$3 > outdir"/"setname"."\$1".shrt.vip.bed"}'
 
-    echo \$(awk --version 2>&1) | sed -e "s/GNU Awk //g; s/, API.*\$//" > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(echo \$(awk --version 2>&1) | sed -e "s/GNU Awk //g; s/, API.*\$//")
+    END_VERSIONS
     """
 }

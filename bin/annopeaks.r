@@ -46,7 +46,7 @@ resList <- list()
 peaks <- list()
 promoterList <- list() # list to save the other sites of promoters
 
-dir.create(pf, showWarnings = FALSE)
+dir.create(pf, showWarnings = FALSE, recursive = TRUE)
 for(det in detbl){
     if(grepl("csv$", det)) {
         DB <- read.csv(det)
