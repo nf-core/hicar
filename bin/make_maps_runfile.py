@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+
+#########################################
+# Author: [Ivan Juric](https://github.com/ijuric)
+# File: make_maps_runfile.py
+# Source: https://github.com/ijuric/MAPS/blob/master/bin/MAPS/make_maps_runfile.py
+# Data: 11/08/2021
+# modified by Jianhong:
+# ## 1. set the python environment.
+# ## 2. fix the whitespace.
+#########################################
+
 ##
 ## EXAMPLE RUN:
 ## python make_maps_runfile.py MY_113.MY_115_test /home/jurici/work/PLACseq/MAPS_pipe/results/mESC/ /home/jurici/work/PLACseq/analysis/binning_for_regression/new_set/final.replicated.narrowPeak /home/jurici/work/PLACseq/data/genomic_features/F_GC_M_MboI_5Kb_el.mm10.txt /home/jurici/work/PLACseq/analysis/binning_for_regression/new_set/ /home/jurici/work/PLACseq/analysis/binning_for_regression/new_set/ 5000 19 ./ NA

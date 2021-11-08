@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0.0dev - [11/04/2021]
 
+- fix a bug for .hic file creation if the resolution is greater than coverage region.
+- add documentation for changed source code for MAPS
 - remove `paste` command from igv.nf
 - fix the bug that annopeaks.r does not creat folder
 - change version number output from txt to yml file.

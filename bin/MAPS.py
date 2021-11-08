@@ -1,4 +1,22 @@
 #!/usr/bin/env python
+
+#########################################
+# Author: [Ivan Juric](https://github.com/ijuric)
+# File: MAPS.py
+# Source: https://github.com/ijuric/MAPS/blob/master/bin/MAPS/MAPS.py
+# Data: 11/08/2021
+# modified by Jianhong:
+# ## 1. reset the python environment.
+# ## 2. Handle the error when MACS2 input is empty
+# ## 3. Handle the error when the metadata file is empty
+# ## 4. Automatic detect the chromosome names, function: get_chrom_from_MACS2
+# ## 5. Fix the chromosome style issues
+# ## 6. Handle the NA values
+# ## 7. Fix the wrong data type when reading chromosome name as number
+# ## 8. add weight for counts in case the input file is a count ready file
+# ## 9. fix the indent space
+#########################################
+
 from __future__ import print_function
 import numpy as np
 import pandas as pd
