@@ -29,9 +29,12 @@ process R1READS {
     def software = "awk"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    zcat < $pair | \\
-    awk 'BEGIN {OFS="\t"} ;  /^[^#]/ { print \$2, \$3, \$3+1, "*", "*", \$6}' | \\
-    sort -k1,1 -k2,2n | uniq  | gzip -nc > ${prefix}.R1.distal.bed.gz
+    cat $pair | \\
+        zcat | \\
+        awk 'BEGIN {OFS="\t"};  /^[^#]/ { print \$2, \$3, \$3+1, "*", "*", \$6}' | \\
+        sort -k1,1 -k2,2n | \\
+        uniq | \\
+        gzip -nc > ${prefix}.R1.distal.bed.gz
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:

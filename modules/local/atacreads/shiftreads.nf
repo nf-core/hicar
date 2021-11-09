@@ -29,9 +29,12 @@ process SHIFTREADS {
     def software = "awk"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    zcat < $pair | \\
-    awk 'BEGIN {OFS="\t"} ;  /^[^#]/ { if (\$7 == "+") {\$5 = \$5 + 4} else if (\$7 == "-") {\$5 = \$5 - 5};  print \$4, \$5, \$5+1, "*", "0", \$7}' | \\
-    sort -k1,1 -k2,2n | uniq  | gzip -nc > ${prefix}.R2.ATAC.bed.gz
+    cat $pair | \\
+        zcat | \\
+        awk 'BEGIN {OFS="\t"};  /^[^#]/ { if (\$7 == "+") {\$5 = \$5 + 4} else if (\$7 == "-") {\$5 = \$5 - 5};  print \$4, \$5, \$5+1, "*", "0", \$7}' | \\
+        sort -k1,1 -k2,2n | \\
+        uniq | \\
+        gzip -nc > ${prefix}.R2.ATAC.bed.gz
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:

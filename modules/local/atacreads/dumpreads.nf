@@ -22,16 +22,15 @@ process DUMPREADS {
     tuple val(meta), path(bed)
 
     output:
-    tuple val(meta), path("${meta.id}/*.shrt.vip.bed") , emit: peak
+    tuple val(meta), path("*.shrt.vip.bed") , emit: peak
     path "versions.yml"                                , emit: versions
 
     script:
     def software = "awk"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
-    def outdir   = "${meta.id}"
     """
-    mkdir -p $outdir
-    cat $bed | zcat | awk -v setname=${prefix} -v outdir=${outdir}  -F \$"\t"  'BEGIN {OFS=FS};{print \$1,\$2,\$3 > outdir"/"setname"."\$1".shrt.vip.bed"}'
+    cat $bed | \\
+        zcat | awk -F "\t" 'BEGIN { OFS=FS } {print \$1,\$2,\$3 > "${prefix}."\$1".shrt.vip.bed"}'
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:

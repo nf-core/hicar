@@ -29,8 +29,10 @@ process MERGEREADS {
     def software = "gzip"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    cat ${bed} | zcat | \\
-    sort -k1,1 -k2,2n |  gzip -nc > ${prefix}.merged.ATAC.bed.gz
+    cat ${bed} | \\
+        zcat | \\
+        sort -k1,1 -k2,2n | \\
+        gzip -nc > ${prefix}.merged.ATAC.bed.gz
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:

@@ -5,6 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0.0dev - [11/04/2021]
 
+- import md5sum from coreutils
+- simplify the shell scripts.
 - fix a bug for .hic file creation if the resolution is greater than coverage region.
 - add documentation for changed source code for MAPS
 - remove `paste` command from igv.nf
