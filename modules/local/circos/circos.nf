@@ -20,7 +20,8 @@ process CIRCOS {
     }
 
     input:
-    tuple val(meta), path(data), path(configfile)
+    tuple val(meta), path(data)
+    path configfile
 
     output:
     path "*.png"                  , emit: circos

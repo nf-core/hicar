@@ -29,12 +29,25 @@ process SEQLEVELS_STYLE {
     def software = "GenomeInfoDb"
 
     """
-    seqlevelsstyle.r $bed > r.log.txt 2>&1
+    #!/usr/bin/env Rscript
 
-    # *.version.txt files will be created in the rscripts
-    echo "${getProcessName(task.process)}:" > versions.yml
-    for i in \$(ls *.version.txt); do
-    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
-    done
+    library(GenomeInfoDb)
+    versions <- c(
+        "${getProcessName(task.process)}:",
+        paste("    GenomeInfoDb:", as.character(packageVersion("GenomeInfoDb"))))
+    writeLines(versions, "versions.yml")
+
+    inf = "$bed" ## input file must be a bed file
+
+    data <- read.table(inf, nrows=1000, header=FALSE, quote=NULL, comment.char="#")
+
+    seqnames <- unique(as.character(data[, 1]))
+    seql <- "UCSC" %in% seqlevelsStyle(seqnames)
+
+    if(seql){
+        cat("UCSC")
+    }else{
+        cat("NOT_UCSC")
+    }
     """
 }

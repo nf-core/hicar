@@ -19,7 +19,7 @@ workflow RUN_CIRCOS {
     //input=path(bedpe), val(ucscname), path(gtf), path(chromsize)
     ch_version = CIRCOS_PREPARE(bedpe.combine(ucscname).combine(gtf).combine(chromsize)).versions.first()
     //plot
-    CIRCOS(CIRCOS_PREPARE.out.circos.combine(config))
+    CIRCOS(CIRCOS_PREPARE.out.circos, config)
     ch_version = ch_version.mix(CIRCOS.out.versions)
 
     emit:

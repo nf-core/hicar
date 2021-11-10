@@ -38,7 +38,7 @@ params.restriction_sites = RE_cutsite[params.enzyme.toLowerCase()]
 
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
-ch_circos_config         = Channel.fromPath("$projectDir/assets/circos.conf")
+ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists: true)
 
 /*
 ========================================================================================
@@ -46,7 +46,7 @@ ch_circos_config         = Channel.fromPath("$projectDir/assets/circos.conf")
 ========================================================================================
 */
 
-ch_juicer_tools        = params.juicer_tools_jar ? Channel.fromPath(params.juicer_tools_jar, checkIfExists: true) : Channel.empty()
+ch_juicer_tools        = params.juicer_tools_jar ? file(params.juicer_tools_jar, checkIfExists: true) : Channel.empty()
 
 /*
 ========================================================================================
@@ -159,7 +159,7 @@ cool_bin = Channel.fromList(params.cool_bin.tokenize('_'))
 workflow HICAR {
 
     ch_software_versions = Channel.empty()
-    ch_multiqc_files = Channel.empty()
+    ch_multiqc_files = Channel.from(ch_multiqc_config)
 
     //
     // check the input fastq files are correct and produce checksum for GEO submission

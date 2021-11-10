@@ -20,7 +20,8 @@ process JUICER {
     }
 
     input:
-    tuple val(meta), path(gi), path(juicer_tools_jar)
+    tuple val(meta), path(gi)
+    path juicer_tools_jar
     path chromsize
     val juicer_jvm_params
 

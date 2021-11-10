@@ -39,7 +39,7 @@ workflow COOLER {
     // dump long.intra.bedpe for each group for MAPS to call peaks
     COOLER_DUMP(COOLER_MERGE.out.cool).bedpe | DUMPINTRAREADS
     if(juicer_tools_jar){
-        JUICER(DUMPINTRAREADS.out.gi.combine(juicer_tools_jar), chromsizes, juicer_jvm_params)
+        JUICER(DUMPINTRAREADS.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
         ch_version = ch_version.mix(JUICER.out.versions)
     }
 
