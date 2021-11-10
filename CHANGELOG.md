@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0.0dev - [11/04/2021]
 
+- keep bedtools version consistent
 - merge rscripts into `nf` files
 - change ch_juicer_tool and ch_circos_config into value type channel
 - import md5sum from coreutils

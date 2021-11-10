@@ -13,9 +13,9 @@ process MAPS_FEND {
 
     conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bedtools:2.30.0--h7d7f7ad_1"
+        container "https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0"
     } else {
-        container "quay.io/biocontainers/bedtools:2.30.0--h7d7f7ad_1"
+        container "quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0"
     }
 
     input:
