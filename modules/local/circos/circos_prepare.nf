@@ -23,7 +23,7 @@ process CIRCOS_PREPARE {
     tuple val(meta), path(bedpe), val(ucscname), path(gtf), path(chromsize)
 
     output:
-    tuple val(meta), path("circos/*")               , emit: circos
+    tuple val(meta), path("${meta.id}/*")           , emit: circos
     path "versions.yml"                             , emit: versions
 
     script:
@@ -52,7 +52,7 @@ process CIRCOS_PREPARE {
     chromsize <- "$chromsize"
     gtf <- "$gtf"
     ucscname <- "$ucscname"
-    outfolder <- "circos"
+    outfolder <- "${meta.id}"
 
     dir.create(outfolder, showWarnings = FALSE)
 

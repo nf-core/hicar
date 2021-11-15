@@ -3,8 +3,10 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.0.0dev - [11/04/2021]
+## v1.0dev - [11/15/2021]
 
+- update `cooler/dump` module
+- replace the `macs2` module by `nf-core/macs2` module
 - keep bedtools version consistent
 - merge rscripts into `nf` files
 - change ch_juicer_tool and ch_circos_config into value type channel

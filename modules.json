@@ -19,7 +19,7 @@
                 "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
             },
             "cooler/dump": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "7ad42eae1b24e95f426a03fe544f0fcfe2912cf2"
             },
             "custom/dumpsoftwareversions": {
                 "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
@@ -41,6 +41,9 @@
             },
             "gunzip": {
                 "git_sha": "e560fbbc3ed68e62bc810a50f552394056f81762"
+            },
+            "macs2/callpeak": {
+                "git_sha": "4398056204b7c9685bc3e0888e82a315031b1f32"
             },
             "multiqc": {
                 "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"

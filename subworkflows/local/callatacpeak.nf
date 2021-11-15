@@ -7,7 +7,7 @@ include { PAIRTOOLS_SELECT
     as  PAIRTOOLS_SELECT_SHORT} from '../../modules/nf-core/modules/pairtools/select/main'           addParams(options: params.options.pairtools_select_short)
 include { SHIFTREADS          } from '../../modules/local/atacreads/shiftreads'       addParams(options: params.options.shift_reads)
 include { MERGEREADS          } from '../../modules/local/atacreads/mergereads'       addParams(options: params.options.merge_reads)
-include { MACS2_CALLPEAK      } from '../../modules/local/atacreads/macs2'            addParams(options: params.options.macs2_atac)
+include { MACS2_CALLPEAK      } from '../../modules/nf-core/modules/macs2/callpeak/main'            addParams(options: params.options.macs2_atac)
 include { DUMPREADS           } from '../../modules/local/atacreads/dumpreads'        addParams(options: params.options.dump_reads_per_group)
 include { DUMPREADS
     as DUMPREADS_SAMPLE       } from '../../modules/local/atacreads/dumpreads'        addParams(options: params.options.dump_reads_per_sample)
@@ -48,7 +48,7 @@ workflow ATAC_PEAK {
     ch_version = ch_version.mix(MERGEREADS.out.versions)
 
     // call ATAC narrow peaks for group
-    MACS2_CALLPEAK(MERGEREADS.out.bed, macs_gsize)
+    MACS2_CALLPEAK(MERGEREADS.out.bed.map{[it[0], it[1], []]}, macs_gsize)
     ch_version = ch_version.mix(MACS2_CALLPEAK.out.versions)
 
     // merge peaks
@@ -61,7 +61,7 @@ workflow ATAC_PEAK {
 
     // dump ATAC reads for each group for maps
     DUMPREADS(MERGEREADS.out.bed)
-    BEDTOOLS_SORT(MACS2_CALLPEAK.out.pileup, "bedgraph")
+    BEDTOOLS_SORT(MACS2_CALLPEAK.out.bdg.map{[it[0], it[1].findAll{it.toString().contains('pileup')}]}, "bedgraph")
     UCSC_BEDCLIP(BEDTOOLS_SORT.out.sorted, chromsizes)
     UCSC_BEDGRAPHTOBIGWIG(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
