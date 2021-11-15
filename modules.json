@@ -10,7 +10,7 @@
                 "git_sha": "2959b4ba070d138d1577acc48d35cc669fbef972"
             },
             "bwa/index": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "9475960928a3ba49624b49ef2b48438a4696ed0f"
             },
             "bwa/mem": {
                 "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
@@ -40,7 +40,7 @@
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "gunzip": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "e560fbbc3ed68e62bc810a50f552394056f81762"
             },
             "multiqc": {
                 "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
@@ -73,7 +73,7 @@
                 "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
             },
             "samtools/index": {
-                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+                "git_sha": "1abe23e1592f7cf6a3724589061827df0d8a0252"
             },
             "samtools/merge": {
                 "git_sha": "ac1e6df076195cec553a2079c9cebd94026a0d47"
