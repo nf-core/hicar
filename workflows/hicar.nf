@@ -69,6 +69,13 @@ def getSubWorkFlowParam(modules, mods) {
     }
     return options
 }
+// get relative folder for igv_track_files
+def getPublishedFolder(modules, module, params){
+    def mod = getParam(modules, module)
+    def publish_dir = mod.publish_dir?:'.'
+    def outdir = params.outdir?:'.'
+    return outdir+'/'+publish_dir+'/'
+}
 
 //
 // MODULE: Local to the pipeline
@@ -282,6 +289,10 @@ workflow HICAR {
     MAPS_PEAK(maps_input)
     ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
 
+    MAPS_PEAK.out.peak.map{[it[0].id+'.'+it[1]+'.contacts', getPublishedFolder(modules, 'maps_reformat', [:])+it[2].name]}
+        .mix(ATAC_PEAK.out.bws.map{[it[0].id+"_R2", getPublishedFolder(modules, 'ucsc_bedgraphtobigwig_per_group', [:])+it[1].name]})
+        .set{ch_trackfiles} // collect track files for igv
+
     //
     // calling R1 peaks, output R1 narrowPeak and reads in peak
     //
@@ -293,6 +304,7 @@ workflow HICAR {
             PREPARE_GENOME.out.gtf
         )
         ch_software_versions = ch_software_versions.mix(R1_PEAK.out.versions.ifEmpty(null))
+        ch_trackfiles = ch_trackfiles.mix(R1_PEAK.out.bws.map{[it[0].id+"_R1", getPublishedFolder(modules, 'ucsc_bedgraphtobigwig_per_r1_group', [:])+it[1].name]})
 
         // merge ATAC_PEAK with R1_PEAK by group id
         distalpair = PAIRTOOLS_PAIRE.out.distalpair.map{meta, bed -> [meta.group, bed]}
@@ -311,6 +323,7 @@ workflow HICAR {
             params.skip_diff_analysis
         )
         ch_software_versions = ch_software_versions.mix(HI_PEAK.out.versions.ifEmpty(null))
+        ch_trackfiles = ch_trackfiles.mix(HI_PEAK.out.bedpe.map{[it[0].id+"_HiPeak", getPublishedFolder(modules, 'assign_type', [:])+it[1].name]})
 
         RUN_CIRCOS(
             HI_PEAK.out.bedpe,
@@ -325,9 +338,10 @@ workflow HICAR {
     //
     // Create igv index.html file
     //
-    ATAC_PEAK.out.bws.map{it[0].id}.collect().ifEmpty([]).mix(MAPS_PEAK.out.peak.map{it[0].id+'.'+it[1]+'.contacts'}.collect()).collect().toList()
-            .combine(ATAC_PEAK.out.bws.map{it[1]}.collect().ifEmpty([]).mix(MAPS_PEAK.out.peak.map{it[2]}.collect()).collect().toList())
-            .set{ igv_track_files }
+    ch_trackfiles.collect{it.join('\t')}
+        .flatten()
+        .collectFile(name:'track_files.txt', storeDir:getPublishedFolder(modules, 'igv', params), newLine: true, sort:{it[0]})
+        .set{ igv_track_files }
     //igv_track_files.view()
     IGV(igv_track_files, PREPARE_GENOME.out.ucscname)
 

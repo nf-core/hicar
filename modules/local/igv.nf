@@ -19,26 +19,17 @@ process IGV {
     }
 
     input:
-    tuple val(name), path(track)
+    path track
     val species
 
     output:
     path "{index.html,readme.txt}"   , emit: igv
-    path "track.tgz", optional:true  , emit: raw
     path "versions.yml"              , emit: versions
 
     script:
-    def sampleLabel = name.join(' ')
-    def tracks      = track.join(' ')
     """
-    n=($sampleLabel)
-    s=($tracks)
-    for i in \$(seq 0 \$(( \${#n[@]} - 1 ))); do
-        echo "\${n[\$i]}\t\${s[\$i]}" >> track_files.txt
-    done
-    create_igv.py track_files.txt $species
-    echo "untar the track.tgz and copy all the files into same folder in a web-server." > readme.txt
-    tar chvzf track.tgz $track
+    create_igv.py $track $species
+    echo "collect in ${track} and copy all the files into relative folder in a web-server. Then put the index.html file into the root folder." > readme.txt
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:

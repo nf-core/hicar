@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [11/15/2021]
 
+- update `igv` module
 - update `cooler/dump` module
 - replace the `macs2` module by `nf-core/macs2` module
 - keep bedtools version consistent
