@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -19,17 +19,20 @@ process SAMTOOLS_INDEX {
     }
 
     input:
-    tuple val(meta), path(bam)
+    tuple val(meta), path(input)
 
     output:
-    tuple val(meta), path("*.bai"), optional:true, emit: bai
-    tuple val(meta), path("*.csi"), optional:true, emit: csi
-    path  "*.version.txt"         , emit: version
+    tuple val(meta), path("*.bai") , optional:true, emit: bai
+    tuple val(meta), path("*.crai"), optional:true, emit: crai
+    tuple val(meta), path("*.csi") , optional:true, emit: csi
+    path  "versions.yml"           , emit: versions
 
     script:
-    def software = getSoftwareName(task.process)
     """
-    samtools index $options.args $bam
-    echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' > ${software}.version.txt
+    samtools index $options.args $input
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
+    END_VERSIONS
     """
 }

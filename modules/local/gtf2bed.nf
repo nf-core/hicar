@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,13 +23,15 @@ process GTF2BED {
 
     output:
     path "*.bed"                  , emit: bed
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
-    def software = getSoftwareName(task.process)
     """
     gtf2bed $gtf > ${gtf.baseName}.bed
 
-    echo \$(perl -e 'print \$];') > perl.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        perl: \$(perl -e 'print \$];')
+    END_VERSIONS
     """
 }

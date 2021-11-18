@@ -1,4 +1,22 @@
 #!/usr/bin/env Rscript
+
+#########################################
+# Author: [Ivan Juric](https://github.com/ijuric)
+# File: MAPS_regression_and_peak_caller.r
+# Source: https://github.com/ijuric/MAPS/blob/master/bin/MAPS/MAPS_regression_and_peak_caller.r
+# Data: 11/08/2021
+# modified by Jianhong:
+# ## 1. set the Rscript environment.
+# ## 2. export the COUNT_CUTOFF, RATIO_CUTOFF and FDR parameters
+# ## 3. Automatic detect the chromosome names
+# ## 4. Handle the error if the input count table is empty
+# ## 5. Prefilter the data before fit to vglm to handle the NA error by function trimDAta and checkdata
+# ## 6. Handle the error if output is empty
+# ## 7. Handle the error if AND or XOR table is empty
+# ## 8. clean unused code
+# ## 9. fix the indent space
+#########################################
+
 ## run example:
 ##  Rscript MAPS_regression_and_peak_caller.r /home/jurici/work/PLACseq/MAPS_pipe/results/mESC_test/ MY_115.5k 5000 1 None pospoisson NA
 ##

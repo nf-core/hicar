@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,7 +23,7 @@ process MAPS_MAPS{
 
     output:
     tuple val(meta), val(bin_size), path(macs2), path(long_bedpe), path(short_bed), path(background), path("${meta.id}_${bin_size}/*"), emit: maps
-    path "*.version.txt"          , emit: version
+    path "versions.yml"          , emit: versions
 
     script:
     def software  = "MAPS"
@@ -46,6 +46,9 @@ process MAPS_MAPS{
     ## by default, the sex chromosome will be excluded.
     MAPS.py "${meta.id}_${bin_size}/maps_${meta.id}.maps"
 
-    echo '1.1.0' > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        MAPS: 1.1.0
+    END_VERSIONS
     """
 }

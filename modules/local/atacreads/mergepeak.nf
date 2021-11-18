@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -12,9 +12,9 @@ process MERGE_PEAK {
 
     conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bedtools:2.30.0--h7d7f7ad_1"
+        container "https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0"
     } else {
-        container "quay.io/biocontainers/bedtools:2.30.0--h7d7f7ad_1"
+        container "quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0"
     }
 
     input:
@@ -22,7 +22,7 @@ process MERGE_PEAK {
 
     output:
     path "merged_peak.bed"    , emit: peak
-    path  "*.version.txt"          , emit: version
+    path "versions.yml"       , emit: versions
 
     script:
     def software = "bedtools"
@@ -31,6 +31,9 @@ process MERGE_PEAK {
     bedtools merge $options.args \\
         -i stdin > merged_peak.bed
 
-    echo \$(bedtools --version) | sed -e "s/bedtools v//g" > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(echo \$(bedtools --version) | sed -e "s/bedtools v//g")
+    END_VERSIONS
     """
 }

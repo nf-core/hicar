@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -24,10 +24,9 @@ process MAPS_CUT {
 
     output:
     tuple val(bin_size), path('*.cut')        , emit: cut
-    path "*.version.txt", emit: version
+    path "versions.yml"                       , emit: versions
 
     script:
-    def software = 'MAPS'
     def RE_cutsite = [
         "mboi": [site:"GATC", pos:"0"],
         "ncoi": [site:"CCATGG", pos:"1"],
@@ -47,6 +46,9 @@ process MAPS_CUT {
         -o ${bin_size}_${params.enzyme}.cut \\
         -c $task.cpus
 
-    echo '1.1.0' > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        MAPS: 1.1.0
+    END_VERSIONS
     """
 }

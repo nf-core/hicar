@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,13 +23,18 @@ process MAPS_REFORMAT {
 
     output:
     tuple val(meta), val(bin_size), path("*.sig3Dinteractions.bedpe"), emit: bedpe
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
-    def software = "MAPS"
     """
     MAPS_peak_formatting.r $bin_size ${peak}
 
-    echo '1.1.0' > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        MAPS: 1.1.0
+    END_VERSIONS
+    for i in \$(ls *.version.txt); do
+    echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
+    done
     """
 }
