@@ -4,6 +4,9 @@
 # Author: Yunjiang Qiu <serein927@gmail.com>
 # File: merge_map.py
 # Create Date: 2015-10-09 12:27:31
+# Source: https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/merge_map.py
+# Data: 11/08/2021
+# modified by Jianhong: reset the python environment.
 #########################################
 
 import sys

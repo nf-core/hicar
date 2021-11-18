@@ -3,8 +3,21 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.0.0dev - [11/04/2021]
+## v1.0dev - [11/15/2021]
 
+- update `igv` module
+- update `cooler/dump` module
+- replace the `macs2` module by `nf-core/macs2` module
+- keep bedtools version consistent
+- merge rscripts into `nf` files
+- change ch_juicer_tool and ch_circos_config into value type channel
+- import md5sum from coreutils
+- simplify the shell scripts.
+- fix a bug for .hic file creation if the resolution is greater than coverage region.
+- add documentation for changed source code for MAPS
+- remove `paste` command from igv.nf
+- fix the bug that annopeaks.r does not creat folder
+- change version number output from txt to yml file.
 - update citation.md
 - change the juicer_tools download on fly
 - merge the reviewer comments from [#2](https://github.com/nf-core/hicar/pull/2/)

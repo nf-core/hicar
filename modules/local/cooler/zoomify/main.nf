@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,10 +23,9 @@ process COOLER_ZOOMIFY {
 
     output:
     tuple val(meta), path("*.mcool"), emit: mcool
-    path "*.version.txt"            , emit: version
+    path "versions.yml"             , emit: versions
 
     script:
-    def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${meta.bin}${options.suffix}" : "${meta.id}${meta.bin}"
     """
     cooler zoomify \\
@@ -36,6 +35,9 @@ process COOLER_ZOOMIFY {
         -o ${prefix}.mcool \\
         $cool
 
-    echo \$(cooler --version 2>&1) | sed 's/cooler, version //' > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        ${getSoftwareName(task.process)}: \$(echo \$(cooler --version 2>&1) | sed 's/cooler, version //')
+    END_VERSIONS
     """
 }

@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -24,10 +24,9 @@ process MAPS_FEATURE {
 
     output:
     tuple val(bin_size), path("*_el.txt")  , emit: bin_feature
-    path "*.version.txt"                   , emit: version
+    path "versions.yml"                    , emit: versions
 
     script:
-    def software = "MAPS"
     """
     feature_frag2bin.py \\
         -i $map \\
@@ -35,6 +34,9 @@ process MAPS_FEATURE {
         -b $bin_size \\
         -g $chrom_sizes
 
-    echo '1.1.0' > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        MAPS: 1.1.0
+    END_VERSIONS
     """
 }

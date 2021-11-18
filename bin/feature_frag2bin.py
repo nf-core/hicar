@@ -4,6 +4,9 @@
 # Author: Yunjiang Qiu <serein927@gmail.com>
 # File: feature_frag2bin.py
 # Create Date: 2015-07-07 18:11:28
+# Source: https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py
+# Data: 11/08/2021
+# modified by Jianhong: reset the python environment.
 #########################################
 
 import sys

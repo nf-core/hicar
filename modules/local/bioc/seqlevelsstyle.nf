@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,14 +23,31 @@ process SEQLEVELS_STYLE {
 
     output:
     stdout emit: seqlevels_style
-    path "*.version.txt"          , emit: version
+    path "versions.yml"           , emit: versions
 
     script:
     def software = "GenomeInfoDb"
 
     """
-    seqlevelsstyle.r $bed > r.log.txt 2>&1
+    #!/usr/bin/env Rscript
 
-    # *.version.txt files will be created in the rscripts
+    library(GenomeInfoDb)
+    versions <- c(
+        "${getProcessName(task.process)}:",
+        paste("    GenomeInfoDb:", as.character(packageVersion("GenomeInfoDb"))))
+    writeLines(versions, "versions.yml")
+
+    inf = "$bed" ## input file must be a bed file
+
+    data <- read.table(inf, nrows=1000, header=FALSE, quote=NULL, comment.char="#")
+
+    seqnames <- unique(as.character(data[, 1]))
+    seql <- "UCSC" %in% seqlevelsStyle(seqnames)
+
+    if(seql){
+        cat("UCSC")
+    }else{
+        cat("NOT_UCSC")
+    }
     """
 }

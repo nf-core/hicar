@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from '../functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -25,10 +25,9 @@ process PAIRSPLOT {
     tuple val(meta), path("${meta.id}_report/*"), emit: qc
     tuple val(meta), path("${meta.id}_report/*.summary.out"), emit: summary
     tuple val(meta), path("${meta.id}_report/*.distance.vs.proportion.csv"), emit: csv
-    path "*.version.txt"                        , emit: version
+    path "versions.yml"                        , emit: versions
 
     script:
-    def software = "pairsqc"
     def RE_cutsite = [
         "mboi": 4,
         "ncoi": 6,
@@ -43,6 +42,9 @@ process PAIRSPLOT {
     mv pairsqc_report ${meta.id}_report
     pairsqcplot.r $enzyme ${meta.id}_report
 
-    echo "0.2.2" > ${software}.version.txt
+    cat <<-END_VERSIONS > versions.yml
+    ${getProcessName(task.process)}:
+        pairsqc: "0.2.2"
+    END_VERSIONS
     """
 }

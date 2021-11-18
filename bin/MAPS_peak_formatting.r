@@ -1,5 +1,17 @@
 #!/usr/bin/env Rscript
 
+#########################################
+# Author: [Ivan Juric](https://github.com/ijuric)
+# File: MAPS_peak_formatting.r
+# Source: https://github.com/ijuric/MAPS/blob/master/bin/MAPS/MAPS_peak_formatting.r
+# Data: 11/08/2021
+# modified by Jianhong:
+# ## 1. set the Rscript environment.
+# ## 2. simplify the input and output parameters by input filename and output filename
+# ## 3. handle multiple input files
+# ## 4. handle the empty input file
+#########################################
+
 options("scipen"=999)
 library(data.table)
 

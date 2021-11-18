@@ -23,7 +23,7 @@ workflow COOLER {
 
     main:
     // HiC-like contact matrix
-    ch_version = COOLER_CLOAD(valid_pairs.map{[it[0], it[2], it[3]]}, valid_pairs.map{it[1]}, chromsizes).version
+    ch_version = COOLER_CLOAD(valid_pairs.map{[it[0], it[2], it[3]]}, valid_pairs.map{it[1]}, chromsizes).versions
     // Merge contacts
     COOLER_CLOAD.out.cool
                 .map{
@@ -37,20 +37,20 @@ workflow COOLER {
     // create mcooler file for visualization
     COOLER_ZOOMIFY(COOLER_MERGE.out.cool)
     // dump long.intra.bedpe for each group for MAPS to call peaks
-    COOLER_DUMP(COOLER_MERGE.out.cool).bedpe | DUMPINTRAREADS
+    COOLER_DUMP(COOLER_MERGE.out.cool, []).bedpe | DUMPINTRAREADS
     if(juicer_tools_jar){
-        JUICER(DUMPINTRAREADS.out.gi.combine(juicer_tools_jar), chromsizes, juicer_jvm_params)
-        ch_version = ch_version.mix(JUICER.out.version)
+        JUICER(DUMPINTRAREADS.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
+        ch_version = ch_version.mix(JUICER.out.versions)
     }
 
     // dump long.intra.bedpe for each sample
-    COOLER_DUMP_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool]})
+    COOLER_DUMP_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool]}, [])
     DUMPINTRAREADS_SAMPLE(COOLER_DUMP_SAMPLE.out.bedpe)
-    ch_version = ch_version.mix(DUMPINTRAREADS.out.version)
+    ch_version = ch_version.mix(DUMPINTRAREADS.out.versions)
 
     emit:
     mcool       = COOLER_ZOOMIFY.out.mcool        // channel: [ val(meta), [mcool] ]
     bedpe       = DUMPINTRAREADS.out.bedpe        // channel: [ val(meta), [bedpe] ]
     samplebedpe = DUMPINTRAREADS_SAMPLE.out.bedpe // channel: [ val(meta), [bedpe] ]
-    version     = ch_version                      // channel: [ path(version) ]
+    versions    = ch_version                      // channel: [ path(version) ]
 }

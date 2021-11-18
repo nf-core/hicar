@@ -7,7 +7,7 @@ include { R1READS             } from '../../modules/local/atacreads/r1reads'    
 include { MERGEREADS
     as MERGE_R1READS          } from '../../modules/local/atacreads/mergereads'       addParams(options: params.options.merge_r1reads)
 include { MACS2_CALLPEAK
-    as MACS2_CALLR1PEAK       } from '../../modules/local/atacreads/macs2'            addParams(options: params.options.macs2_callr1peak)
+    as MACS2_CALLR1PEAK       } from '../../modules/nf-core/modules/macs2/callpeak/main'            addParams(options: params.options.macs2_callr1peak)
 include { DUMPREADS
     as DUMPR1READS            } from '../../modules/local/atacreads/dumpreads'        addParams(options: params.options.dump_r1_reads_per_group)
 include { DUMPREADS
@@ -34,7 +34,7 @@ workflow R1_PEAK {
 
     main:
     // extract and sort R1 reads
-    ch_version = R1READS(distalpair).version
+    ch_version = R1READS(distalpair).versions
 
     // merge the read in same group
     R1READS.out.bed
@@ -43,11 +43,11 @@ workflow R1_PEAK {
             .map{it -> [[id:it[0]], it[1]]} // id is group
             .set{read4merge}
     MERGE_R1READS(read4merge)
-    ch_version = ch_version.mix(MERGE_R1READS.out.version)
+    ch_version = ch_version.mix(MERGE_R1READS.out.versions)
 
     // call ATAC narrow peaks for group
-    MACS2_CALLR1PEAK(MERGE_R1READS.out.bed, macs_gsize)
-    ch_version = ch_version.mix(MACS2_CALLR1PEAK.out.version)
+    MACS2_CALLR1PEAK(MERGE_R1READS.out.bed.map{[it[0], it[1], []]}, macs_gsize)
+    ch_version = ch_version.mix(MACS2_CALLR1PEAK.out.versions)
 
     // merge peaks
     r1_peaks = MACS2_CALLR1PEAK.out.peak.map{it[1]}.collect()
@@ -55,22 +55,22 @@ workflow R1_PEAK {
 
     // stats
     //R1QC(atac_peaks, MERGE_R1READS.out.bed.map{it[1]}.collect(), gtf)
-    //ch_version = ch_version.mix(R1QC.out.version)
+    //ch_version = ch_version.mix(R1QC.out.versions)
 
     // dump R1 reads for each group for maps
     DUMPR1READS(MERGE_R1READS.out.bed)
-    BEDTOOLS_SORT(MACS2_CALLR1PEAK.out.pileup)
-    UCSC_BEDCLIP(BEDTOOLS_SORT.out.bed, chromsizes)
+    BEDTOOLS_SORT(MACS2_CALLR1PEAK.out.bdg.map{[it[0], it[1].findAll{it.toString().contains('pileup')}]}, "bedgraph")
+    UCSC_BEDCLIP(BEDTOOLS_SORT.out.sorted, chromsizes)
     UCSC_R1BEDGRAPHTOBIGWIG(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
     DUMPR1READS_SAMPLE(R1READS.out.bed)
-    ch_version = ch_version.mix(DUMPR1READS_SAMPLE.out.version)
-    BEDTOOLS_GENOMECOV_R1SAM(R1READS.out.bed, chromsizes, "bedgraph")
-    BEDTOOLS_SORT_R1SAM(BEDTOOLS_GENOMECOV_R1SAM.out.genomecov)
-    ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_R1SAM.out.version)
-    UCSC_BEDGRAPHTOBIGWIG_R1SAM(BEDTOOLS_SORT_R1SAM.out.bed, chromsizes)
-    ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_R1SAM.out.version)
+    ch_version = ch_version.mix(DUMPR1READS_SAMPLE.out.versions)
+    BEDTOOLS_GENOMECOV_R1SAM(R1READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
+    BEDTOOLS_SORT_R1SAM(BEDTOOLS_GENOMECOV_R1SAM.out.genomecov, "bedgraph")
+    ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_R1SAM.out.versions)
+    UCSC_BEDGRAPHTOBIGWIG_R1SAM(BEDTOOLS_SORT_R1SAM.out.sorted, chromsizes)
+    ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_R1SAM.out.versions)
 
     emit:
     peak       = MACS2_CALLR1PEAK.out.peak              // channel: [ val(meta), path(peak) ]
@@ -80,5 +80,5 @@ workflow R1_PEAK {
     reads      = DUMPR1READS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
     samplereads= DUMPR1READS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
     bws        = UCSC_R1BEDGRAPHTOBIGWIG.out.bigwig     // channel: [ val(meta), path(bigwig) ]
-    version    = ch_version                             // channel: [ path(version) ]
+    versions   = ch_version                             // channel: [ path(version) ]
 }

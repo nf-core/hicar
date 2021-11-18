@@ -27,15 +27,15 @@ workflow MAPS_MULTIENZYME {
         ch_digest = cool_bin.combine(Channel.fromPath(params.maps_digest_file))
         MAPS_FEND(ch_digest, chromsizes)
     }else{
-        ch_version = MAPS_CUT(fasta, cool_bin).version
+        ch_version = MAPS_CUT(fasta, cool_bin).versions
         ch_digest = MAPS_CUT.out.cut
         MAPS_FEND(ch_digest, chromsizes)
     }
     if(!params.mappability){
         GENMAP_INDEX(fasta).index | GENMAP_MAPPABILITY
-        ch_version = ch_version.mix(GENMAP_MAPPABILITY.out.version)
+        ch_version = ch_version.mix(GENMAP_MAPPABILITY.out.versions)
         mappability = UCSC_WIGTOBIGWIG(GENMAP_MAPPABILITY.out.wig, chromsizes).bw
-        ch_version = ch_version.mix(UCSC_WIGTOBIGWIG.out.version)
+        ch_version = ch_version.mix(UCSC_WIGTOBIGWIG.out.versions)
     }else{
         mappability = Channel.fromPath(params.mappability, checkIfExists: true)
     }
@@ -43,13 +43,13 @@ workflow MAPS_MULTIENZYME {
     if("$seqlevelsstyle" != "UCSC"){
         ENSEMBL_UCSC_CONVERT(MAPS_FEND.out.bed)
         ENSEMBL_UCSC_CONVERT2(cool_bin.combine(mappability))
-        ch_version = ch_version.mix(ENSEMBL_UCSC_CONVERT.out.version)
+        ch_version = ch_version.mix(ENSEMBL_UCSC_CONVERT.out.versions)
         UCSC_BIGWIGAVERAGEOVERBED(ENSEMBL_UCSC_CONVERT.out.tab.map{[['id':'background', 'bin_size':it[0]], it[1]]},
                                     ENSEMBL_UCSC_CONVERT2.out.tab.map{it[1]})
     }else{
         UCSC_BIGWIGAVERAGEOVERBED(MAPS_FEND.out.bed.map{[['id':'background', 'bin_size':it[0]], it[1]]}, mappability)
     }
-    ch_version = ch_version.mix(UCSC_BIGWIGAVERAGEOVERBED.out.version)
+    ch_version = ch_version.mix(UCSC_BIGWIGAVERAGEOVERBED.out.versions)
     MAPS_MERGE(ch_digest.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]})
 
     MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes)
@@ -57,5 +57,5 @@ workflow MAPS_MULTIENZYME {
     emit:
     mappability              = mappability                       // channel: [ path(bw) ]
     bin_feature              = MAPS_FEATURE.out.bin_feature      // channel: [ val(bin_size), path(bin_feature) ]
-    version                  = ch_version                        // channel: [ path(version) ]
+    versions                 = ch_version                        // channel: [ path(version) ]
 }
