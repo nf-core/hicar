@@ -77,15 +77,9 @@ workflow PREPARE_GENOME {
         gs = params.macs_gsize
     } else {
         //genome size remove all N then * 78% ref:https://github.com/macs3-project/MACS/issues/299
-        gs = ch_fasta.map{
-            gs = 0.0
-            it.withReader{
-                String line
-                while( line = it.readLine() ){
-                    if( !(line ==~ /^>/) ){
-                        l = line.toLowerCase()
-                        gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
-                    }
+        genome_size = ch_fasta.splitFasta( record: [id: true, seqString: true] )
+            .map { it.seqString.replaceAll('[^acgtACGT]','').length() }
+            .sum()
                 }
             }
             gs *= 0.78
