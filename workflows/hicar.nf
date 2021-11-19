@@ -46,7 +46,7 @@ ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists:
 ========================================================================================
 */
 
-ch_juicer_tools              = params.juicer_tools_jar ? file(params.juicer_tools_jar, checkIfExists: true) : Channel.empty()
+ch_juicer_tools              = file(params.juicer_tools_jar, checkIfExists: true)
 ch_merge_map_py_source       = file(params.merge_map_py_source, checkIfExists: true)
 ch_feature_frag2bin_source   = file(params.feature_frag2bin_source, checkIfExists: true)
 ch_make_maps_runfile_source  = file(params.make_maps_runfile_source, checkIfExists: true)
