@@ -26,7 +26,6 @@ process COOLER_MERGE {
     path "versions.yml"            , emit: versions
 
     script:
-    def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${meta.bin}${options.suffix}" : "${meta.id}${meta.bin}"
     """
     cooler merge \\

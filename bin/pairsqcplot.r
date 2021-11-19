@@ -1,6 +1,9 @@
 #!/usr/bin/env Rscript
 ######################################################
 ## modified from https://github.com/4dn-dcic/pairsqc #
+## source+commit:https://github.com/4dn-dcic/pairsqc/blob/33a332bd49589b37b5046a037add48425e38ca5b/plot.r
+## download date: 11/18/2021, commit: 33a332b
+## modified by Jianhong to combine multiple files into one R file and fix some bugs.
 ######################################################
 
 args = commandArgs(TRUE)

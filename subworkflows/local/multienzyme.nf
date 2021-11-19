@@ -17,9 +17,11 @@ include { MAPS_FEATURE                 } from '../../modules/local/maps/feature'
 
 workflow MAPS_MULTIENZYME {
     take:
-    fasta        // channel: [ path(fasta) ]
-    cool_bin     // channel: [ val(bin) ]
-    chromsizes   // channel: [ path(chromsizes) ]
+    fasta                      // channel: [ path(fasta) ]
+    cool_bin                   // channel: [ val(bin) ]
+    chromsizes                 // channel: [ path(chromsizes) ]
+    merge_map_py_source        // channel: [ file(merge_map_py_source) ]
+    feature_frag2bin_source    // channel: [ file(feature_frag2bin_source) ]
 
     main:
     if(params.maps_digest_file && params.enzyme.toLowerCase() != "mnase"){
@@ -50,9 +52,10 @@ workflow MAPS_MULTIENZYME {
         UCSC_BIGWIGAVERAGEOVERBED(MAPS_FEND.out.bed.map{[['id':'background', 'bin_size':it[0]], it[1]]}, mappability)
     }
     ch_version = ch_version.mix(UCSC_BIGWIGAVERAGEOVERBED.out.versions)
-    MAPS_MERGE(ch_digest.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]})
+    MAPS_MERGE(ch_digest.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]},
+                merge_map_py_source)
 
-    MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes)
+    MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes, feature_frag2bin_source)
 
     emit:
     mappability              = mappability                       // channel: [ path(bw) ]

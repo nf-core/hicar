@@ -22,34 +22,22 @@ process CHECKSUMS {
     tuple val(meta), path(reads)
 
     output:
-    path "md5.*.txt"              , emit: md5
+    path "*.md5"                  , emit: md5
     path "versions.yml"           , emit: versions
 
     script:
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    touch md5.${prefix}.txt
     [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
     [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
     gunzip -c ${prefix}_1.fastq.gz > ${prefix}_1.fastq
-    md5sum ${prefix}_1.fastq >>md5.${prefix}.txt
     gunzip -c ${prefix}_2.fastq.gz > ${prefix}_2.fastq
-    md5sum ${prefix}_2.fastq >>md5.${prefix}.txt
-    if [ "${meta.md5_1}" != "null" ] && [ "${meta.md5_1}" != "" ]; then
-        md5=(\$(md5sum ${prefix}_1.fastq.gz))
-        if [ "\$md5" != "${meta.md5_1}" ]
-        then
-            echo "${meta.id} has checksum ${meta.md5_1}, but we got checksum \$md5!"
-            exit 128
-        fi
-    fi
-    if [ "${meta.md5_2}" != "null" ] && [ "${meta.md5_2}" != "" ]; then
-        md5=(\$(md5sum ${prefix}_2.fastq.gz))
-        if [ "\$md5" != "${meta.md5_2}" ]
-        then
-            echo "${meta.id} has checksum ${meta.md5_2}, but we got checksum \$md5!"
-            exit 128
-        fi
+    md5sum ${prefix}_1.fastq ${prefix}_2.fastq > ${prefix}.md5
+    if [ ! -z "${meta.md5_1 ?: ''}" ] && [ ! -z "${meta.md5_2 ?: ''}" ]; then
+        cat <<-END_CHECKSUM | md5sum -c
+    ${meta.md5_1}  ${prefix}_1.fastq.gz
+    ${meta.md5_2}  ${prefix}_2.fastq.gz
+    END_CHECKSUM
     fi
 
     cat <<-END_VERSIONS > versions.yml

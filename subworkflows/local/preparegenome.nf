@@ -72,22 +72,24 @@ workflow PREPARE_GENOME {
     /*
      * Calculate effective genome sizes
      */
-    gs = ch_fasta.size() * 0.78
+    gs = 0
     if (params.macs_gsize) {
         gs = params.macs_gsize
     } else {
-        //genome size remove all N then * 78%
-        gs = 0.0
-        ch_fasta.withReader{
-            String line
-            while( line = it.readLine() ){
-                if( !(line ==~ /^>/) ){
-                    l = line.toLowerCase()
-                    gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
+        //genome size remove all N then * 78% ref:https://github.com/macs3-project/MACS/issues/299
+        gs = ch_fasta.map{
+            gs = 0.0
+            it.withReader{
+                String line
+                while( line = it.readLine() ){
+                    if( !(line ==~ /^>/) ){
+                        l = line.toLowerCase()
+                        gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
+                    }
                 }
             }
-        }
-        gs *= 0.78
+            gs *= 0.78
+        }.toInteger().sum()
     }
 
     /*

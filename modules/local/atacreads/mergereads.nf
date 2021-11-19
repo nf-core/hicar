@@ -26,7 +26,6 @@ process MERGEREADS {
     path "versions.yml"           , emit: versions
 
     script:
-    def software = "gzip"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     cat ${bed} | \\

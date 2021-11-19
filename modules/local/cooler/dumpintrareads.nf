@@ -27,7 +27,6 @@ process DUMPINTRAREADS {
     path  "versions.yml"                                   , emit: versions
 
     script:
-    def software = "awk"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     awk -F "\t" \\

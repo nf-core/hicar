@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [11/15/2021]
 
+- fix multiple typo.
+- change container for dumpreads.nf, mergepeak.nf, mergereads.nf, r1reads.nf and shiftreads.nf
+- optimize the code for checksums.nf
+- add commit number to source code downloaded from github
 - update `igv` module
 - update `cooler/dump` module
 - replace the `macs2` module by `nf-core/macs2` module
