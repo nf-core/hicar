@@ -128,7 +128,7 @@ process DIFFHICAR {
         ## PCA for multiQC
         try_res <- try({ ## try to output PCA results for multiQC
             json <- data.frame(x=mds\$x, y=mds\$y)
-            rownames(json) <- rownames(mds\$distance.matrix.squared)
+            rownames(json) <- names(mds\$x)
             json <- split(json, coldata[rownames(json), "condition"])
             json <- mapply(json, rainbow(n=length(json)), FUN=function(.ele, .color){
                 .ele <- cbind(.ele, "name"=rownames(.ele))

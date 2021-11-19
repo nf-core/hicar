@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [11/15/2021]
 
+- fix the empty output of PCA analysis for `multiQC`.
 - replace `zcat` by `gunzip -c`
 - update documentation of readme
 - fix the wrong estimated gonme size for unsupported genome.
