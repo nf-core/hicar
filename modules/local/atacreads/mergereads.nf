@@ -28,8 +28,7 @@ process MERGEREADS {
     script:
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    cat ${bed} | \\
-        zcat | \\
+    gunzip -c ${bed} | \\
         sort -k1,1 -k2,2n | \\
         gzip -nc > ${prefix}.merged.ATAC.bed.gz
 

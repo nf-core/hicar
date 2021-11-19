@@ -84,7 +84,7 @@ process PREPARE_COUNTS {
             if(file.exists(fn)){
                 pc <- readRDS(fn)
             }else{
-                NULL
+                pc <- NULL
             }
         }else{
             pc <- read.table(pair,
@@ -96,9 +96,9 @@ process PREPARE_COUNTS {
             null <- mapply(saveRDS, pc, paste0(pair, ".", names(pc), ".rds"))
             saveRDS(TRUE, paste0(pair, ".rds"))
             if(paste(chrom1, chrom2, sep=".") %in% names(pc)){
-                pc[[paste(chrom1, chrom2, sep=".")]]
+                pc <- pc[[paste(chrom1, chrom2, sep=".")]]
             }else{
-                NULL
+                pc <- NULL
             }
         }
     }

@@ -29,8 +29,7 @@ process R1READS {
     def software = "awk"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    cat $pair | \\
-        zcat | \\
+    gunzip -c $pair | \\
         awk 'BEGIN {OFS="\t"};  /^[^#]/ { print \$2, \$3, \$3+1, "*", "*", \$6}' | \\
         sort -k1,1 -k2,2n | \\
         uniq | \\
