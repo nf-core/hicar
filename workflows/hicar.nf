@@ -42,11 +42,14 @@ ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists:
 
 /*
 ========================================================================================
-    JUICER_TOOLS FILE
+    TOOLS SOURCE FILE
 ========================================================================================
 */
 
-ch_juicer_tools        = params.juicer_tools_jar ? file(params.juicer_tools_jar, checkIfExists: true) : Channel.empty()
+ch_juicer_tools              = file(params.juicer_tools_jar, checkIfExists: true)
+ch_merge_map_py_source       = file(params.merge_map_py_source, checkIfExists: true)
+ch_feature_frag2bin_source   = file(params.feature_frag2bin_source, checkIfExists: true)
+ch_make_maps_runfile_source  = file(params.make_maps_runfile_source, checkIfExists: true)
 
 /*
 ========================================================================================
@@ -273,7 +276,11 @@ workflow HICAR {
     //
     // calling distal peaks: [ meta, bin_size, path(macs2), path(long_bedpe), path(short_bed), path(background) ]
     //
-    background = MAPS_MULTIENZYME(PREPARE_GENOME.out.fasta, cool_bin, PREPARE_GENOME.out.chrom_sizes).bin_feature
+    background = MAPS_MULTIENZYME(PREPARE_GENOME.out.fasta,
+                                    cool_bin,
+                                    PREPARE_GENOME.out.chrom_sizes,
+                                    ch_merge_map_py_source,
+                                    ch_feature_frag2bin_source).bin_feature
     ch_software_versions = ch_software_versions.mix(MAPS_MULTIENZYME.out.versions.ifEmpty(null))
     reads_peak   = ATAC_PEAK.out.reads
                             .map{ meta, reads ->
@@ -286,7 +293,7 @@ workflow HICAR {
                 .map{ background, reads -> //[group, bin_size, macs2, long_bedpe, short_bed, background]
                         [[id:reads[1]], background[0], reads[2], reads[3], reads[4], background[1]]}
                 .set{ maps_input }
-    MAPS_PEAK(maps_input)
+    MAPS_PEAK(maps_input, ch_make_maps_runfile_source)
     ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
 
     MAPS_PEAK.out.peak.map{[it[0].id+'.'+it[1]+'.contacts', getPublishedFolder(modules, 'maps_reformat', [:])+it[2].name]}

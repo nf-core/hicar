@@ -72,22 +72,16 @@ workflow PREPARE_GENOME {
     /*
      * Calculate effective genome sizes
      */
-    gs = ch_fasta.size() * 0.78
+    genome_size = 0
     if (params.macs_gsize) {
-        gs = params.macs_gsize
+        genome_size = params.macs_gsize
     } else {
-        //genome size remove all N then * 78%
-        gs = 0.0
-        ch_fasta.withReader{
-            String line
-            while( line = it.readLine() ){
-                if( !(line ==~ /^>/) ){
-                    l = line.toLowerCase()
-                    gs += l.count("a") + l.count("c") + l.count("g") + l.count("t")
-                }
-            }
-        }
-        gs *= 0.78
+        //genome size remove all N
+        // ref:https://github.com/macs3-project/MACS/issues/299
+        // https://deeptools.readthedocs.io/en/latest/content/feature/effectiveGenomeSize.html method 1
+        genome_size = ch_fasta.splitFasta( record: [id: true, seqString: true] )
+            .map { it.seqString.replaceAll('[^acgtACGT]','').length() }
+            .sum()
     }
 
     /*
@@ -149,7 +143,7 @@ workflow PREPARE_GENOME {
     bed               = filtered_bed                   // path: *.bed,
     digest_genome     = digest_genome_bed              // path: bed
     bwa_index         = ch_bwa_index                   // path: bwt,amb,sa,ann,pac
-    gsize             = gs                             // value: macs2 genome size
+    gsize             = genome_size                    // value: macs2 genome size
     ucscname          = ucscname                       // value: ucsc annotation name
     versions          = ch_version                     // path: *.version.yml
 }

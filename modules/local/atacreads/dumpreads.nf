@@ -29,8 +29,8 @@ process DUMPREADS {
     def software = "awk"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    cat $bed | \\
-        zcat | awk -F "\t" 'BEGIN { OFS=FS } {print \$1,\$2,\$3 > "${prefix}."\$1".shrt.vip.bed"}'
+    gunzip -c $bed | \\
+        awk -F "\t" 'BEGIN { OFS=FS } {print \$1,\$2,\$3 > "${prefix}."\$1".shrt.vip.bed"}'
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:

@@ -27,9 +27,11 @@ process MERGE_PEAK {
     script:
     def software = "bedtools"
     """
-    cat *.narrowPeak | cut -f1-3 | sort -k1,1 -k2,2n |
-    bedtools merge $options.args \\
-        -i stdin > merged_peak.bed
+    cat *.narrowPeak | \\
+        cut -f1-3 | \\
+        sort -k1,1 -k2,2n | \\
+        bedtools merge $options.args \\
+            -i stdin > merged_peak.bed
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:

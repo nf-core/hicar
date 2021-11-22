@@ -49,7 +49,7 @@ process BIOC_CHIPPEAKANNO {
         versions <- c(versions,
             paste0("    ", pkg, ": ", as.character(packageVersion(pkg))))
     }
-    writeLines(versions, "versions.yml") # wirte versions.yml
+    writeLines(versions, "versions.yml") # write versions.yml
 
     gtf <- "${gtf}"
     pf <- file.path("${prefix}", "anno")

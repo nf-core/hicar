@@ -282,6 +282,30 @@
                         "pospoisson",
                         "negbinom"
                     ]
+                },
+                "merge_map_py_source": {
+                    "type": "string",
+                    "description": "source code path for merge_map.py",
+                    "fa_icon": "fab fa-github",
+                    "hidden": true,
+                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/merge_map.py",
+                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/91c9c360092b25a217d91b9ea07eba5dd2ac72f4/bin/utils/genomic_features_generator/scripts/merge_map.py"
+                },
+                "feature_frag2bin_source": {
+                    "type": "string",
+                    "description": "feature_frag2bin source path",
+                    "fa_icon": "fab fa-github",
+                    "hidden": true,
+                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py",
+                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/91c9c360092b25a217d91b9ea07eba5dd2ac72f4/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py"
+                },
+                "make_maps_runfile_source": {
+                    "type": "string",
+                    "description": "make_maps_runfile source path",
+                    "fa_icon": "fab fa-github",
+                    "hidden": true,
+                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/MAPS/make_maps_runfile.py",
+                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/18c1a337f222130d7c5735d051614e2a253d5319/bin/MAPS/make_maps_runfile.py"
                 }
             }
         },

@@ -37,7 +37,7 @@ process ENSEMBL_UCSC_CONVERT {
         versions <- c(versions,
             paste0("    ", pkg, ": ", as.character(packageVersion(pkg))))
     }
-    writeLines(versions, "versions.yml") # wirte versions.yml
+    writeLines(versions, "versions.yml") # write versions.yml
 
     toUCSC = "${options.args}"=="toUCSC"
     inf = "$fname"
