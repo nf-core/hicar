@@ -29,8 +29,7 @@ process SHIFTREADS {
     def software = "awk"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    cat $pair | \\
-        zcat | \\
+    gunzip -c $pair | \\
         awk 'BEGIN {OFS="\t"};  /^[^#]/ { if (\$7 == "+") {\$5 = \$5 + 4} else if (\$7 == "-") {\$5 = \$5 - 5};  print \$4, \$5, \$5+1, "*", "0", \$7}' | \\
         sort -k1,1 -k2,2n | \\
         uniq | \\

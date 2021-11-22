@@ -30,7 +30,6 @@ process JUICER {
     path "versions.yml"                          , emit: versions
 
     script:
-    def software = "Juicer_tools"
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     ## thanks https://www.biostars.org/p/360254/

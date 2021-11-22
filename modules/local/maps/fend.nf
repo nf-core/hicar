@@ -29,9 +29,9 @@ process MAPS_FEND {
     script:
     """
     awk -vOFS="\t" '{print \$3,\$4,\$4,\$3"_"\$1,"0",\$2}' $cut | \\
-    bedtools slop $options.args \\
-        -r $bin_size -g $chrom_sizes > \\
-        ${cut}.bed
+        bedtools slop $options.args \\
+            -r $bin_size -g $chrom_sizes > \\
+            ${cut}.bed
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:

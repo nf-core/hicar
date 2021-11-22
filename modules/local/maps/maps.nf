@@ -20,6 +20,7 @@ process MAPS_MAPS{
 
     input:
     tuple val(meta), val(bin_size), path(macs2), path(long_bedpe, stageAs: "long/*"), path(short_bed, stageAs: "short/*"), path(background)
+    path make_maps_runfile_source
 
     output:
     tuple val(meta), val(bin_size), path(macs2), path(long_bedpe), path(short_bed), path(background), path("${meta.id}_${bin_size}/*"), emit: maps
@@ -31,7 +32,7 @@ process MAPS_MAPS{
     ## 2 steps
     ## step 1, prepare the config file for MAPS. The file will be used for multiple steps
     mkdir -p "${meta.id}_${bin_size}"
-    make_maps_runfile.py \\
+    python ${make_maps_runfile_source} \\
         "${meta.id}" \\
         "${meta.id}_${bin_size}/" \\
         $macs2 \\

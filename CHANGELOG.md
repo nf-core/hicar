@@ -5,6 +5,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [11/15/2021]
 
+- fix the empty output of PCA analysis for `multiQC`.
+- replace `zcat` by `gunzip -c`
+- update documentation of readme
+- fix the wrong estimated gonme size for unsupported genome.
+- fix multiple typo.
+- optimize the code for checksums.nf
+- add commit number to source code downloaded from github
 - update `igv` module
 - update `cooler/dump` module
 - replace the `macs2` module by `nf-core/macs2` module

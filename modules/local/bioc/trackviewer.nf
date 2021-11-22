@@ -51,7 +51,7 @@ process BIOC_TRACKVIEWER {
         versions <- c(versions,
             paste0("    ", pkg, ": ", as.character(packageVersion(pkg))))
     }
-    writeLines(versions, "versions.yml") # wirte versions.yml
+    writeLines(versions, "versions.yml") # write versions.yml
 
     # Options
     ## make_option(c("-g", "--gtf"), type="character", default=NULL, help="filename of gtf", metavar="string")

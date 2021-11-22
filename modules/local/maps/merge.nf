@@ -20,6 +20,7 @@ process MAPS_MERGE {
 
     input:
     tuple val(bin_size), path(cut), path(mappability)
+    path merge_map_py_source
 
     output:
     tuple val(bin_size), path("${cut.getSimpleName()}")    , emit: map
@@ -27,7 +28,7 @@ process MAPS_MERGE {
 
     script:
     """
-    merge_map.py \\
+    python $merge_map_py_source \\
         -c $cut \\
         -m $mappability \\
         -o tmp.map

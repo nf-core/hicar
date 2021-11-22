@@ -5,8 +5,9 @@
 # Modified by: Armen Abnousi
 # File: restriction_cut.py
 # Create Date: 2015-02-27 16:46:15
-# oritinal file: https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/restriction_cut_multipleenzyme.py
-# Data: 11/08/2021
+# original file: https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/restriction_cut_multipleenzyme.py
+# original + commit: https://github.com/ijuric/MAPS/blob/d28ff61c2afcb1eb55fa4e6037c95b30603318ee/bin/utils/genomic_features_generator/scripts/restriction_cut_multipleenzyme.py
+# Data: 11/08/2021, commit:d28ff61
 # modified by Jianhong Ou for multiprocessing.
 #########################################
 
