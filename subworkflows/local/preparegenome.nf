@@ -23,7 +23,7 @@ workflow PREPARE_GENOME {
      * Uncompress genome fasta file if required
      */
     if (params.fasta.endsWith('.gz')) {
-        ch_fasta = GUNZIP_FASTA ( params.fasta ).gunzip
+        ch_fasta = GUNZIP_FASTA ( [[id:'fasta'], params.fasta] ).gunzip.map{it[1]}
     } else {
         ch_fasta = file(params.fasta)
     }
@@ -35,13 +35,13 @@ workflow PREPARE_GENOME {
     ch_gtf = Channel.empty()
     if (params.gtf) {
         if (params.gtf.endsWith('.gz')) {
-            ch_gtf = GUNZIP_GTF ( params.gtf ).gunzip
+            ch_gtf = GUNZIP_GTF ( [[id:'gtf'], params.gtf] ).gunzip.map{it[1]}
         } else {
             ch_gtf = file(params.gtf)
         }
     } else if (params.gff) {
         if (params.gff.endsWith('.gz')) {
-            ch_gff = GUNZIP_GFF ( params.gff ).gunzip
+            ch_gff = GUNZIP_GFF ( [[id:'gff'], params.gff] ).gunzip.map{it[1]}
         } else {
             ch_gff = file(params.gff)
         }
@@ -55,7 +55,7 @@ workflow PREPARE_GENOME {
     ch_gene_bed = Channel.empty()
     if (params.gene_bed) {
         if (params.gene_bed.endsWith('.gz')) {
-            ch_gene_bed = GUNZIP_GENE_BED ( params.gene_bed ).gunzip
+            ch_gene_bed = GUNZIP_GENE_BED ( [[id:'gene_bed'], params.gene_bed] ).gunzip.map{it[1]}
         } else {
             ch_gene_bed = file(params.gene_bed)
         }
