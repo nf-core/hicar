@@ -161,6 +161,18 @@ process BIOC_TRACKVIEWER {
         return(n*ceiling(x/n))
     }
 
+    ## get file number of lines
+    getFileLineNum <- function(fn){
+        f <- gzfile(fn, open = "rb")
+        on.exit(close(f))
+        nlines <- 0L
+        while (length(chunk <- readBin(f, "raw", 65536)) > 0) {
+            nlines <- nlines + sum(chunk == as.raw(10L))
+        }
+        close(f)
+        on.exit()
+        nlines
+    }
     ## read file and summary counts
     loadPairFire <- function(filenames, ranges, resolution){
         stopifnot(is.character(filenames))
@@ -169,31 +181,38 @@ process BIOC_TRACKVIEWER {
         end(ranges) <- end(ranges) + 2*resolution
         out <- list(gi=list(), total=list())
         for(fn in filenames){
+            message("Working with ", fn)
+            pb <- txtProgressBar(min=0, max=getFileLineNum(fn), initial = 0)
+            stepi <- 0
             f <- gzfile(fn, open = "r")
-            chunk <- readLines(f)
-            close(f)
-            chunk <- chunk[!grepl("^#", chunk)]
-            if(length(chunk)){
-                out[["total"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- 0
-                out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- NULL
-                chunk <- split(chunk, ceiling(seq_along(chunk)/500000))
-                for(i in seq_along(chunk)){
-                    dt <- do.call(rbind, strsplit(chunk[[i]], "\\\\t"))
+            on.exit(close(f))
+            this_name <- sub(".unselected.pairs.gz", "", basename(fn))
+            out[["total"]][[this_name]] <- 0
+            out[["gi"]][[this_name]] <- NULL
+            while(length(chunk <- readLines(f, n=500000))){
+                stepi <- stepi + 500000
+                setTxtProgressBar(pb, stepi)
+                chunk <- chunk[!grepl("^#", chunk)]
+                if(length(chunk)){
+                    dt <- do.call(rbind, strsplit(chunk, "\\\\t"))
                     dt <- unique(dt) # remove duplicates
                     gi <- GInteractions(anchor1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 3]), width = readwidth), strand = dt[, 6]),
                                         anchor2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 5]), width = readwidth), strand = dt[, 7]),
                                         restrict1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 10]), as.numeric(dt[, 11]), names = dt[, 9])),
                                         restrict2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 13]), as.numeric(dt[, 14]), names = dt[, 12])))
-                    out[["total"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- length(gi) + out[["total"]][[sub(".unselected.pairs.gz", "", basename(fn))]]
+                    out[["total"]][[this_name]] <- length(gi) + out[["total"]][[this_name]]
                     gi <- subsetByOverlaps(gi, ranges, use.region="both")
-                    out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- c(out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]], gi)
-                }
-                if(is.list(out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]])){
-                    out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- do.call(c, out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]])
-                    out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]] <- unique(out[["gi"]][[sub(".unselected.pairs.gz", "", basename(fn))]])
+                    out[["gi"]][[this_name]] <- c(out[["gi"]][[this_name]], gi)
                 }
             }
-            rm(chunk)
+            if(is.list(out[["gi"]][[this_name]])){
+                out[["gi"]][[this_name]] <- do.call(c, out[["gi"]][[this_name]])
+                out[["gi"]][[this_name]] <- unique(out[["gi"]][[this_name]])
+            }
+            close(f)
+            on.exit()
+            close(pb)
+            message("done!")
         }
         return(out)
     }
