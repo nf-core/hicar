@@ -22,10 +22,10 @@ process ASSIGN_TYPE {
     tuple val(meta), path(counts)
 
     output:
-    tuple val(meta), path("${meta.id}/summary.*.txt"), optional: true, emit: summary
-    tuple val(meta), path("${meta.id}/*.peaks"), optional: true, emit: peak
-    tuple val(meta), path("${meta.id}/*.bedpe"), optional: true, emit: bedpe
-    path "versions.yml"                                        , emit: versions
+    tuple val(meta), path("summary.*.txt"), optional: true, emit: summary
+    tuple val(meta), path("*.peaks")      , optional: true, emit: peak
+    tuple val(meta), path("*.bedpe")      , optional: true, emit: bedpe
+    path "versions.yml"                                   , emit: versions
 
     script:
     """
@@ -54,7 +54,8 @@ process ASSIGN_TYPE {
     ## make_option(c("-i", "--interactions"), type="character", default=NULL, help="interactions output by call hipeak", metavar="string")
     ## make_option(c("-o", "--output"), type="character", default="peaks", help="sample name of the output prefix", metavar="string")
 
-    OUTPUT = "${meta.id}"
+    OUTPUT = "."
+    GROUP_ID = "$meta.id"
     COUNT_CUTOFF = 12
     RATIO_CUTOFF = 2.0
     FDR = 2
@@ -169,13 +170,13 @@ process ASSIGN_TYPE {
 
     peaks = classify_peaks(peaks)
 
-    outf_name = paste(OUTPUT, '.',FDR,'.peaks',sep='')
+    outf_name = paste(GROUP_ID, '.',FDR,'.peaks',sep='')
     dir.create(OUTPUT, recursive=TRUE)
     write.table(peaks, file.path(OUTPUT, outf_name),
                 row.names = FALSE, col.names = TRUE, quote=FALSE)
     peaks1 <- cbind(peaks[, c("chr1", "start1", "end1", "chr2", "start2", "end2")], "*", peaks[, "NegLog10P", drop=FALSE])
     write.table(peaks1,
-                file.path(OUTPUT, paste0(OUTPUT, '.', FDR, '.bedpe')),
+                file.path(OUTPUT, paste0(GROUP_ID, '.', FDR, '.bedpe')),
                 row.names = FALSE, col.names = FALSE, quote=FALSE, sep="\t")
 
     summary_all_runs <- split(peaks, peaks\$ClusterType)
@@ -192,7 +193,7 @@ process ASSIGN_TYPE {
         maxFoldChange = max(.ele\$ratio2))
     })
     summary_all_runs <- do.call(rbind, summary_all_runs)
-    summary_outf_name = paste('summary.',OUTPUT,'.txt',sep='')
+    summary_outf_name = paste('summary.',GROUP_ID,'.txt',sep='')
     write.table(summary_all_runs, file.path(OUTPUT, summary_outf_name), row.names = TRUE, col.names = TRUE, quote=FALSE)
     """
 }

@@ -25,7 +25,11 @@ def getFormat(f):
         extension = TrackType[extension]
     return extension
 
-def create_igv(ListFile, Genome):
+def create_igv(ListFile, Genome, PublishDir):
+    prefix = ""
+    if PublishDir:
+        depth = PublishDir.count('/')+1
+        prefix = '/'.join(['..']*depth) + '/'
     fileList = []
     fin = io.open(ListFile, mode="r")
     while True:
@@ -39,7 +43,7 @@ def create_igv(ListFile, Genome):
             fileList.append(f"""
             {{
                 \"name\":\"{ifile[0]}\",
-                \"url\":\"{ifile[1]}\",
+                \"url\":\"{prefix}{ifile[1]}\",
                 \"type\":\"{types[fmt]}\",
                 {index}
                 \"format\":\"{fmt}\",
@@ -86,12 +90,13 @@ def wrap_html(contents):
 
 def parse_args(args=None):
     Description = 'Create IGV file from a list of files.'
-    Epilog = """Example usage: python create_igv.py <LIST_FILE> <GENOME>"""
+    Epilog = """Example usage: python create_igv.py <LIST_FILE> <GENOME> <PUBLISH_DIR>"""
     argParser = argparse.ArgumentParser(description=Description, epilog=Epilog)
 
     ## REQUIRED PARAMETERS
     argParser.add_argument('LIST_FILE', help="Tab-delimited file containing two columns i.e. samplename\tsignalfile. Header isnt required.")
     argParser.add_argument('GENOME', help="Full path to genome fasta file or shorthand for genome available in UCSC e.g. hg19.")
+    argParser.add_argument('PUBLISH_DIR', help="Publish dir for igv. It will be used to calculate the relative folder from publish dir to outdir.")
     return argParser.parse_args(args)
 
 
@@ -99,7 +104,8 @@ def main(args=None):
     args = parse_args(args)
     tracks = create_igv(
                     ListFile=args.LIST_FILE,
-                    Genome=args.GENOME)
+                    Genome=args.GENOME,
+                    PublishDir=args.PUBLISH_DIR)
     html = wrap_html(tracks)
     out = open("index.html", "a")
     out.write(html)

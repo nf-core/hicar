@@ -28,8 +28,8 @@ process IGV {
 
     script:
     """
-    create_igv.py $track $species
-    echo "collect in ${track} and copy all the files into relative folder in a web-server. Then put the index.html file into the root folder." > readme.txt
+    create_igv.py $track $species $options.publish_dir
+    echo "collect in ${track} and copy all the files into relative folder in a web-server." > readme.txt
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:
