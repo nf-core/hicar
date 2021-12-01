@@ -193,7 +193,7 @@ and then filtered by coverage (default is 12 per bin), fold change (default is 2
 <details markdown="1">
 <summary>Output files</summary>
 
-* `DifferentialAnalyis/*`: Differential analysis results.
+* `DifferentialAnalysis/*`: Differential analysis results.
 
 </details>
 
@@ -255,8 +255,8 @@ circos is used to produce the genomic view of chromatin interactions for HiPeak.
 <details markdown="1">
 <summary>Output files</summary>
 
-* `igv.js/*`: index.html, readme.txt and track.tgz.
+* `igv.js/*`: index.html, readme.txt and track_files.txt.
 
 </details>
 
-The track.tga contain the R2 reads tracks and interactions called by MAPS. Untar the `track.tgz` file and copy all the files into same folder in a web-server to view the data.
+The track.txt contain the reads tracks and interactions called by MAPS. Copy all the files into a web-server to view the data vis [igv.js](https://github.com/igvteam/igv.js/).
