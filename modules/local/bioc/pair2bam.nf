@@ -37,7 +37,7 @@ process PAIR2BAM {
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################
-    pkgs <- c("Rsamtools", "InteractionSet")
+    pkgs <- c("Rsamtools", "InteractionSet", "rhdf5")
     versions <- c("${getProcessName(task.process)}:")
     for(pkg in pkgs){
         # load library
@@ -49,47 +49,88 @@ process PAIR2BAM {
     writeLines(versions, "versions.yml") # write versions.yml
 
     peaks <- "$peak"
-    pairs <- dir(".", "unselected.pairs.gz")
-    cons<- sub("unselected.pairs.gz", "bam", pairs)
+    pairs <- dir(".", "h5\$")
 
-    ## scan file header
-    scanPairHeader <- function(file){
-        con <- gzcon(file(file, open="rb"))
-        on.exit(close(con))
-        header <- NULL
-        while(length(line <- readLines(con, n = 1))){
-            if(grepl("^#", line)){
-                header <- c(header, line)
-            }else{
-                return(header)
+    ## load header
+    getHeader <- function(file){
+        header <- h5read(file, "header/header")
+        header <- header[grepl("#samheader: @SQ", header)]
+        header <- sub("#samheader: ", "", header)
+    }
+    ## loading data
+    getPath <- function(root, ...){
+        paste(root, ..., sep="/")
+    }
+    readPairs <- function(pair){
+        inf <- H5Fopen(pair)
+        on.exit(H5Fclose(inf))
+        pc <- lapply(idx, function(.ele){
+            n <- getPath("data", chrom1, chrom2, .ele, "position")
+            if(H5Lexists(inf, n)){
+                h5read(inf, n)
             }
+        })
+        pc <- do.call(rbind, pc)
+    }
+    createReadsName <- function(ids, width=6, prefix="r"){
+        paste0(prefix, formatC(ids, width=width, flag="0"))
+    }
+    filterByPeak <- function(pos, strand, chr, peaks){
+        gi <- GInteractions(anchor1=GRanges(chr, IRanges(pos[, 1], width=150)),
+                            anchor2=GRanges(chr, IRanges(pos[, 2], width=150)))
+        ol <- findOverlaps(gi, peaks)
+        keep <- sort(unique(queryHits(ol)))
+        list(pos=pos[keep, , drop=FALSE], strand=strand[keep, , drop=FALSE])
+    }
+    createAlginment <- function(file, p, idx, width, peaks){
+        chr_ <- strsplit(p, "/")[[1]]
+        chr_id <- which(chr_=="data")[1]
+        chr1 <- chr_[chr_id+1]
+        chr2 <- chr_[chr_id+2]
+        if(chr1!=chr2){
+            return(NULL)
+        }
+        pos <- h5read(file, getPath(p, "position"))
+        strand <- h5read(file, getPath(p, "strand"))
+        fil <- filterByPeak(pos, strand, chr1, peaks)
+        pos <- fil[["pos"]]
+        strand <- fil[["strand"]]
+        if(nrow(pos)){
+            name <- createReadsName(idx+seq.int(nrow(pos)), width=width)
+            flag <- ifelse(strand[, 1]=="-", 16, 0)
+            posL <- rowMins(pos)
+            isize <- abs(pos[, 1] - pos[, 2])
+            cigar <- paste0("100M", isize, "N100M")
+            aln <- paste(name, flag, chr1, posL, "50", cigar, "*", 0, isize+201, "*", "*", sep = "\\t")
+        }else{
+            return(NULL)
         }
     }
-
-    ## keep the reads only in interactions
-    dataInPeak <- function(data, peak){
-        dgi <- with(data, GInteractions(GRanges(V2, IRanges(V3, width=150)),
-                                        GRanges(V4, IRanges(V5, width=150))))
-        data[countOverlaps(dgi, peak, use.region="same")>0, , drop=FALSE]
-    }
-
-    exportBamFile <- function(header, data, con){
-        sam_path <- sub("bam\$", "sam", con, ignore.case = TRUE)
+    exportBamFile <- function(file, peaks){
+        con <- sub(".h5\$", "", file)
+        sam_path <- sub("h5\$", "sam", file, ignore.case = TRUE)
         if(sam_path==con){
             sam_path <- paste0(con, ".sam")
         }
         sam_con <- file(sam_path, "w")
         on.exit(close(sam_con))
-        data <- data[data[, 2]==data[, 4], , drop=FALSE]
-        colnames(data) <- c("name", "chr1", "pos1", "chr2", "pos2", "strand1", "strand2")
-        data\$flag <- ifelse(data\$strand1=="-", 16, 0)
-        data\$pos <- rowMins(as.matrix(data[, c("pos1", "pos2")]))
-        data\$isize <- abs(data\$pos1 - data\$pos2)
-        data\$cigar <- paste0("100M", data\$isize, "N100M")
-        aln <- paste(data\$name, data\$flag, data\$chr1, data\$pos, "50", data\$cigar, "*", 0, data\$isize+201, "*", "*", sep = "\t")
-
+        ## write header
+        header <- getHeader(file)
         writeLines(header, sam_con)
-        writeLines(aln, sam_con)
+        ## write data
+        total <- h5read(file, "header/total")
+        total_n <- nchar(total)
+        h5content <- h5ls(file)
+        h5content <- h5content[, "group"]
+        h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
+        idx <- 0
+        for(p in h5content){
+            aln <- createAlginment(file, p, idx, total_n, peaks)
+            if(length(aln)){
+                writeLines(aln, sam_con)
+                idx <- idx + length(aln)
+            }
+        }
         close(sam_con)
         on.exit()
         si <- do.call(rbind, strsplit(header, "\\\\t"))
@@ -101,10 +142,10 @@ process PAIR2BAM {
             si <- TRUE
         }
         if(si){
-            bam <- asBam(sam_path, sub(".bam\$", "", con, ignore.case = TRUE),
+            bam <- asBam(sam_path, con,
                         overwrite = TRUE, indexDestination = FALSE)
         }else{
-            bam <- asBam(sam_path, sub(".bam\$", "", con, ignore.case = TRUE),
+            bam <- asBam(sam_path, con,
                         overwrite = TRUE, indexDestination = TRUE)
         }
         unlink(sam_path)
@@ -115,20 +156,6 @@ process PAIR2BAM {
     peaks <- with(peaks, GInteractions(GRanges(chr1, IRanges(start1, end1)),
                                         GRanges(chr2, IRanges(start2, end2))))
     # output
-    null <- mapply(function(file, con){
-        header <- scanPairHeader(file)
-        header <- header[grepl("#samheader: @SQ", header)]
-        header <- sub("#samheader: ", "", header)
-
-        data <- read.table(file,
-                        colClasses=c("character", "character",
-                                    "integer", "character",
-                                    "integer", "character",
-                                    "character",
-                                    rep("NULL", 7)))
-        data <- data[!duplicated(data[, -1]), , drop=FALSE]
-        data <- dataInPeak(data, peaks)
-        exportBamFile(header, data, con)
-    }, pairs, cons)
+    null <- lapply(pairs, exportBamFile, peaks=peaks)
     """
 }
