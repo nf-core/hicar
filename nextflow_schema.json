@@ -203,7 +203,7 @@
                 },
                 "high_resolution_R1": {
                     "type": "boolean",
-                    "description": "read peak calling for R1 by MACS2",
+                    "description": "read peak calling for fragment (R1) reads by MACS2",
                     "fa_icon": "fas fa-mountain",
                     "hidden": false
                 },

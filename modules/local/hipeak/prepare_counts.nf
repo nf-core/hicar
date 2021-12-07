@@ -35,7 +35,7 @@ process PREPARE_COUNTS {
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################
-    pkgs <- c("rtracklayer", "InteractionSet", "Biostrings", "Rsamtools")
+    pkgs <- c("rtracklayer", "InteractionSet", "Biostrings", "Rsamtools", "rhdf5")
     versions <- c("${getProcessName(task.process)}:")
     for(pkg in pkgs){
         # load library
@@ -58,7 +58,7 @@ process PREPARE_COUNTS {
     FASTA <- "$fasta"
     CUT <- "$cut"
     MAPPABILITY <- "$mappability"
-    pattern <- "unselected.pairs.gz" ## unselected.pairs.gz is postfix of output of pairtools filter
+    pattern <- "h5" ## h5 is postfix of output of pairtools pairs2hdf5
     pairs <- dir("pairs", paste0(pattern, "\$"), full.names=TRUE)
     names(pairs) <- sub(paste0("\\\\.", pattern), "", basename(pairs))
     R1PEAK <- import("$r1peak")
@@ -78,33 +78,28 @@ process PREPARE_COUNTS {
     }
 
     ## loading data
-    readPairs <- function(pair, chrom1, chrom2){
-        fn <- paste(pair, chrom1, chrom2, "rds", sep=".")
-        if(file.exists(paste0(pair, ".rds"))){
-            if(file.exists(fn)){
-                pc <- readRDS(fn)
-            }else{
-                pc <- NULL
+    getPath <- function(root, ...){
+        paste(root, ..., sep="/")
+    }
+    readPairs <- function(pair, chrom1, chrom2, gi){
+        tileWidth <- h5read(pair, "header/tile_width")
+        h5content <- h5ls(pair)
+        h5content <- h5content[, "group"]
+        h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
+        n <- h5content[grepl(paste0("data.", chrom1, ".", chrom2), h5content)]
+        n <- getPath(n, "position")
+        inf <- H5Fopen(pair)
+        on.exit({H5Fclose(inf)})
+        pc <- lapply(n, function(.ele){
+            if(H5Lexists(inf, .ele)){
+                h5read(inf, .ele)
             }
-        }else{
-            pc <- read.table(pair,
-                    colClasses=c("NULL", "character",
-                                "integer", "character",
-                                "integer", rep("NULL", 9)))
-            #pc <- pc[pc[, 1]==pc[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
-            pc <- split(pc, paste(pc[, 1], pc[, 3], sep="."))
-            null <- mapply(saveRDS, pc, paste0(pair, ".", names(pc), ".rds"))
-            saveRDS(TRUE, paste0(pair, ".rds"))
-            if(paste(chrom1, chrom2, sep=".") %in% names(pc)){
-                pc <- pc[[paste(chrom1, chrom2, sep=".")]]
-            }else{
-                pc <- NULL
-            }
-        }
+        })
+        pc <- do.call(rbind, pc)
     }
 
     countByOverlaps <- function(gi, reads){
-        gi\$count <- countOverlaps(gi, reads)
+        gi\$count <- countOverlaps(gi, reads, use.region="both")
         gi\$shortCount <- countOverlaps(second(gi), second(reads))
         gi[gi\$count>0 & gi\$shortCount>0]
     }
@@ -144,13 +139,18 @@ process PREPARE_COUNTS {
             gi <- GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
             rm(peak_pair)
             gc(reset=TRUE)
-            reads <- lapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2)
+            reads <- lapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2, gi=gi)
+            h5closeAll()
             reads <- do.call(rbind, c(reads, make.row.names = FALSE))
-            reads <- with(reads, GInteractions(GRanges(V2, IRanges(V3, width=150)),
-                                        GRanges(V4, IRanges(V5, width=150))))
-            gi <- countByOverlaps(gi, reads)
-            if(length(gi)>0){
-                gis <- c(gis, gi)
+            if(length(reads)){
+                reads <- GInteractions(GRanges(chrom1, IRanges(reads[, 1], width=150)),
+                                        GRanges(chrom2, IRanges(reads[, 2], width=150)))
+
+
+                gi <- countByOverlaps(gi, reads)
+                if(length(gi)>0){
+                    gis <- c(gis, gi)
+                }
             }
         }
     }

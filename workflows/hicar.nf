@@ -99,7 +99,7 @@ include { IGV                    } from '../modules/local/igv' addParams(options
 //
 include { PREPARE_GENOME         } from '../subworkflows/local/preparegenome' addParams ( options: getSubWorkFlowParam(modules, ['gunzip', 'gtf2bed', 'chromsizes', 'genomefilter', 'bwa_index', 'gffread', 'digest_genome']) )
 include { BAM_STAT               } from '../subworkflows/local/bam_stats' addParams(options: getSubWorkFlowParam(modules, ['samtools_sort', 'samtools_index', 'samtools_stats', 'samtools_flagstat', 'samtools_idxstats']))
-include { PAIRTOOLS_PAIRE        } from '../subworkflows/local/pairtools' addParams(options: getSubWorkFlowParam(modules, ['paritools_dedup', 'pairtools_flip', 'pairtools_parse', 'pairtools_restrict', 'pairtools_select', 'pairtools_select_long', 'pairtools_sort', 'pairix', 'reads_stat', 'reads_summary', 'pairsqc', 'pairsplot']))
+include { PAIRTOOLS_PAIRE        } from '../subworkflows/local/pairtools' addParams(options: getSubWorkFlowParam(modules, ['paritools_dedup', 'pairtools_flip', 'pairtools_parse', 'pairtools_restrict', 'pairtools_select', 'pairtools_select_long', 'pairs2hdf5', 'pairtools_sort', 'pairix', 'reads_stat', 'reads_summary', 'pairsqc', 'pairsplot']))
 include { COOLER                 } from '../subworkflows/local/cooler' addParams(options: getSubWorkFlowParam(modules, ['cooler_cload', 'cooler_merge', 'cooler_zoomify', 'cooler_dump_per_group', 'cooler_dump_per_sample', 'dumpintrareads_per_group', 'dumpintrareads_per_sample', 'juicer']))
 include { ATAC_PEAK              } from '../subworkflows/local/callatacpeak' addParams(options: getSubWorkFlowParam(modules, ['pairtools_select_short', 'merge_reads', 'shift_reads', 'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample', 'merge_peak', 'atacqc', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedclip', 'ucsc_bedgraphtobigwig_per_group', 'ucsc_bedgraphtobigwig_per_sample']))
 include { R1_PEAK                } from '../subworkflows/local/calldistalpeak' addParams(options: getSubWorkFlowParam(modules, ['merge_r1reads', 'r1reads', 'macs2_callr1peak', 'dump_r1_reads_per_group', 'dump_r1_reads_per_sample', 'merge_r1peak', 'r1qc', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedclip', 'ucsc_bedgraphtobigwig_per_r1_group', 'ucsc_bedgraphtobigwig_per_r1_sample']))
@@ -314,7 +314,7 @@ workflow HICAR {
         ch_trackfiles = ch_trackfiles.mix(R1_PEAK.out.bws.map{[it[0].id+"_R1", getPublishedFolder(modules, 'ucsc_bedgraphtobigwig_per_r1_group', [:])+it[1].name]})
 
         // merge ATAC_PEAK with R1_PEAK by group id
-        distalpair = PAIRTOOLS_PAIRE.out.distalpair.map{meta, bed -> [meta.group, bed]}
+        distalpair = PAIRTOOLS_PAIRE.out.hdf5.map{meta, bed -> [meta.group, bed]}
                                             .groupTuple()
         grouped_reads_peak = ATAC_PEAK.out.peak.map{[it[0].id, it[1]]}
                                 .join(R1_PEAK.out.peak.map{[it[0].id, it[1]]})
@@ -371,7 +371,7 @@ workflow HICAR {
             //ch_maps_trackviewer.view()
             BIOC_TRACKVIEWER_MAPS(
                 ch_maps_trackviewer,
-                PAIRTOOLS_PAIRE.out.distalpair.collect{it[1]},
+                PAIRTOOLS_PAIRE.out.hdf5.collect{it[1]},
                 PREPARE_GENOME.out.gtf,
                 PREPARE_GENOME.out.chrom_sizes,
                 PREPARE_GENOME.out.digest_genome)
@@ -412,7 +412,7 @@ workflow HICAR {
                     //ch_trackviewer.view()
                     BIOC_TRACKVIEWER(
                         ch_trackviewer,
-                        PAIRTOOLS_PAIRE.out.distalpair.collect{it[1]},
+                        PAIRTOOLS_PAIRE.out.hdf5.collect{it[1]},
                         PREPARE_GENOME.out.gtf,
                         PREPARE_GENOME.out.chrom_sizes,
                         PREPARE_GENOME.out.digest_genome)
