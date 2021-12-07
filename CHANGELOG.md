@@ -3,8 +3,15 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.0dev - [11/15/2021]
+## v1.0dev - [12/01/2021]
 
+- change R1 reads name to fragment reads in documentation
+- use hdf5 to improve the IO efficency
+- call HiPeak for unique reads counts
+- fix the file path for igv.py
+- improve trackviewer.nf
+- update gunzip module
+- fix a typo in publish_dir of differential analysis.
 - fix the empty output of PCA analysis for `multiQC`.
 - replace `zcat` by `gunzip -c`
 - update documentation of readme

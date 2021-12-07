@@ -38,7 +38,7 @@ process DIFF_HIPEAK {
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################
-    pkgs <- c("edgeR", "InteractionSet")
+    pkgs <- c("edgeR", "InteractionSet", "rhdf5")
     versions <- c("${getProcessName(task.process)}:")
     for(pkg in pkgs){
         # load library
@@ -71,46 +71,40 @@ process DIFF_HIPEAK {
     peaks <- unique(GInteractions(first, second))
 
     ## get counts
-    readPairs <- function(pair, chrom1, chrom2){
-        fn <- paste(pair, chrom1, chrom2, "rds", sep=".")
-        if(file.exists(paste0(pair, ".rds"))){
-            if(file.exists(fn)){
-                pc <- readRDS(fn)
-            }else{
-                NULL
-            }
-        }else{
-            pc <- read.table(pair,
-                    colClasses=c("NULL", "character",
-                                "integer", "character",
-                                "integer", rep("NULL", 9)))
-            #pc <- pc[pc[, 1]==pc[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
-            pc <- split(pc, paste(pc[, 1], pc[, 3], sep="."))
-            null <- mapply(saveRDS, pc, paste0(pair, ".", names(pc), ".rds"))
-            saveRDS(TRUE, paste0(pair, ".rds"))
-            if(paste(chrom1, chrom2, sep=".") %in% names(pc)){
-                pc[[paste(chrom1, chrom2, sep=".")]]
-            }else{
-                NULL
-            }
-        }
+    getPath <- function(root, ...){
+        paste(root, ..., sep="/")
     }
-    pc <- dir("pairs", "pairs.gz\$", full.names = FALSE)
+    readPairs <- function(pair, chrom1, chrom2, gi){
+        tileWidth <- h5read(pair, "header/tile_width")
+        h5content <- h5ls(pair)
+        h5content <- h5content[, "group"]
+        h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
+        n <- h5content[grepl(paste0("data.", chrom1, ".", chrom2), h5content)]
+        n <- getPath(n, "position")
+        inf <- H5Fopen(pair)
+        on.exit({H5Fclose(inf)})
+        pc <- lapply(n, function(.ele){
+            if(H5Lexists(inf, .ele)){
+                h5read(inf, .ele)
+            }
+        })
+        pc <- do.call(rbind, pc)
+    }
+    pc <- dir("pairs", "h5\$", full.names = FALSE)
     countByOverlaps <- function(pairs, peaks, sep="___"){
         cnt <- lapply(names(peaks), function(chr){
+            .peak <- peaks[[chr]]
             chr_ <- strsplit(chr, sep)[[1]]
             chrom1 <- chr_[1]
             chrom2 <- chr_[2]
-            ps <- readPairs(pairs, chrom1, chrom2)
-            counts_total <- nrow(ps)
-            #ps <- ps[ps[, 1]==ps[, 3], , drop=FALSE] ## focus on same fragment only (cis only)
-            if(nrow(ps)<1){
+            ps <- readPairs(pairs, chrom1, chrom2, .peak)
+            counts_total <- h5read(pairs, "header/total")
+            if(length(ps)<1){
                 return(NULL)
             }
-            ps <- GInteractions(GRanges(ps[, 1], IRanges(ps[, 2], width=150)),
-                                GRanges(ps[, 3], IRanges(ps[, 4], width=150)))
-            .peak <- peaks[[chr]]
-            counts_tab <- countOverlaps(.peak, ps, use.region="same")
+            ps <- GInteractions(GRanges(chrom1, IRanges(ps[, 1], width=150)),
+                                GRanges(chrom2, IRanges(ps[, 2], width=150)))
+            counts_tab <- countOverlaps(.peak, ps, use.region="both")
             counts_tab <- cbind(ID=.peak\$ID, counts_tab)
             list(count=counts_tab, total=counts_total)
         })
@@ -125,8 +119,9 @@ process DIFF_HIPEAK {
     peaks\$ID <- seq_along(peaks)
     peaks.s <- split(peaks, paste(seqnames(first(peaks)), seqnames(second(peaks)), sep="___"))
     cnts <- lapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s, sep="___")
+    h5closeAll()
     rm(peaks.s)
-    samples <- sub("(_REP\\\\d+)\\\\.(.*?)unselected.pairs.gz", "\\\\1", pc)
+    samples <- sub("(_REP\\\\d+)\\\\.(.*?)h5\$", "\\\\1", pc)
     sizeFactor <- vapply(cnts, FUN=function(.ele) .ele\$total,
                         FUN.VALUE = numeric(1))
     names(sizeFactor) <- samples
