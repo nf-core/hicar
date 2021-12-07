@@ -4,10 +4,10 @@
 params.options = [:]
 
 include {
-    GUNZIP as GUNZIP_FASTA
-    GUNZIP as GUNZIP_GTF
-    GUNZIP as GUNZIP_GFF
-    GUNZIP as GUNZIP_GENE_BED
+    GUNZIP as GUNZIP_FASTA;
+    GUNZIP as GUNZIP_GTF;
+    GUNZIP as GUNZIP_GFF;
+    GUNZIP as GUNZIP_GENE_BED;
     GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../modules/nf-core/modules/gunzip/main'               addParams( options: params.options.gunzip        )
 include { GTF2BED                     } from '../../modules/local/gtf2bed'                             addParams( options: params.options.gtf2bed       )
 include { CHROMSIZES                  } from '../../modules/local/genome/chromsizes'                   addParams( options: params.options.chromsizes    )

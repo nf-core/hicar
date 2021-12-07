@@ -6,7 +6,7 @@ options        = initOptions(params.options)
 
 process BIOC_TRACKVIEWER {
     tag "$bin_size"
-    label 'process_medium'
+    label 'process_high'
     label 'error_ignore'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -42,7 +42,7 @@ process BIOC_TRACKVIEWER {
     #######################################################################
     #######################################################################
 
-    pkgs <- c("trackViewer", "GenomicFeatures", "InteractionSet", "rtracklayer")
+    pkgs <- c("trackViewer", "GenomicFeatures", "InteractionSet", "rtracklayer", "rhdf5")
     versions <- c("${getProcessName(task.process)}:")
     for(pkg in pkgs){
         # load library
@@ -104,7 +104,7 @@ process BIOC_TRACKVIEWER {
 
     # read the signals
     cools <- dir(".", "mcool\$", full.names = TRUE, recursive = TRUE)
-    pairfiles <- dir(".", ".unselected.pairs.gz\$", full.names = TRUE, recursive = TRUE)
+    pairfiles <- dir(".", ".h5\$", full.names = TRUE, recursive = TRUE)
     if(!is.null(opt\$events)){
         evts <- read.csv(opt\$events)
         if(!"fdr" %in% colnames(evts)){
@@ -161,64 +161,56 @@ process BIOC_TRACKVIEWER {
         return(n*ceiling(x/n))
     }
 
-    ## get file number of lines
-    getFileLineNum <- function(fn){
-        f <- gzfile(fn, open = "rb")
-        on.exit(close(f))
-        nlines <- 0L
-        while (length(chunk <- readBin(f, "raw", 65536)) > 0) {
-            nlines <- nlines + sum(chunk == as.raw(10L))
-        }
-        close(f)
-        on.exit()
-        nlines
-    }
     ## read file and summary counts
-    loadPairFire <- function(filenames, ranges, resolution){
+    getIndex <- function(pos, tileWidth, ext=150){
+        A <- ceiling((start(pos)-ext)/rep(tileWidth, length(pos)))
+        B <- ceiling((end(pos)+ext)/rep(tileWidth, length(pos)))
+        out <- mapply(A, B, FUN=seq, SIMPLIFY=FALSE)
+        sort(unique(unlist(out)))
+    }
+    getPath <- function(root, ...){
+        paste(root, ..., sep="/")
+    }
+    readPairs <- function(pair, chrom, range){
+        tileWidth <- h5read(pair, "header/tile_width")
+        idx <- getIndex(range, tileWidth)
+        idx <- expand.grid(idx, idx)
+        idx <- paste(idx[, 1], idx[, 2], sep="_")
+        inf <- H5Fopen(pair)
+        on.exit(H5Fclose(inf))
+        pc <- lapply(idx, function(.ele){
+            n <- getPath("data", chrom, chrom, .ele, "position")
+            if(H5Lexists(inf, n)){
+                h5read(inf, n)
+            }
+        })
+        pc <- do.call(rbind, pc)
+        strand <- lapply(idx, function(.ele){
+            n <- getPath("data", chrom, chrom, .ele, "strand")
+            if(H5Lexists(inf, n)){
+                h5read(inf, n)
+            }
+        })
+        strand <- do.call(rbind, strand)
+        GInteractions(anchor1 = GRanges(chrom, IRanges(pc[, 1], width=readwidth), strand = strand[, 1]),
+                    anchor2 = GRanges(chrom, IRanges(pc[, 2], width=readwidth), strand = strand[, 2]))
+    }
+    loadPairFile <- function(filenames, ranges, resolution){
         stopifnot(is.character(filenames))
         stopifnot(all(file.exists(filenames)))
         start(ranges) <- start(ranges) - 2*resolution
         end(ranges) <- end(ranges) + 2*resolution
-        out <- list(gi=list(), total=list())
-        for(fn in filenames){
-            message("Working with ", fn)
-            pb <- txtProgressBar(min=0, max=getFileLineNum(fn), initial = 0)
-            stepi <- 0
-            f <- gzfile(fn, open = "r")
-            on.exit(close(f))
-            this_name <- sub(".unselected.pairs.gz", "", basename(fn))
-            out[["total"]][[this_name]] <- 0
-            out[["gi"]][[this_name]] <- NULL
-            while(length(chunk <- readLines(f, n=500000))){
-                stepi <- stepi + 500000
-                setTxtProgressBar(pb, stepi)
-                chunk <- chunk[!grepl("^#", chunk)]
-                if(length(chunk)){
-                    dt <- do.call(rbind, strsplit(chunk, "\\\\t"))
-                    dt <- unique(dt) # remove duplicates
-                    gi <- GInteractions(anchor1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 3]), width = readwidth), strand = dt[, 6]),
-                                        anchor2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 5]), width = readwidth), strand = dt[, 7]),
-                                        restrict1 = GRanges(dt[, 2], IRanges(as.numeric(dt[, 10]), as.numeric(dt[, 11]), names = dt[, 9])),
-                                        restrict2 = GRanges(dt[, 4], IRanges(as.numeric(dt[, 13]), as.numeric(dt[, 14]), names = dt[, 12])))
-                    out[["total"]][[this_name]] <- length(gi) + out[["total"]][[this_name]]
-                    gi <- subsetByOverlaps(gi, ranges, use.region="both")
-                    out[["gi"]][[this_name]] <- c(out[["gi"]][[this_name]], gi)
-                }
-            }
-            if(is.list(out[["gi"]][[this_name]])){
-                out[["gi"]][[this_name]] <- do.call(c, out[["gi"]][[this_name]])
-                out[["gi"]][[this_name]] <- unique(out[["gi"]][[this_name]])
-            }
-            close(f)
-            on.exit()
-            close(pb)
-            message("done!")
-        }
-        return(out)
+        names(filenames) <- sub(".h5\$", "", basename(filenames))
+        total <- lapply(filenames, h5read, name="header/total")
+        chrom <- as.character(seqnames(ranges)[1])
+        ranges <- ranges[seqnames(ranges)==chrom]
+        gi <- lapply(filenames, readPairs, chrom=chrom, range=ranges)
+        list(gi=gi, total=total)
     }
-    chunks <- loadPairFire(pairfiles, gr1, resolution)
-    readPairFile <- function(chunks, ranges){
+
+    readPairFile <- function(filenames, ranges, resolution){
         stopifnot(is(ranges, "GRanges"))
+        chunks <- loadPairFile(filenames, ranges, resolution)
         out <- list()
         total <- list()
         for(fn in names(chunks[["gi"]])){
@@ -236,8 +228,7 @@ process BIOC_TRACKVIEWER {
         giRbind <- function(a, b){
             GInteractions(anchor1 = c(first(a), first(b)),
                         anchor2 = c(second(a), second(b)),
-                        restrict1 = c(a\$restrict1, b\$restrict1),
-                        restrict2 = c(a\$restrict2, b\$restrict2))
+                        regions=sort(unique(c(first(a), first(b), second(a), second(b)))))
         }
         out <- lapply(out, function(.ele){
             Reduce(giRbind, .ele)
@@ -266,7 +257,10 @@ process BIOC_TRACKVIEWER {
                 bait <- GInteractions(anchor1 = parse2GRanges(names(bait)),
                                     anchor2 = unname(bait))
                 ## get the v4c
-                info <- readPairFile(chunks, ranges = c(first(bait), second(bait)))
+                info <- readPairFile(pairfiles,
+                                    ranges = c(first(bait), second(bait)),
+                                    resolution=resolution)
+                h5closeAll()
                 total <- info\$norm_factor
                 names(cools) <- sub("\\\\d+\\\\.mcool\$", "", basename(cools))
                 gis <- lapply(cools, importGInteractions,

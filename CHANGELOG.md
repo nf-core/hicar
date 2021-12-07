@@ -5,6 +5,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [12/01/2021]
 
+- change R1 reads name to fragment reads in documentation
+- use hdf5 to improve the IO efficency
+- call HiPeak for unique reads counts
 - fix the file path for igv.py
 - improve trackviewer.nf
 - update gunzip module

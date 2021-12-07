@@ -21,7 +21,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 * [ATACpeak](#call-peaks-for-r2-reads) - The peaks called for ATAC reads (R2 reads).
 * [MAPSpeak](#chromatin-interactions) - The chromatin interactions determined by MAPS.
 * [DifferentialAnalyis](#differential-analysis) - Differential analysis for chromatin interactions.
-* [R1peak](#call-peaks-for-r1-reads) - The peaks called for R1 reads.
+* [fragmentPeak](#call-peaks-for-fragment-reads) - The peaks called for R1 reads.
 * [HiCARpeak](#high-resolution-interactions) - The high resolution loops called for R1 and R2 peaks for motif analysis.
 * [circos](#circos) - The circos plots.
 * [igv.js](#igv) - The track files which can be viewed by web-server.
@@ -122,13 +122,24 @@ Adapter-trimmed reads are mapped to the reference assembly using [BWA::mem](http
 
 * `pairs/`
     * `raw/*`: The raw reads pairs for each sample and stats for the pairs.
-    * `filtered/*`: The filtered files. The unselected.pairs.gz files in samefrag folder can be used to generate virtual 4C plots.
+    * `filtered/*`: The filtered files in hdf5 format. The hdf5 files in samefrag folder can be used to generate virtual 4C plots.
     * `QC/*`: The quality analysis results.
 
 </details>
 
 The raw and filtered pairs exported by [pairtools](https://pairtools.readthedocs.io/en/latest/).
 The quality analysis for filtered pairs were done by [pairsqc](https://github.com/4dn-dcic/pairsqc).
+
+The hdf5 filtered pairs contains following groups:
+
+* `header/`, including total reads, chromosome name and sizes, tile width for index.
+    * `header/chrom_sizes`, COMPOUND
+    * `header/header`,      STRING
+    * `header/tile_width`,  INTEGER
+    * `header/total`,       INTEGER
+* `data/`, pairs in path `data/chr1_for_R1_reads/chr2_for_R2_reads/tileIndex1_tileIndex2/`, the tile index is calculated by the ceiling of posistion divided by tile width.
+    * `position`, genomic location saved in path `data/chr1/chr2/tileIndex1_tileIndex2/position`
+    * `strand`, strand info saved in `path data/chr1/chr2/tileIndex1_tileIndex2/strand`
 
 ### Cooler
 
@@ -203,12 +214,12 @@ The differential analysis is done for validated chromatin interactions by MAPs.
 Annotation is done by [ChIPpeakAnno](https://pubmed.ncbi.nlm.nih.gov/20459804/)
 for the overlap features (gene level) or nearest features.
 
-### Call peaks for r1 reads
+### Call peaks for fragment reads
 
 <details markdown="1">
 <summary>Output files</summary>
 
-* `R1peak/`
+* `fragmentPeak/`
     * `R1_bigwig/`
         * `byGroup/*`: The bigWig files of R1_reads for each group.
         * `pos1/*`: The bigWig files of 5' ends of R1_reads.
@@ -217,8 +228,8 @@ for the overlap features (gene level) or nearest features.
 
 </details>
 
-The peaks called R1 reads by [MACS2](https://github.com/macs3-project/MACS).
-R1 reads will be more noisy compare to R2 reads and the FDR cutoff will be higher to get proper peaks for interaction calling.
+The peaks called fragment (R1) reads by [MACS2](https://github.com/macs3-project/MACS).
+The fragment reads will be more noisy compare to ATAC (R2) reads and the FDR cutoff will be higher to get proper peaks for interaction calling.
 
 ### High resolution interactions
 

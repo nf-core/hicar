@@ -16,6 +16,7 @@ include { READS_STAT         } from '../../modules/local/reads_stat'            
 include { READS_SUMMARY      } from '../../modules/local/reads_summary'                     addParams(options: params.options.reads_summary)
 include { PAIRSQC            } from '../../modules/local/pairix/pairsqc'                    addParams(options: params.options.pairsqc)
 include { PAIRSPLOT          } from '../../modules/local/pairix/pairsplot'                  addParams(options: params.options.pairsplot)
+include { BIOC_PAIRS2HDF5    } from '../../modules/local/bioc/pairs2hdf5'                   addParams(options: params.options.pairs2hdf5)
 
 workflow PAIRTOOLS_PAIRE {
     take:
@@ -31,6 +32,8 @@ workflow PAIRTOOLS_PAIRE {
     // remove same fragment pairs, output samefrag.pairs, valid.pairs <- like HiC pairs
     PAIRTOOLS_RESTRICT(PAIRTOOLS_SELECT.out.selected, frag)
     PAIRTOOLS_SELECT_LONG(PAIRTOOLS_RESTRICT.out.restrict)
+    // save valid pairs to hdf5
+    BIOC_PAIRS2HDF5(PAIRTOOLS_SELECT_LONG.out.unselected, chromsizes)
     // select valid pairs, output sorted.pairs
     PAIRTOOLS_FLIP(PAIRTOOLS_SELECT_LONG.out.unselected, chromsizes)
     PAIRTOOLS_SORT(PAIRTOOLS_FLIP.out.flip)
@@ -58,5 +61,6 @@ workflow PAIRTOOLS_PAIRE {
     raw  = PAIRTOOLS_PARSE.out.pairsam    // channel: [ val(meta), [pairsam] ]
     validpair  = PAIRTOOLS_SELECT.out.selected        // channel: [val(meta), [validpair]]
     distalpair = PAIRTOOLS_SELECT_LONG.out.unselected // channel: [val(meta), [valid.pair.gz]]
+    hdf5 = BIOC_PAIRS2HDF5.out.hdf5       // channel: [ val(meta), [hdf5] ]
     versions = PAIRTOOLS_PARSE.out.versions // channel: [ path(version) ]
 }
