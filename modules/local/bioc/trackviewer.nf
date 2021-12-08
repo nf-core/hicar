@@ -192,6 +192,9 @@ process BIOC_TRACKVIEWER {
             }
         })
         strand <- do.call(rbind, strand)
+        H5Fclose(inf)
+        h5closeAll()
+        on.exit()
         GInteractions(anchor1 = GRanges(chrom, IRanges(pc[, 1], width=readwidth), strand = strand[, 1]),
                     anchor2 = GRanges(chrom, IRanges(pc[, 2], width=readwidth), strand = strand[, 2]))
     }
