@@ -1,7 +1,7 @@
 /*
-========================================================================================
+================================================================================
     VALIDATE INPUTS
-========================================================================================
+================================================================================
 */
 
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
@@ -13,10 +13,14 @@ WorkflowHicar.initialise(params, log)
 def checkPathParamList = [ params.input, params.multiqc_config, params.fasta,
                             params.gtf, params.bwa_index, params.gene_bed,
                             params.mappability]
-for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+for (param in checkPathParamList) {
+    if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
-if (params.input) { ch_input = Channel.fromPath("${params.input}").splitCsv(header: true, sep:",") } else { exit 1, 'Input samplesheet not specified!' }
+if (params.input) {
+    ch_input = Channel.fromPath("${params.input}")
+                    .splitCsv(header: true, sep:",")
+} else { exit 1, 'Input samplesheet not specified!' }
 
 // set the restriction_sites
 def RE_cutsite = [
@@ -31,33 +35,42 @@ if (!params.enzyme.toLowerCase() in RE_cutsite){
 params.restriction_sites = RE_cutsite[params.enzyme.toLowerCase()]
 
 /*
-========================================================================================
+================================================================================
     CONFIG FILES
-========================================================================================
+================================================================================
 */
 
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
-ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
-ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists: true)
+ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml",
+                                checkIfExists: true)
+ch_multiqc_custom_config = params.multiqc_config ?
+                                Channel.fromPath(params.multiqc_config) :
+                                Channel.empty()
+ch_circos_config         = file("$projectDir/assets/circos.conf",
+                                checkIfExists: true)
 
 /*
-========================================================================================
+================================================================================
     TOOLS SOURCE FILE
-========================================================================================
+================================================================================
 */
 
-ch_juicer_tools              = file(params.juicer_tools_jar, checkIfExists: true)
-ch_merge_map_py_source       = file(params.merge_map_py_source, checkIfExists: true)
-ch_feature_frag2bin_source   = file(params.feature_frag2bin_source, checkIfExists: true)
-ch_make_maps_runfile_source  = file(params.make_maps_runfile_source, checkIfExists: true)
+ch_juicer_tools              = file(params.juicer_tools_jar,
+                                    checkIfExists: true)
+ch_merge_map_py_source       = file(params.merge_map_py_source,
+                                    checkIfExists: true)
+ch_feature_frag2bin_source   = file(params.feature_frag2bin_source,
+                                    checkIfExists: true)
+ch_make_maps_runfile_source  = file(params.make_maps_runfile_source,
+                                    checkIfExists: true)
 
 /*
-========================================================================================
+================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
-========================================================================================
+================================================================================
 */
 
-// Don't overwrite global params.modules, create a copy instead and use that within the main script.
+// Don't overwrite global params.modules,
+// create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
 // Extract parameters from params.modules
@@ -83,53 +96,137 @@ def getPublishedFolder(modules, module, params){
 //
 // MODULE: Local to the pipeline
 //
-include { CHECKSUMS              } from '../modules/local/checksums' addParams( options: getParam(modules, 'checksums') )
-include { DIFFHICAR              } from '../modules/local/bioc/diffhicar' addParams(options: getParam(modules, 'diffhicar'))
-include { BIOC_CHIPPEAKANNO      } from '../modules/local/bioc/chippeakanno' addParams(options: getParam(modules, 'chippeakanno'))
+include { CHECKSUMS
+    } from '../modules/local/checksums' addParams(
+        options: getParam(modules, 'checksums') )
+include { DIFFHICAR
+    } from '../modules/local/bioc/diffhicar' addParams(
+        options: getParam(modules, 'diffhicar'))
 include { BIOC_CHIPPEAKANNO
-    as BIOC_CHIPPEAKANNO_MAPS    } from '../modules/local/bioc/chippeakanno' addParams(options: getParam(modules, 'chippeakanno_maps'))
-include { BIOC_ENRICH            } from '../modules/local/bioc/enrich' addParams(options: getParam(modules, 'enrichment'))
-include { BIOC_TRACKVIEWER       } from '../modules/local/bioc/trackviewer' addParams(options: getParam(modules, 'trackviewer'))
+    } from '../modules/local/bioc/chippeakanno' addParams(
+        options: getParam(modules, 'chippeakanno'))
+include { BIOC_CHIPPEAKANNO as BIOC_CHIPPEAKANNO_MAPS
+    } from '../modules/local/bioc/chippeakanno' addParams(
+        options: getParam(modules, 'chippeakanno_maps'))
+include { BIOC_ENRICH
+    } from '../modules/local/bioc/enrich' addParams(
+        options: getParam(modules, 'enrichment'))
 include { BIOC_TRACKVIEWER
-    as BIOC_TRACKVIEWER_MAPS     } from '../modules/local/bioc/trackviewer' addParams(options: getParam(modules, 'trackviewer_maps'))
-include { IGV                    } from '../modules/local/igv' addParams(options: getParam(modules, 'igv'))
+    } from '../modules/local/bioc/trackviewer' addParams(
+        options: getParam(modules, 'trackviewer'))
+include { BIOC_TRACKVIEWER as BIOC_TRACKVIEWER_MAPS
+    } from '../modules/local/bioc/trackviewer' addParams(
+        options: getParam(modules, 'trackviewer_maps'))
+include { IGV
+    } from '../modules/local/igv' addParams(
+        options: getParam(modules, 'igv'))
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { PREPARE_GENOME         } from '../subworkflows/local/preparegenome' addParams ( options: getSubWorkFlowParam(modules, ['gunzip', 'gtf2bed', 'chromsizes', 'genomefilter', 'bwa_index', 'gffread', 'digest_genome']) )
-include { BAM_STAT               } from '../subworkflows/local/bam_stats' addParams(options: getSubWorkFlowParam(modules, ['samtools_sort', 'samtools_index', 'samtools_stats', 'samtools_flagstat', 'samtools_idxstats']))
-include { PAIRTOOLS_PAIRE        } from '../subworkflows/local/pairtools' addParams(options: getSubWorkFlowParam(modules, ['paritools_dedup', 'pairtools_flip', 'pairtools_parse', 'pairtools_restrict', 'pairtools_select', 'pairtools_select_long', 'pairs2hdf5', 'pairtools_sort', 'pairix', 'reads_stat', 'reads_summary', 'pairsqc', 'pairsplot']))
-include { COOLER                 } from '../subworkflows/local/cooler' addParams(options: getSubWorkFlowParam(modules, ['cooler_cload', 'cooler_merge', 'cooler_zoomify', 'cooler_dump_per_group', 'cooler_dump_per_sample', 'dumpintrareads_per_group', 'dumpintrareads_per_sample', 'juicer']))
-include { ATAC_PEAK              } from '../subworkflows/local/callatacpeak' addParams(options: getSubWorkFlowParam(modules, ['pairtools_select_short', 'merge_reads', 'shift_reads', 'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample', 'merge_peak', 'atacqc', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedclip', 'ucsc_bedgraphtobigwig_per_group', 'ucsc_bedgraphtobigwig_per_sample']))
-include { R1_PEAK                } from '../subworkflows/local/calldistalpeak' addParams(options: getSubWorkFlowParam(modules, ['merge_r1reads', 'r1reads', 'macs2_callr1peak', 'dump_r1_reads_per_group', 'dump_r1_reads_per_sample', 'merge_r1peak', 'r1qc', 'bedtools_genomecov_per_group', 'bedtools_genomecov_per_sample', 'bedtools_sort_per_group', 'bedtools_sort_per_sample', 'ucsc_bedclip', 'ucsc_bedgraphtobigwig_per_r1_group', 'ucsc_bedgraphtobigwig_per_r1_sample']))
-include { HI_PEAK                } from '../subworkflows/local/hipeak' addParams(options: getSubWorkFlowParam(modules, ['parepare_counts', 'call_hipeak', 'assign_type', 'diff_hipeak', 'chippeakanno_hipeak', 'chippeakanno_diffhipeak', 'pair2bam']))
-include { MAPS_MULTIENZYME       } from '../subworkflows/local/multienzyme'   addParams(options: getSubWorkFlowParam(modules, ['maps_cut', 'maps_fend', 'genmap_index', 'genmap_mappability', 'ucsc_wigtobigwig', 'maps_mapability', 'maps_merge', 'maps_feature', 'ensembl_ucsc_convert']))
-include { MAPS_PEAK              } from '../subworkflows/local/maps_peak' addParams(options: getSubWorkFlowParam(modules, ['maps_maps', 'maps_callpeak', 'maps_stats', 'maps_reformat']))
-include { RUN_CIRCOS             } from '../subworkflows/local/circos' addParams(options: getSubWorkFlowParam(modules, ['circos_prepare', 'circos']))
+include { PREPARE_GENOME
+    } from '../subworkflows/local/preparegenome' addParams (
+        options: getSubWorkFlowParam(modules, [
+            'gunzip', 'gtf2bed', 'chromsizes', 'genomefilter',
+            'bwa_index', 'gffread', 'digest_genome']) )
+include { BAM_STAT
+    } from '../subworkflows/local/bam_stats' addParams(
+        options: getSubWorkFlowParam(modules, [
+            'samtools_sort', 'samtools_index', 'samtools_stats',
+            'samtools_flagstat', 'samtools_idxstats']))
+include { PAIRTOOLS_PAIRE
+    } from '../subworkflows/local/pairtools' addParams(
+        options: getSubWorkFlowParam(modules, [
+            'paritools_dedup', 'pairtools_flip', 'pairtools_parse',
+            'pairtools_restrict', 'pairtools_select', 'pairtools_select_long',
+            'pairs2hdf5', 'pairtools_sort', 'pairix',
+            'reads_stat', 'reads_summary',
+            'pairsqc', 'pairsplot']))
+include { COOLER
+    } from '../subworkflows/local/cooler' addParams(
+        options: getSubWorkFlowParam(modules, [
+            'cooler_cload', 'cooler_merge', 'cooler_zoomify',
+            'cooler_dump_per_group', 'cooler_dump_per_sample',
+            'dumpintrareads_per_group', 'dumpintrareads_per_sample',
+            'juicer']))
+include { ATAC_PEAK
+    } from '../subworkflows/local/callatacpeak' addParams(
+        options: getSubWorkFlowParam(modules, [
+            'pairtools_select_short', 'merge_reads', 'shift_reads',
+            'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample',
+            'merge_peak', 'atacqc', 'bedtools_genomecov_per_group',
+            'bedtools_genomecov_per_sample', 'bedtools_sort_per_group',
+            'bedtools_sort_per_sample', 'ucsc_bedclip',
+            'ucsc_bedgraphtobigwig_per_group',
+            'ucsc_bedgraphtobigwig_per_sample']))
+include { R1_PEAK
+    } from '../subworkflows/local/calldistalpeak' addParams(
+        options: getSubWorkFlowParam(modules, [
+            'merge_r1reads', 'r1reads', 'macs2_callr1peak',
+            'dump_r1_reads_per_group', 'dump_r1_reads_per_sample',
+            'merge_r1peak', 'r1qc', 'bedtools_genomecov_per_group',
+            'bedtools_genomecov_per_sample', 'bedtools_sort_per_group',
+            'bedtools_sort_per_sample', 'ucsc_bedclip',
+            'ucsc_bedgraphtobigwig_per_r1_group',
+            'ucsc_bedgraphtobigwig_per_r1_sample']))
+include { HI_PEAK
+    } from '../subworkflows/local/hipeak' addParams(
+        options: getSubWorkFlowParam(modules, [
+            'parepare_counts', 'call_hipeak', 'assign_type',
+            'diff_hipeak', 'chippeakanno_hipeak',
+            'chippeakanno_diffhipeak',
+            'pair2bam']))
+include { MAPS_MULTIENZYME
+    } from '../subworkflows/local/multienzyme'   addParams(
+        options: getSubWorkFlowParam(modules, [
+            'maps_cut', 'maps_fend', 'genmap_index',
+            'genmap_mappability', 'ucsc_wigtobigwig',
+            'maps_mapability', 'maps_merge',
+            'maps_feature', 'ensembl_ucsc_convert']))
+include { MAPS_PEAK
+    } from '../subworkflows/local/maps_peak' addParams(
+        options: getSubWorkFlowParam(modules, [
+            'maps_maps', 'maps_callpeak', 'maps_stats', 'maps_reformat']))
+include { RUN_CIRCOS
+    } from '../subworkflows/local/circos' addParams(
+        options: getSubWorkFlowParam(modules, ['circos_prepare', 'circos']))
 /*
-========================================================================================
+================================================================================
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
-========================================================================================
+================================================================================
 */
 
 def multiqc_options   = modules['multiqc']
-multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+multiqc_options.args += params.multiqc_title ?
+                        Utils.joinModuleArgs(
+                            ["--title \"$params.multiqc_title\""]) : ''
 
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC         } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
-include { CUTADAPT       } from '../modules/nf-core/modules/cutadapt/main' addParams(options: getParam(modules, 'cutadapt'))
-include { BWA_MEM        } from '../modules/nf-core/modules/bwa/mem/main'  addParams(options: getParam(modules, 'bwa_mem'))
-include { SAMTOOLS_MERGE } from '../modules/nf-core/modules/samtools/merge/main'  addParams(options: getParam(modules, 'samtools_merge'))
-include { MULTIQC        } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
-include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main' addParams( options: [publish_files : ['_versions.yml':'']] )
+include { FASTQC
+    } from '../modules/nf-core/modules/fastqc/main'  addParams(
+        options: modules['fastqc'] )
+include { CUTADAPT
+    } from '../modules/nf-core/modules/cutadapt/main' addParams(
+        options: getParam(modules, 'cutadapt'))
+include { BWA_MEM
+    } from '../modules/nf-core/modules/bwa/mem/main'  addParams(
+        options: getParam(modules, 'bwa_mem'))
+include { SAMTOOLS_MERGE
+    } from '../modules/nf-core/modules/samtools/merge/main'  addParams(
+        options: getParam(modules, 'samtools_merge'))
+include { MULTIQC
+    } from '../modules/nf-core/modules/multiqc/main' addParams(
+        options: multiqc_options   )
+include { CUSTOM_DUMPSOFTWAREVERSIONS
+    } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main' addParams(
+        options: [publish_files : ['_versions.yml':'']] )
 
 /*
-========================================================================================
+================================================================================
     RUN MAIN WORKFLOW
-========================================================================================
+================================================================================
 */
 
 // Info required for completion email and summary
@@ -296,8 +393,15 @@ workflow HICAR {
     MAPS_PEAK(maps_input, ch_make_maps_runfile_source)
     ch_software_versions = ch_software_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
 
-    MAPS_PEAK.out.peak.map{[it[0].id+'.'+it[1]+'.contacts', getPublishedFolder(modules, 'maps_reformat', [:])+it[2].name]}
-        .mix(ATAC_PEAK.out.bws.map{[it[0].id+"_R2", getPublishedFolder(modules, 'ucsc_bedgraphtobigwig_per_group', [:])+it[1].name]})
+    MAPS_PEAK.out.peak.map{[it[0].id+'.'+it[1]+'.contacts',
+                            getPublishedFolder( modules,
+                                                'maps_reformat',
+                                                [:])+it[2].name]}
+        .mix(ATAC_PEAK.out
+                    .bws.map{[it[0].id+"_R2",
+                        getPublishedFolder( modules,
+                                            'ucsc_bedgraphtobigwig_per_group',
+                                            [:])+it[1].name]})
         .set{ch_trackfiles} // collect track files for igv
 
     //
@@ -311,7 +415,10 @@ workflow HICAR {
             PREPARE_GENOME.out.gtf
         )
         ch_software_versions = ch_software_versions.mix(R1_PEAK.out.versions.ifEmpty(null))
-        ch_trackfiles = ch_trackfiles.mix(R1_PEAK.out.bws.map{[it[0].id+"_R1", getPublishedFolder(modules, 'ucsc_bedgraphtobigwig_per_r1_group', [:])+it[1].name]})
+        ch_trackfiles = ch_trackfiles.mix(
+            R1_PEAK.out.bws.map{[it[0].id+"_R1",
+                getPublishedFolder(modules,
+                    'ucsc_bedgraphtobigwig_per_r1_group', [:])+it[1].name]})
 
         // merge ATAC_PEAK with R1_PEAK by group id
         distalpair = PAIRTOOLS_PAIRE.out.hdf5.map{meta, bed -> [meta.group, bed]}
@@ -330,7 +437,12 @@ workflow HICAR {
             params.skip_diff_analysis
         )
         ch_software_versions = ch_software_versions.mix(HI_PEAK.out.versions.ifEmpty(null))
-        ch_trackfiles = ch_trackfiles.mix(HI_PEAK.out.bedpe.map{[it[0].id+"_HiPeak", getPublishedFolder(modules, 'assign_type', [:])+it[1].name]})
+        ch_trackfiles = ch_trackfiles.mix(
+            HI_PEAK.out.bedpe
+                    .map{[it[0].id+"_HiPeak",
+                        getPublishedFolder( modules,
+                                            'assign_type',
+                                            [:])+it[1].name]})
 
         RUN_CIRCOS(
             HI_PEAK.out.bedpe,
@@ -347,7 +459,10 @@ workflow HICAR {
     //
     ch_trackfiles.collect{it.join('\t')}
         .flatten()
-        .collectFile(name:'track_files.txt', storeDir:getPublishedFolder(modules, 'igv', params), newLine: true, sort:{it[0]})
+        .collectFile(
+            name     :'track_files.txt',
+            storeDir :getPublishedFolder(modules, 'igv', params),
+            newLine  : true, sort:{it[0]})
         .set{ igv_track_files }
     //igv_track_files.view()
     IGV(igv_track_files, PREPARE_GENOME.out.ucscname)
@@ -364,10 +479,16 @@ workflow HICAR {
         BIOC_CHIPPEAKANNO_MAPS(ch_maps_anno, PREPARE_GENOME.out.gtf)
         ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO_MAPS.out.versions.ifEmpty(null))
         if(params.virtual_4c){
-            BIOC_CHIPPEAKANNO_MAPS.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
-                                        .groupTuple()
-                                        .map{bin, df -> [bin, df[0], df[1]]}
-                                        .set{ch_maps_trackviewer}
+            BIOC_CHIPPEAKANNO_MAPS.out.csv
+                .mix(
+                    COOLER.out.mcool
+                        .map{
+                                meta, mcool ->
+                                    [meta.bin, mcool]}
+                        .groupTuple())
+                .groupTuple()
+                .map{bin, df -> [bin, df[0], df[1]]}
+                .set{ch_maps_trackviewer}
             //ch_maps_trackviewer.view()
             BIOC_TRACKVIEWER_MAPS(
                 ch_maps_trackviewer,
@@ -387,7 +508,8 @@ workflow HICAR {
             .map{meta, bin_size, peak -> [bin_size, peak]}
             .groupTuple()
             .cross(COOLER.out.samplebedpe.map{[it[0].bin, it[1]]}.groupTuple())
-            .map{ peak, long_bedpe -> [peak[0], peak[1].flatten(), long_bedpe[1].flatten()] }//bin_size, meta, peak, long_bedpe
+            .map{ peak, long_bedpe ->
+                [peak[0], peak[1].flatten(), long_bedpe[1].flatten()] }//bin_size, meta, peak, long_bedpe
             .groupTuple()
             .map{[it[0], it[1].flatten().unique(), it[2].flatten()]}
             .filter{it[1].size > 1} // filter by the bedpe files. Single bedpe means single group, no need to do differential analysis
@@ -401,14 +523,19 @@ workflow HICAR {
                 BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
                 ch_software_versions = ch_software_versions.mix(BIOC_CHIPPEAKANNO.out.versions.ifEmpty(null))
                 if(PREPARE_GENOME.out.ucscname && !params.skip_enrichment){
-                    BIOC_ENRICH(BIOC_CHIPPEAKANNO.out.anno.filter{it.size()>0}, PREPARE_GENOME.out.ucscname)
+                    BIOC_ENRICH(
+                        BIOC_CHIPPEAKANNO.out.anno.filter{it.size()>0},
+                        PREPARE_GENOME.out.ucscname)
                     ch_software_versions = ch_software_versions.mix(BIOC_ENRICH.out.versions.ifEmpty(null))
                 }
                 if(params.virtual_4c){
-                    BIOC_CHIPPEAKANNO.out.csv.mix(COOLER.out.mcool.map{meta, mcool -> [meta.bin, mcool]}.groupTuple())
-                                                .groupTuple()
-                                                .map{bin, df -> [bin, df[0], df[1]]}
-                                                .set{ch_trackviewer}
+                    BIOC_CHIPPEAKANNO.out.csv
+                        .mix(COOLER.out.mcool
+                                .map{meta, mcool -> [meta.bin, mcool]}
+                                .groupTuple())
+                        .groupTuple()
+                        .map{bin, df -> [bin, df[0], df[1]]}
+                        .set{ch_trackviewer}
                     //ch_trackviewer.view()
                     BIOC_TRACKVIEWER(
                         ch_trackviewer,
@@ -466,9 +593,9 @@ workflow HICAR {
 }
 
 /*
-========================================================================================
+================================================================================
     COMPLETION EMAIL AND SUMMARY
-========================================================================================
+================================================================================
 */
 
 workflow.onComplete {
@@ -477,7 +604,7 @@ workflow.onComplete {
 }
 
 /*
-========================================================================================
+================================================================================
     THE END
-========================================================================================
+================================================================================
 */
