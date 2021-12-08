@@ -61,17 +61,6 @@ process PAIR2BAM {
     getPath <- function(root, ...){
         paste(root, ..., sep="/")
     }
-    readPairs <- function(pair){
-        inf <- H5Fopen(pair)
-        on.exit(H5Fclose(inf))
-        pc <- lapply(idx, function(.ele){
-            n <- getPath("data", chrom1, chrom2, .ele, "position")
-            if(H5Lexists(inf, n)){
-                h5read(inf, n)
-            }
-        })
-        pc <- do.call(rbind, pc)
-    }
     createReadsName <- function(ids, width=6, prefix="r"){
         paste0(prefix, formatC(ids, width=width, flag="0"))
     }
@@ -132,6 +121,7 @@ process PAIR2BAM {
             }
         }
         close(sam_con)
+        h5closeAll()
         on.exit()
         si <- do.call(rbind, strsplit(header, "\\\\t"))
         si <- as.numeric(sub("LN:", "", si[, 3]))

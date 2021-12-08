@@ -191,7 +191,7 @@ process BIOC_PAIRS2HDF5 {
         block_idx
     }
     read_hd5_write_hd5 <- function(in_h5, out_h5, block_idx){
-        input <- H5Fopen(in_h5)
+        input <- H5Fopen(in_h5, flags="H5F_ACC_RDONLY")
         on.exit(H5Fclose(input))
         total <- lapply(names(block_idx), function(n){
             if(H5Lexists(input, n)){
@@ -216,6 +216,9 @@ process BIOC_PAIRS2HDF5 {
     root <- "data"
     for(inf in infs){
         out <- sub(pattern, "h5", basename(inf))
+        if(!h5testFileLocking(dirname(inf))){
+            h5disableFileLocking()
+        }
         h5createFile(out)
         #header start as comment char'#'
         header <- getHeader(inf)

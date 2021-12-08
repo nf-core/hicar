@@ -81,13 +81,16 @@ process DIFF_HIPEAK {
         h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
         n <- h5content[grepl(paste0("data.", chrom1, ".", chrom2), h5content)]
         n <- getPath(n, "position")
-        inf <- H5Fopen(pair)
+        inf <- H5Fopen(pair, flags="H5F_ACC_RDONLY")
         on.exit({H5Fclose(inf)})
         pc <- lapply(n, function(.ele){
             if(H5Lexists(inf, .ele)){
                 h5read(inf, .ele)
             }
         })
+        H5Fclose(inf)
+        h5closeAll()
+        on.exit()
         pc <- do.call(rbind, pc)
     }
     pc <- dir("pairs", "h5\$", full.names = FALSE)

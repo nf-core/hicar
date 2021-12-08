@@ -176,7 +176,7 @@ process BIOC_TRACKVIEWER {
         idx <- getIndex(range, tileWidth)
         idx <- expand.grid(idx, idx)
         idx <- paste(idx[, 1], idx[, 2], sep="_")
-        inf <- H5Fopen(pair)
+        inf <- H5Fopen(pair, flags="H5F_ACC_RDONLY")
         on.exit(H5Fclose(inf))
         pc <- lapply(idx, function(.ele){
             n <- getPath("data", chrom, chrom, .ele, "position")
