@@ -1,0 +1,6 @@
+callatacpeak:
+  - subworkflows/local/callatacpeak.nf
+  - tests/workflow/callatacpeak/**
+calldistalpeak:
+  - subworkflows/local/calldistalpeak.nf
+  - tests/workflow/calldistalpeak/**

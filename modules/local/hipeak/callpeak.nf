@@ -70,8 +70,15 @@ process CALL_HIPEAK {
     }
 
     ## doing statistics and resampling
-    checkdata <- function(mm){
-        mf <- vglm(count ~ logl + loggc + logm + logdist + logShortCount + logn, family = pospoisson(), data = mm, method="model.frame")
+    getFormula <- function(mm){
+        coln <- c("logl", "loggc", "logm", "logdist", "logShortCount", "logn")
+        ln <- vapply(coln, FUN=function(.ele){
+            length(unique(mm[, .ele]))>1
+        }, FUN.VALUE=logical(1))
+        paste("count ~", paste(coln[ln], collapse="+"))
+    }
+    checkdata <- function(mm, formula){
+        mf <- vglm(formula=as.formula(formula), family = pospoisson(), data = mm, method="model.frame")
         y <- model.response(mf, "any")
         w <- model.weights(mf)
         if (!length(w)) {
@@ -86,25 +93,24 @@ process CALL_HIPEAK {
             tag = FALSE))
         ll.elts <- dgaitpois(y, lambda, truncate = 0, log = TRUE)
     }
-    trimData <- function(mm){
-        ll.elts <- checkdata(mm)
+    trimData <- function(mm, formula){
+        ll.elts <- checkdata(mm, formula)
         while(any(is.infinite(ll.elts))){
             mm <- mm[!is.infinite(ll.elts), , drop=FALSE]
-            ll.elts <- checkdata(mm)
+            ll.elts <- checkdata(mm, formula)
         }
         mm
     }
     pospoisson_regression <- function(mm) {
         dataset_length<- nrow(mm)
-        mm <- trimData(mm)
-        fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount + logn, family = pospoisson(), data = mm)
-        # fit <- vglm(count ~ loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm)
+        formula <- getFormula(mm)
+        mm <- trimData(mm, formula)
+        fit <- vglm(formula=as.formula(formula), family = pospoisson(), data = mm)
         mm\$expected = fitted(fit)
         mm\$p_val = ppois(mm\$count, mm\$expected, lower.tail = FALSE, log.p = FALSE) / ppois(0, mm\$expected, lower.tail = FALSE, log.p = FALSE)
         m1 = mm[ mm\$p_val > 1/length(mm\$p_val),]
-        m1 <- trimData(m1)
-        fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount + logn, family = pospoisson(), data = m1)
-        # fit <- vglm(count ~  loggc + logm + logdist + logShortCount, family = pospoisson(), data = m1)
+        m1 <- trimData(m1, formula)
+        fit <- vglm(formula=as.formula(formula), family = pospoisson(), data = m1)
         coeff<-round(coef(fit),10)
         mm\$expected2 <- round(exp(coeff[1] + coeff[2]*mm\$logl + coeff[3]*mm\$loggc + coeff[4]*mm\$logm + coeff[5]*mm\$logdist + coeff[6]*mm\$logShortCount + coeff[7]*mm\$logn), 10)
         # mm\$expected2 <- round(exp(coeff[1]  + coeff[2]*mm\$loggc + coeff[3]*mm\$logm + coeff[4]*mm\$logdist + coeff[5]*mm\$logShortCount), 10)
@@ -117,15 +123,14 @@ process CALL_HIPEAK {
     }
 
     negbinom_regression <- function(mm) {
-        fit <- glm.nb(count ~ logl + loggc + logm + logdist + logShortCount + logn, data = mm)
-        # fit <- glm.nb(count ~  loggc + logm + logdist + logShortCount, data = mm)
+        formula <- getFormula(mm)
+        fit <- glm.nb(formula=as.formula(formula), data = mm)
         mm\$expected = fitted(fit)
         sze = fit\$theta ##size parameter
         mm\$p_val = pnbinom(mm\$count, mu = mm\$expected, size = sze, lower.tail = FALSE)
         m1 = mm[ mm\$p_val > ( 1 / length(mm\$p_val)),]
         ## second regression
-        fit <- glm.nb(count ~ logl + loggc + logm + logdist + logShortCount + logn, data = m1)
-        # fit <- glm.nb(count ~  loggc + logm + logdist + logShortCount, data = m1)
+        fit <- glm.nb(formula=as.formula(formula), data = m1)
         coeff<-round(fit\$coefficients,10)
         sze = fit\$theta
         mm\$expected2 <- round(exp(coeff[1] + coeff[2]*mm\$logl + coeff[3]*mm\$loggc + coeff[4]*mm\$logm + coeff[5]*mm\$logdist + coeff[6]*mm\$logShortCount) + coeff[7]*mm\$logn, 10) ## mu parameter

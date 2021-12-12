@@ -209,7 +209,7 @@
                 },
                 "r1_qval_thresh": {
                     "type": "number",
-                    "description": "cutoff qvalue for R1 by MACS2",
+                    "description": "cutoff qvalue for fragment (R1) by MACS2",
                     "fa_icon": "fas fa-filter",
                     "hidden": false,
                     "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noisy compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
@@ -306,6 +306,13 @@
                     "hidden": true,
                     "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/MAPS/make_maps_runfile.py",
                     "default": "https://raw.githubusercontent.com/ijuric/MAPS/18c1a337f222130d7c5735d051614e2a253d5319/bin/MAPS/make_maps_runfile.py"
+                },
+                "remove_dup":{
+                    "type": "boolean",
+                    "description": "remove duplicates for high resolution peaks or not",
+                    "fa_icon": "fas fa-mountain",
+                    "hidden": true,
+                    "default": false
                 }
             }
         },

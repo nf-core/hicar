@@ -15,7 +15,7 @@ include { PAIR2BAM                  } from '../../modules/local/bioc/pair2bam'  
 
 workflow HI_PEAK {
     take:
-    peaks                // channel: [ meta, r2peak, p1peak, distalpair ]
+    peaks                // channel: [ meta, r2peak, r1peak, distalpair ]
     gtf                  // channel: [ path(gtf) ]
     fasta                // channel: [ path(fasta) ]
     digest_genome        // channel: [ path(digest_genome) ]

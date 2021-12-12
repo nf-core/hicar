@@ -106,7 +106,7 @@ process ASSIGN_TYPE {
 
         group <- unique(rbind(as.data.frame(ol1), as.data.frame(ol2)))
         colnames(group) <- c("from", "to")
-        group\$weight <- 1L
+        group\$weight <- rep(1L, nrow(group))
         group <- split(group, seqnames(first(gi)[group\$from]))
         group <- lapply(group, function(.ele){
             .ele <- graphBAM(.ele)
@@ -120,7 +120,9 @@ process ASSIGN_TYPE {
         final\$Cluster[group\$id] <- group\$g
         final\$ClusterSize <- 0
         final\$ClusterSize[group\$id] <- table(group\$g)[group\$g]
-        final\$Cluster[is.na(final\$Cluster)] <- seq(from=max(group\$g)+1, to=max(group\$g)+sum(is.na(final\$Cluster)))
+        max_group <- max(group\$g)
+        if(is.infinite(max_group)) max_group <- 0
+        final\$Cluster[is.na(final\$Cluster)] <- seq(from=max_group+1, to=max_group+sum(is.na(final\$Cluster)))
         final\$NegLog10P <- -log10( final\$p_val_reg2 )
         final\$NegLog10P[is.na(final\$NegLog10P)] <- 0
         final\$NegLog10P[is.infinite(final\$NegLog10P)] <- max(final\$NegLog10P[!is.infinite(final\$NegLog10P)]+1)
@@ -164,7 +166,7 @@ process ASSIGN_TYPE {
 
     peaks <- if(nrow(mm)>0) subset(mm, count >= COUNT_CUTOFF & ratio2 >= RATIO_CUTOFF & -log10(fdr) > FDR) else data.frame()
     if (dim(peaks)[1] == 0) {
-        print(paste('ERROR caller_hipeak.r: 0 bin pairs with count >= ',COUNT_CUTOFF,' observed/expected ratio >= ',RATIO_CUTOFF,' and -log10(fdr) > ',fdr_cutoff,sep=''))
+        print(paste('ERROR caller_hipeak.r: 0 bin pairs with count >= ',COUNT_CUTOFF,' observed/expected ratio >= ',RATIO_CUTOFF,' and -log10(fdr) > ',FDR,sep=''))
         quit()
     }
 

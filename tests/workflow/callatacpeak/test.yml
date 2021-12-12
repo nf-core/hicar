@@ -1,0 +1,17 @@
+- name: subworkflow callatacpeak
+  command: nextflow run tests/workflow/callatacpeak/ -entry test_call_atac_peak -c tests/config/nextflow.config
+  tags:
+    - callatacpeak
+  files:
+    - path: output/ATACpeak/QC/TSSEscore_FRiP.csv
+    - path: output/ATACpeak/QC/aggregateTSSEscoreToTSS.csv
+    - path: output/ATACpeak/merged_peaks/merged_peak.bed
+    - path: output/ATACpeak/peaks_per_Group/gp1_control_lambda.bdg
+    - path: output/ATACpeak/peaks_per_Group/gp1_treat_pileup.bdg
+    - path: output/ATACpeak/peaks_per_Group/gp1_summits.bed
+    - path: output/ATACpeak/peaks_per_Group/gp1_peaks.xls
+    - path: output/ATACpeak/peaks_per_Group/gp1_peaks.narrowPeak
+    - path: output/ATACpeak/R2_bigwig/byGroup/gp1.bigWig
+    - path: output/ATACpeak/R2_bigwig/Tn5InsSitesBySample/test.bigWig
+    - path: output/results.txt
+      md5sum: 21da93069c74dfbc3c02999e8f27a712

@@ -81,11 +81,11 @@ process PREPARE_COUNTS {
     getPath <- function(root, ...){
         paste(root, ..., sep="/")
     }
-    readPairs <- function(pair, chrom1, chrom2, gi){
-        tileWidth <- h5read(pair, "header/tile_width")
+    readPairs <- function(pair, chrom1, chrom2){
         h5content <- h5ls(pair)
         h5content <- h5content[, "group"]
         h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
+        h5content <- unique(h5content)
         n <- h5content[grepl(paste0("data.", chrom1, ".", chrom2), h5content)]
         n <- getPath(n, "position")
         inf <- H5Fopen(pair, flags="H5F_ACC_RDONLY")
@@ -142,7 +142,7 @@ process PREPARE_COUNTS {
             gi <- GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
             rm(peak_pair)
             gc(reset=TRUE)
-            reads <- lapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2, gi=gi)
+            reads <- lapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2)
             h5closeAll()
             reads <- do.call(rbind, c(reads, make.row.names = FALSE))
             if(length(reads)){

@@ -106,7 +106,9 @@ process ATACQC {
 
     ## for TSSEscore to TSS plots
     tsse <- do.call(rbind, lapply(stats, function(.ele) .ele\$tsseValues))
-    colnames(tsse) <- 100*(-9:10-.5)
-    write.csv(tsse, "aggregateTSSEscoreToTSS.csv")
+    if(ncol(tsse)==20){
+        colnames(tsse) <- 100*(-9:10-.5)
+        write.csv(tsse, "aggregateTSSEscoreToTSS.csv")
+    }
     """
 }
