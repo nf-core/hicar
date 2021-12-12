@@ -27,6 +27,7 @@ process BIOC_PAIRS2HDF5 {
     path "versions.yml"           , emit: versions
 
     script:
+
     """
     #!/usr/bin/env Rscript
 
@@ -61,6 +62,10 @@ process BIOC_PAIRS2HDF5 {
     pattern <- "unselected.pairs.gz" ## this is from upstream output file.
     tileWidth <- 1e7 # this will create about 200 groups for human data
     block_size <- 1e6 # the size of block for tempfile
+    keepDup <- FALSE # remove duplicates or not
+    if(grepl("keep-dup", "$options.args")){
+        keepDup <- TRUE
+    }
     chrom_sizes <- read.delim("$chromsizes", header=FALSE)
     infs <- "$pairs"
     infs <- strsplit(infs, "\\\\s+")[[1]]
@@ -80,7 +85,8 @@ process BIOC_PAIRS2HDF5 {
         on.exit()
         header
     }
-    getData <- function(f, block_size){
+    getData <- function(f, block_size, n=7){
+        if(n<0) return(data.frame())
         pc <- try({read.table(f, nrow=block_size, comment.char = "#",
                             colClasses=c(
                                 "NULL", # reads name, skip
@@ -90,7 +96,7 @@ process BIOC_PAIRS2HDF5 {
                                 "integer", # start2
                                 "character", #strand1
                                 "character", #strand2
-                                rep("NULL", 7)))}, silent = TRUE)
+                                rep("NULL", n)))}, silent = TRUE)
         if(inherits(pc, "try-error")){
             data.frame()
         }else{
@@ -128,6 +134,9 @@ process BIOC_PAIRS2HDF5 {
         }
     }
     read_pair_write_hd5 <- function(inf, out, root){
+        ## check ncol
+        h <- read.table(inf, nrow=1, comment.char = "#")
+        n <- ncol(h) - 7
         f <- gzfile(inf, open = "r")
         out <- H5Fopen(out)
         on.exit({
@@ -137,7 +146,7 @@ process BIOC_PAIRS2HDF5 {
         block_idx <- list()
         createGroup(out, root)
 
-        while(nrow(pc <- getData(f, block_size))>0){
+        while(nrow(pc <- getData(f, block_size, n))>0){
             pc <- split(pc, pc[, 1])
             for(i in names(pc)){
                 createGroup(out, getPath(root, i))
@@ -190,7 +199,7 @@ process BIOC_PAIRS2HDF5 {
         on.exit()
         block_idx
     }
-    read_hd5_write_hd5 <- function(in_h5, out_h5, block_idx){
+    read_hd5_write_hd5 <- function(in_h5, out_h5, block_idx, keepDup){
         input <- H5Fopen(in_h5, flags="H5F_ACC_RDONLY")
         on.exit(H5Fclose(input))
         total <- lapply(names(block_idx), function(n){
@@ -200,7 +209,8 @@ process BIOC_PAIRS2HDF5 {
                     strand <- h5read(input, getPath(n, block, "strand"))
                     cbind(as.data.frame(pos), as.data.frame(strand))
                 })
-                pc <- unique(do.call(rbind, pc))
+                pc <- do.call(rbind, pc)
+                if(!keepDup) pc <- unique(pc)
                 h5createGroup(out_h5, n)
                 pos <- getPath(n, "position")
                 h5write(as.matrix(pc[, c(1, 2)]), out_h5, pos)
@@ -242,8 +252,8 @@ process BIOC_PAIRS2HDF5 {
         tmp_h5 <- tempfile(fileext = "h5")
         h5createFile(tmp_h5)
         block_idx <- try(read_pair_write_hd5(inf, tmp_h5, root))
-        #remove duplicates
-        total <- read_hd5_write_hd5(tmp_h5, out, block_idx)
+        #rewrite
+        total <- read_hd5_write_hd5(tmp_h5, out, block_idx, keepDup)
         h5write(total, out, "header/total")
         h5closeAll()
         unlink(tmp_h5)
