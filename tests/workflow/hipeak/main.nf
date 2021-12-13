@@ -2,7 +2,8 @@
 
 nextflow.enable.dsl = 2
 
-// run test: PROFILE=docker nextflow run tests/workflow/hipeak/ -entry test_call_hi_peak -c tests/config/nextflow.config
+// run test: PROFILE=docker pytest --tag callhipeak --symlink --kwdof
+// run simulate: PROFILE=docker nextflow run path/to/nf-core-hicar/tests/workflow/hipeak/ -entry test_call_hi_peak -c path/to/nf-core-hicar/nextflow.config,path/to/nf-core-hicar/tests/config/nextflow.config --reads 1e6
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 def getSubWorkFlowParam(modules, mods) {
@@ -70,6 +71,7 @@ process CREATE_PAIRS {
     path gtf
     path digest_genome_bed
     val reads
+    val seed
 
     output:
     path "$peak1"       , emit: peak1
@@ -92,7 +94,7 @@ process CREATE_PAIRS {
     library(GenomicFeatures)
     library(InteractionSet)
     options(scipen=10)
-    set.seed(123)
+    set.seed($seed)
     peak_num_1 <- 10000      # fake R1 events
     peak_num_2 <- 1000       # fake R2 events
     real_r1 <- 1000          # real R1 events
@@ -156,7 +158,8 @@ process CREATE_PAIRS {
     ol <- findOverlaps(peaks2, r1s, maxgap=1e3)
     q1 <- split(subjectHits(ol), queryHits(ol))
     keep <- unique(queryHits(ol))
-    atac_ids <- rtnorm(length(keep), mean = peak_reads_num*.6/length(peaks2), sd = 6, min=1, max=100) # 60%
+    mn <- peak_reads_num*.6/length(peaks2)
+    atac_ids <- rtnorm(length(keep), mean = mn, sd = mn/10, min=mn/2, max=mn*10) # 60%
     atac_r2_ids <- mapply(lengths(q2[keep]), atac_ids, FUN=sample.int, replace=TRUE, SIMPLIFY=FALSE)
     atac_r2_ids <- c(atac_r2_ids[[1]], mapply(cumsum(lengths(q2[keep][-length(q2[keep])])), atac_r2_ids[-1], FUN=`+`, SIMPLIFY=FALSE))
     r2_atac <- unlist(q2[keep])[unlist(atac_r2_ids)]
@@ -165,7 +168,8 @@ process CREATE_PAIRS {
     r1_atac <- r1s[unlist(q1)[unlist(atac_r1_ids)]]
 
     ## generate real reads
-    mcols(real_gi)[, "counts"] <- rtnorm(real_conn_num, mean=peak_reads_num*.4/real_conn_num, sd=6, min=4, max=100)
+    mn <- peak_reads_num*.4/real_conn_num
+    mcols(real_gi)[, "counts"] <- rtnorm(real_conn_num, mean=mn, sd=mn/2, min=mn/10, max=mn*10)
     ol <- findOverlaps(first(real_gi), r1s)
     ols <- split(subjectHits(ol), queryHits(ol))
     r1_ids <- mapply(lengths(ols), mcols(real_gi)[, "counts"], FUN=sample, replace=TRUE, SIMPLIFY=FALSE)
@@ -298,7 +302,7 @@ workflow test_call_hi_peak {
         chromsizes,
         params.enzyme
     ).bed
-    CREATE_PAIRS(chromsizes, gtf, digest_genome_bed, params.reads)
+    CREATE_PAIRS(chromsizes, gtf, digest_genome_bed, params.reads, params.seed)
     ATAC_PEAK(
         GUNZIP2(CREATE_PAIRS.out.pairs.map{[[id:"test", group:"gp1"], it]}).gunzip,
         chromsizes,

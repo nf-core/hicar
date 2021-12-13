@@ -4,7 +4,7 @@
     - callhipeak
   files:
     - path: output/HiPeak/test.1.peaks
-    - path: output/HiPeak/test.1.bedped
+    - path: output/HiPeak/test.1.bedpe
     - path: output/HiPeak/summary.test.txt
     - path: output/HiPeak/distalpair_in_peak_bams_4_igv/test.bam
     - path: output/HiPeak/distalpair_in_peak_bams_4_igv/test.bam.bai
