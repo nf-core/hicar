@@ -52,7 +52,6 @@ workflow HI_PEAK {
         hipeaks = ASSIGN_TYPE.out.peak.map{it[1]}.collect().filter{it.size()>1}
         if(hipeaks){
             DIFF_HIPEAK(hipeaks,
-                        ASSIGN_TYPE.out.summary.map{it[1]}.collect(),
                         peaks.map{it[3]}.collect())
             ch_version = ch_version.mix(DIFF_HIPEAK.out.versions.ifEmpty(null))
             stats = DIFF_HIPEAK.out.stats

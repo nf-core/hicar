@@ -11,7 +11,7 @@ process DIFF_HIPEAK {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-diffhic=1.24.0" : null)
-    if (workflow.containerEnHiPeakne == 'singularity' && !params.singularity_pull_docker_container) {
+    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/bioconductor-diffhic:1.24.0--r41h399db7b_0 "
     } else {
         container "quay.io/biocontainers/bioconductor-diffhic:1.24.0--r41h399db7b_0"
@@ -19,7 +19,6 @@ process DIFF_HIPEAK {
 
     input:
     path peaks, stageAs: "peaks/*"
-    path summary, stageAs: "summary/*"
     path distalpair, stageAs: "pairs/*"
 
     output:
@@ -57,7 +56,7 @@ process DIFF_HIPEAK {
     ### reduce the peaks
     peaks <- unique(do.call(rbind, peaks)[, c("chr1", "start1", "end1",
                                             "chr2", "start2", "end2")])
-    peaks <- with(peaks, HiPeaknteractions(GRanges(chr1, IRanges(start1, end1)),
+    peaks <- with(peaks, GInteractions(GRanges(chr1, IRanges(start1, end1)),
                                         GRanges(chr2, IRanges(start2, end2))))
     reducePeaks <- function(x){
         y <- reduce(x)
@@ -68,7 +67,7 @@ process DIFF_HIPEAK {
     }
     first <- reducePeaks(first(peaks))
     second <- reducePeaks(second(peaks))
-    peaks <- unique(HiPeaknteractions(first, second))
+    peaks <- unique(GInteractions(first, second))
 
     ## get counts
     getPath <- function(root, ...){
@@ -105,9 +104,9 @@ process DIFF_HIPEAK {
             if(length(ps)<1){
                 return(NULL)
             }
-            ps <- HiPeaknteractions(GRanges(chrom1, IRanges(ps[, 1], width=150)),
+            ps <- GInteractions(GRanges(chrom1, IRanges(ps[, 1], width=150)),
                                 GRanges(chrom2, IRanges(ps[, 2], width=150)))
-            counts_tab <- countOverlaps(.peak, ps, use.reHiPeakon="both")
+            counts_tab <- countOverlaps(.peak, ps, use.region="both")
             counts_tab <- cbind(ID=.peak\$ID, counts_tab)
             list(count=counts_tab, total=counts_total)
         })
