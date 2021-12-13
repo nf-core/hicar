@@ -16,9 +16,9 @@ include { ATACQC              } from '../../modules/local/atacreads/atacqc'     
 include { BEDTOOLS_GENOMECOV  } from '../../modules/nf-core/modules/bedtools/genomecov/main'  addParams(options: params.options.bedtools_genomecov_per_group)
 include { BEDTOOLS_GENOMECOV
     as BEDTOOLS_GENOMECOV_SAM } from '../../modules/nf-core/modules/bedtools/genomecov/main'  addParams(options: params.options.bedtools_genomecov_per_sample)
-include { BEDTOOLS_SORT       } from '../../modules/nf-core/modules/bedtools/sort/main'  addParams(options: params.options.bedtools_sort_per_group)
-include { BEDTOOLS_SORT
-    as BEDTOOLS_SORT_SAM      } from '../../modules/nf-core/modules/bedtools/sort/main'  addParams(options: params.options.bedtools_sort_per_sample)
+include { BEDFILES_SORT       } from '../../modules/local/atacreads/bedsort'          addParams(options: params.options.bedtools_sort_per_group)
+include { BEDFILES_SORT
+    as BEDFILES_SORT_SAM      } from '../../modules/local/atacreads/bedsort'          addParams(options: params.options.bedtools_sort_per_sample)
 include { UCSC_BEDCLIP        } from '../../modules/nf-core/modules/ucsc/bedclip/main'  addParams(options: params.options.ucsc_bedclip)
 include { UCSC_BEDGRAPHTOBIGWIG  } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'  addParams(options: params.options.ucsc_bedgraphtobigwig_per_group)
 include { UCSC_BEDGRAPHTOBIGWIG
@@ -61,17 +61,17 @@ workflow ATAC_PEAK {
 
     // dump ATAC reads for each group for maps
     DUMPREADS(MERGEREADS.out.bed)
-    BEDTOOLS_SORT(MACS2_CALLPEAK.out.bdg.map{[it[0], it[1].findAll{it.toString().contains('pileup')}]}, "bedgraph")
-    UCSC_BEDCLIP(BEDTOOLS_SORT.out.sorted, chromsizes)
+    BEDFILES_SORT(MACS2_CALLPEAK.out.bdg.map{[it[0], it[1].findAll{it.toString().contains('pileup')}]}, "bedgraph")
+    UCSC_BEDCLIP(BEDFILES_SORT.out.sorted, chromsizes)
     UCSC_BEDGRAPHTOBIGWIG(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
     DUMPREADS_SAMPLE(SHIFTREADS.out.bed)
     ch_version = ch_version.mix(DUMPREADS.out.versions)
     BEDTOOLS_GENOMECOV_SAM(SHIFTREADS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
-    BEDTOOLS_SORT_SAM(BEDTOOLS_GENOMECOV_SAM.out.genomecov, "bedgraph")
+    BEDFILES_SORT_SAM(BEDTOOLS_GENOMECOV_SAM.out.genomecov, "bedgraph")
     ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_SAM.out.versions)
-    UCSC_BEDGRAPHTOBIGWIG_SAM(BEDTOOLS_SORT_SAM.out.sorted, chromsizes)
+    UCSC_BEDGRAPHTOBIGWIG_SAM(BEDFILES_SORT_SAM.out.sorted, chromsizes)
     ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_SAM.out.versions)
 
     emit:
