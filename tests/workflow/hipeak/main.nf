@@ -43,7 +43,7 @@ include { ATAC_PEAK
 include { R1_PEAK
     } from '../../../subworkflows/local/calldistalpeak' addParams(
     options: getSubWorkFlowParam(modules, [
-        'merge_r1reads', 'r1reads', 'macs2_callr1peak',
+        'merge_r1reads', 'r1reads', 'call_r1peak',
         'dump_r1_reads_per_group', 'dump_r1_reads_per_sample',
         'merge_r1peak', 'r1qc', 'bedtools_genomecov_per_group',
         'bedtools_genomecov_per_sample', 'bedtools_sort_per_group',
@@ -59,6 +59,8 @@ include { HI_PEAK
             'pair2bam']))
 
 process CREATE_PAIRS {
+    publishDir "${params.outdir}/pairs",
+        mode: "copy"
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0"
@@ -274,13 +276,14 @@ process CHECK_PEAKS {
     pct <- sum(peaks_gi\$count==peaks\$count)/length(peaks_gi)
     stopifnot("There are bugs in counting"=pct>.99)
     real_gi <- import("$interactions", format="bedpe")
-    detected <- subsetByOverlaps(peaks_gi, real_gi)
-    P <- length(real_gi)                   ## condition positive
-    N <- length(peaks1)*length(peaks2) - P ## condition negative
-    TP <- length(detected)                 ## True positive
-    FP <- length(peaks_gi) - TP            ## False positive
-    sensitivity <- TP/P                    ## sensitivity
-    FDR <- FP/length(peaks_gi)             ## false discovery rate
+    detected_r <- subsetByOverlaps(real_gi, peaks_gi)
+    detected_p <- subsetByOverlaps(peaks_gi, real_gi)
+    P <- length(real_gi)                             ## condition positive
+    N <- length(peaks1)*length(peaks2) - P           ## condition negative
+    TP <- length(detected_r)                         ## True positive
+    FP <- length(peaks_gi) - length(detected_p)      ## False positive
+    sensitivity <- TP/P                              ## sensitivity
+    FDR <- FP/length(peaks_gi)                       ## false discovery rate
     write.csv(c("Total reads"=nrow(reads),
                 "Total true connections"=P,
                 "True positive"=TP,
@@ -295,6 +298,7 @@ workflow test_call_hi_peak {
     fasta           = GUNZIP([[id:"test"],file(params.test_data.fasta, checkIfExists: true)]).gunzip.map{it[1]}
     chromsizes      = CHROMSIZES ( fasta ).sizes
     macs_gsize      = params.test_data.macs_gsize
+    pval            = params.r1_pval_thresh
     gtf             = file(params.test_data.gtf, checkIfExists: true)
     mappability     = file(params.test_data.mappability, checkIfExists: true)
     digest_genome_bed = COOLER_DIGEST (
@@ -312,8 +316,9 @@ workflow test_call_hi_peak {
     R1_PEAK(
         CREATE_PAIRS.out.distalpairs.map{[[id:"test", group:"gp1"], it]},
         chromsizes,
-        macs_gsize,
-        gtf
+        digest_genome_bed,
+        gtf,
+        pval
     )
     BIOC_PAIRS2HDF5(
         CREATE_PAIRS.out.pairs.map{[[id:"test", group:"gp1"], it]},

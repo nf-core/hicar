@@ -32,7 +32,6 @@ process R1READS {
     gunzip -c $pair | \\
         awk 'BEGIN {OFS="\t"};  /^[^#]/ { print \$2, \$3, \$3+1, "*", "*", \$6}' | \\
         sort -k1,1 -k2,2n | \\
-        uniq | \\
         gzip -nc > ${prefix}.R1.distal.bed.gz
 
     cat <<-END_VERSIONS > versions.yml

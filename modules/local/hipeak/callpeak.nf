@@ -75,7 +75,8 @@ process CALL_HIPEAK {
         ln <- vapply(coln, FUN=function(.ele){
             length(unique(mm[, .ele]))>1
         }, FUN.VALUE=logical(1))
-        paste("count ~", paste(coln[ln], collapse="+"))
+        list("formula"=paste("count ~", paste(coln[ln], collapse="+")),
+            "factor"=coln[ln])
     }
     checkdata <- function(mm, formula){
         mf <- vglm(formula=as.formula(formula), family = pospoisson(), data = mm, method="model.frame")
@@ -104,6 +105,8 @@ process CALL_HIPEAK {
     pospoisson_regression <- function(mm) {
         dataset_length<- nrow(mm)
         formula <- getFormula(mm)
+        fac <- formula[["factor"]]
+        formula <- formula[["formula"]]
         mm <- trimData(mm, formula)
         fit <- vglm(formula=as.formula(formula), family = pospoisson(), data = mm)
         mm\$expected = fitted(fit)
@@ -112,8 +115,7 @@ process CALL_HIPEAK {
         m1 <- trimData(m1, formula)
         fit <- vglm(formula=as.formula(formula), family = pospoisson(), data = m1)
         coeff<-round(coef(fit),10)
-        mm\$expected2 <- round(exp(coeff[1] + coeff[2]*mm\$logl + coeff[3]*mm\$loggc + coeff[4]*mm\$logm + coeff[5]*mm\$logdist + coeff[6]*mm\$logShortCount + coeff[7]*mm\$logn), 10)
-        # mm\$expected2 <- round(exp(coeff[1]  + coeff[2]*mm\$loggc + coeff[3]*mm\$logm + coeff[4]*mm\$logdist + coeff[5]*mm\$logShortCount), 10)
+        mm\$expected2 <- round(exp(coeff[1] + rowSums(t(coeff[-1]*t(mm[, fac])))), 10)
         mm\$expected2 <- mm\$expected2 /(1-exp(-mm\$expected2))
         mm\$ratio2 <- mm\$count / mm\$expected2
         mm\$p_val_reg2 = ppois(mm\$count, mm\$expected2, lower.tail = FALSE, log.p = FALSE) / ppois(0, mm\$expected2, lower.tail = FALSE, log.p = FALSE)
@@ -124,6 +126,8 @@ process CALL_HIPEAK {
 
     negbinom_regression <- function(mm) {
         formula <- getFormula(mm)
+        fac <- formula[["factor"]]
+        formula <- formula[["formula"]]
         fit <- glm.nb(formula=as.formula(formula), data = mm)
         mm\$expected = fitted(fit)
         sze = fit\$theta ##size parameter
@@ -133,8 +137,7 @@ process CALL_HIPEAK {
         fit <- glm.nb(formula=as.formula(formula), data = m1)
         coeff<-round(fit\$coefficients,10)
         sze = fit\$theta
-        mm\$expected2 <- round(exp(coeff[1] + coeff[2]*mm\$logl + coeff[3]*mm\$loggc + coeff[4]*mm\$logm + coeff[5]*mm\$logdist + coeff[6]*mm\$logShortCount) + coeff[7]*mm\$logn, 10) ## mu parameter
-        # mm\$expected2 <- round(exp(coeff[1]  + coeff[2]*mm\$loggc + coeff[3]*mm\$logm + coeff[4]*mm\$logdist + coeff[5]*mm\$logShortCount), 10) ## mu parameter
+        mm\$expected2 <- round(exp(coeff[1] + rowSums(t(coeff[-1]*t(mm[, fac])))), 10) ## mu parameter
         mm\$ratio2 <- mm\$count / mm\$expected2
         mm\$p_val_reg2 = pnbinom(mm\$count, mu = mm\$expected2, size = sze, lower.tail = FALSE)
         mm\$p_bonferroni = mm\$p_val_reg2 * nrow(mm)

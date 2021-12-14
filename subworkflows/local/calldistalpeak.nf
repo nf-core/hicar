@@ -3,11 +3,10 @@
  */
 params.options = [:]
 
-include { R1READS             } from '../../modules/local/atacreads/r1reads'          addParams(options: params.options.r1reads)
+include { R1READS             } from '../../modules/local/fragmentreads/r1reads'          addParams(options: params.options.r1reads)
 include { MERGEREADS
     as MERGE_R1READS          } from '../../modules/local/atacreads/mergereads'       addParams(options: params.options.merge_r1reads)
-include { MACS2_CALLPEAK
-    as MACS2_CALLR1PEAK       } from '../../modules/nf-core/modules/macs2/callpeak/main'            addParams(options: params.options.macs2_callr1peak)
+include { CALL_R1PEAK         } from '../../modules/local/fragmentreads/call_peak'    addParams(options: params.options.call_r1peak)
 include { DUMPREADS
     as DUMPR1READS            } from '../../modules/local/atacreads/dumpreads'        addParams(options: params.options.dump_r1_reads_per_group)
 include { DUMPREADS
@@ -27,10 +26,11 @@ include { UCSC_BEDGRAPHTOBIGWIG
 
 workflow R1_PEAK {
     take:
-    distalpair  // channel: [ val(meta), [pairs] ]
+    distalpair // channel: [ val(meta), [pairs] ]
     chromsizes // channel: [ path(size) ]
-    macs_gsize // channel: value
+    cut        // channel: [ path(cut) ]
     gtf        // channel: [ path(gtf) ]
+    pval       // val
 
     main:
     // extract and sort R1 reads
@@ -45,12 +45,12 @@ workflow R1_PEAK {
     MERGE_R1READS(read4merge)
     ch_version = ch_version.mix(MERGE_R1READS.out.versions)
 
-    // call ATAC narrow peaks for group
-    MACS2_CALLR1PEAK(MERGE_R1READS.out.bed.map{[it[0], it[1], []]}, macs_gsize)
-    ch_version = ch_version.mix(MACS2_CALLR1PEAK.out.versions)
+    // call fragment narrow peaks for group
+    CALL_R1PEAK(MERGE_R1READS.out.bed, cut, pval)
+    ch_version = ch_version.mix(CALL_R1PEAK.out.versions)
 
     // merge peaks
-    r1_peaks = MACS2_CALLR1PEAK.out.peak.map{it[1]}.collect()
+    r1_peaks = CALL_R1PEAK.out.peak.map{it[1]}.collect()
     MERGE_R1PEAK(r1_peaks)
 
     // stats
@@ -59,7 +59,7 @@ workflow R1_PEAK {
 
     // dump R1 reads for each group for maps
     DUMPR1READS(MERGE_R1READS.out.bed)
-    BEDFILES_SORT(MACS2_CALLR1PEAK.out.bdg.map{[it[0], it[1].findAll{it.toString().contains('pileup')}]}, "bedgraph")
+    BEDFILES_SORT(CALL_R1PEAK.out.bdg, "bedgraph")
     UCSC_BEDCLIP(BEDFILES_SORT.out.sorted, chromsizes)
     UCSC_R1BEDGRAPHTOBIGWIG(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
@@ -73,8 +73,7 @@ workflow R1_PEAK {
     ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_R1SAM.out.versions)
 
     emit:
-    peak       = MACS2_CALLR1PEAK.out.peak              // channel: [ val(meta), path(peak) ]
-    xls        = MACS2_CALLR1PEAK.out.xls               // channel: [ val(meta), path(xls) ]
+    peak       = CALL_R1PEAK.out.peak              // channel: [ val(meta), path(peak) ]
     mergedpeak = MERGE_R1PEAK.out.peak                  // channel: [ path(bed) ]
     //stats      = R1QC.out.stats                       // channel: [ path(csv) ]
     reads      = DUMPR1READS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
