@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [12/01/2021]
 
+- simplify the fragment peak calling by call peaks only for fragmentation sites
 - add unit test for local `subworkflow`
 - change R1 reads name to fragment reads in documentation
 - use hdf5 to improve the IO efficency

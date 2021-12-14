@@ -162,7 +162,7 @@ include { ATAC_PEAK
 include { R1_PEAK
     } from '../subworkflows/local/calldistalpeak' addParams(
         options: getSubWorkFlowParam(modules, [
-            'merge_r1reads', 'r1reads', 'macs2_callr1peak',
+            'merge_r1reads', 'r1reads', 'call_r1peak',
             'dump_r1_reads_per_group', 'dump_r1_reads_per_sample',
             'merge_r1peak', 'r1qc', 'bedtools_genomecov_per_group',
             'bedtools_genomecov_per_sample', 'bedtools_sort_per_group',
@@ -411,8 +411,9 @@ workflow HICAR {
         R1_PEAK(
             PAIRTOOLS_PAIRE.out.distalpair,
             PREPARE_GENOME.out.chrom_sizes,
-            PREPARE_GENOME.out.gsize,
-            PREPARE_GENOME.out.gtf
+            PREPARE_GENOME.out.digest_genome,
+            PREPARE_GENOME.out.gtf,
+            params.r1_pval_thresh
         )
         ch_software_versions = ch_software_versions.mix(R1_PEAK.out.versions.ifEmpty(null))
         ch_trackfiles = ch_trackfiles.mix(

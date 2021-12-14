@@ -228,8 +228,8 @@ for the overlap features (gene level) or nearest features.
 
 </details>
 
-The peaks called fragment (R1) reads by [MACS2](https://github.com/macs3-project/MACS).
-The fragment reads will be more noisy compare to ATAC (R2) reads and the FDR cutoff will be higher to get proper peaks for interaction calling.
+The peaks called fragment (R1) reads by fitting the reads counts in fragmentation sites with Poisson distribution.
+The fragment reads will be more noisy compare to ATAC (R2) reads and the p value cutoff will be higher to get proper peaks for interaction calling.
 
 ### High resolution interactions
 

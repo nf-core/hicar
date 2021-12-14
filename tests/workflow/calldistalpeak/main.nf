@@ -20,10 +20,13 @@ include { GUNZIP
 include { CHROMSIZES
     } from '../../../modules/local/genome/chromsizes' addParams(
         options: [publish_files:'']   )
+include { COOLER_DIGEST
+    } from '../../../modules/nf-core/modules/cooler/digest/main' addParams(
+        options: [publish_files:''] )
 include { R1_PEAK
     } from '../../../subworkflows/local/calldistalpeak' addParams(
         options: getSubWorkFlowParam(modules, [
-            'merge_r1reads', 'r1reads', 'macs2_callr1peak',
+            'merge_r1reads', 'r1reads', 'call_r1peak',
             'dump_r1_reads_per_group', 'dump_r1_reads_per_sample',
             'merge_r1peak', 'r1qc', 'bedtools_genomecov_per_group',
             'bedtools_genomecov_per_sample', 'bedtools_sort_per_group',
@@ -115,10 +118,10 @@ process CHECK_PEAKS {
 workflow test_call_frag_peak {
     fasta           = GUNZIP([[id:"test"],file(params.test_data.fasta, checkIfExists: true)]).gunzip.map{it[1]}
     chromsizes      = CHROMSIZES ( fasta ).sizes
-    macs_gsize      = params.test_data.macs_gsize
+    pval            = params.r1_pval_thresh
     gtf             = file(params.test_data.gtf, checkIfExists: true)
     validpair       = CREATE_PAIRS(chromsizes, gtf).pairs.map{[[id:'test', group:'gp1'], it]}
-
-    R1_PEAK ( validpair, chromsizes, macs_gsize, gtf )
+    digest_genome_bed = COOLER_DIGEST ( fasta, chromsizes, params.enzyme ).bed
+    R1_PEAK ( validpair, chromsizes, digest_genome_bed, gtf, pval )
     CHECK_PEAKS (R1_PEAK.out.mergedpeak, gtf)
 }

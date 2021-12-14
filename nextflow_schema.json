@@ -207,9 +207,9 @@
                     "fa_icon": "fas fa-mountain",
                     "hidden": false
                 },
-                "r1_qval_thresh": {
+                "r1_pval_thresh": {
                     "type": "number",
-                    "description": "cutoff qvalue for fragment (R1) by MACS2",
+                    "description": "cutoff pvalue for fragment (R1)",
                     "fa_icon": "fas fa-filter",
                     "hidden": false,
                     "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noisy compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
