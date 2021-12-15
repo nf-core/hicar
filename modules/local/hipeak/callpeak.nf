@@ -78,42 +78,35 @@ process CALL_HIPEAK {
         list("formula"=paste("count ~", paste(coln[ln], collapse="+")),
             "factor"=coln[ln])
     }
-    checkdata <- function(mm, formula){
-        mf <- vglm(formula=as.formula(formula), family = pospoisson(), data = mm, method="model.frame")
-        y <- model.response(mf, "any")
-        w <- model.weights(mf)
-        if (!length(w)) {
-            w <- rep_len(1, nrow(mf))
-        }
-        lambda.init <- Init.mu(y = y, w = w, imethod = 1, imu = NULL)
-        eta <- theta2eta(lambda.init, "loglink", earg = list(
-                theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-                short = TRUE, tag = FALSE))
-        lambda <- eta2theta(eta, "loglink", earg = list(theta = NULL,
-            bvalue = NULL, inverse = FALSE, deriv = 0, short = TRUE,
+    loglikelihood <- function (mu, y, w, residuals = FALSE, eta, extra = NULL, summation = TRUE) {
+        lambda <- eta2theta(eta, "loglink", earg = list(bvalue = NULL, inverse = FALSE, deriv = 0, short = TRUE,
             tag = FALSE))
-        ll.elts <- dgaitpois(y, lambda, truncate = 0, log = TRUE)
-    }
-    trimData <- function(mm, formula){
-        ll.elts <- checkdata(mm, formula)
-        while(any(is.infinite(ll.elts))){
-            mm <- mm[!is.infinite(ll.elts), , drop=FALSE]
-            ll.elts <- checkdata(mm, formula)
+        if (residuals) {
+            stop("loglikelihood residuals not implemented yet")
         }
-        mm
+        else {
+            ll.elts <- c(w) * dgaitpois(y, lambda, truncate = 0,
+                log = TRUE)
+            if (summation) {
+                sum(ll.elts[!is.infinite(ll.elts)])
+            }
+            else {
+                ll.elts
+            }
+        }
     }
     pospoisson_regression <- function(mm) {
         dataset_length<- nrow(mm)
         formula <- getFormula(mm)
         fac <- formula[["factor"]]
         formula <- formula[["formula"]]
-        mm <- trimData(mm, formula)
-        fit <- vglm(formula=as.formula(formula), family = pospoisson(), data = mm)
+        family <- pospoisson()
+        family@loglikelihood <- loglikelihood
+        fit <- vglm(formula=as.formula(formula), family = family, data = mm)
         mm\$expected = fitted(fit)
         mm\$p_val = ppois(mm\$count, mm\$expected, lower.tail = FALSE, log.p = FALSE) / ppois(0, mm\$expected, lower.tail = FALSE, log.p = FALSE)
         m1 = mm[ mm\$p_val > 1/length(mm\$p_val),]
-        m1 <- trimData(m1, formula)
-        fit <- vglm(formula=as.formula(formula), family = pospoisson(), data = m1)
+        fit <- vglm(formula=as.formula(formula), family = family, data = m1)
         coeff<-round(coef(fit),10)
         mm\$expected2 <- round(exp(coeff[1] + rowSums(t(coeff[-1]*t(mm[, fac])))), 10)
         mm\$expected2 <- mm\$expected2 /(1-exp(-mm\$expected2))
