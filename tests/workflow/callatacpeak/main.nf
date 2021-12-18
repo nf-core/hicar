@@ -2,34 +2,14 @@
 
 nextflow.enable.dsl = 2
 
-// run test: PROFILE=conda nextflow run tests/workflow/callatacpeak/ -entry test_call_atac_peak -c tests/config/nextflow.config
-// Don't overwrite global params.modules, create a copy instead and use that within the main script.
-def modules = params.modules.clone()
-def getSubWorkFlowParam(modules, mods) {
-    def Map options = [:]
-    mods.each{
-        val ->
-        options[val] = modules[val]?:[:]
-    }
-    return options
-}
+// run test: PROFILE=docker pytest --tag callatacpeak --symlink --kwdof
 
 include { GUNZIP
-    } from '../../../modules/nf-core/modules/gunzip/main' addParams(
-        options: [publish_files:'']   )
+    } from '../../../modules/nf-core/modules/gunzip/main'
 include { CHROMSIZES
-    } from '../../../modules/local/genome/chromsizes' addParams(
-        options: [publish_files:'']   )
+    } from '../../../modules/local/genome/chromsizes'
 include { ATAC_PEAK
-    } from '../../../subworkflows/local/callatacpeak.nf' addParams(
-        options: getSubWorkFlowParam(modules, [
-            'pairtools_select_short', 'merge_reads', 'shift_reads',
-            'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample',
-            'merge_peak', 'atacqc', 'bedtools_genomecov_per_group',
-            'bedtools_genomecov_per_sample', 'bedtools_sort_per_group',
-            'bedtools_sort_per_sample', 'ucsc_bedclip',
-            'ucsc_bedgraphtobigwig_per_group',
-            'ucsc_bedgraphtobigwig_per_sample']) )
+    } from '../../../subworkflows/local/callatacpeak.nf'
 
 process CREATE_PAIRS {
     input:

@@ -1,19 +1,18 @@
 /*
  * Createing Genomic Features Files
  */
-params.options = [:]
 
-include { MAPS_CUT                     } from '../../modules/local/maps/cut'                     addParams(options: params.options.maps_cut)
-include { MAPS_FEND                    } from '../../modules/local/maps/fend'                    addParams(options: params.options.maps_fend)
-include { GENMAP_INDEX                 } from '../../modules/nf-core/modules/genmap/index/main'           addParams(options: params.options.genmap_index)
-include { GENMAP_MAPPABILITY           } from '../../modules/nf-core/modules/genmap/mappability/main'           addParams(options: params.options.genmap_mappability)
+include { MAPS_CUT                     } from '../../modules/local/maps/cut'
+include { MAPS_FEND                    } from '../../modules/local/maps/fend'
+include { GENMAP_INDEX                 } from '../../modules/nf-core/modules/genmap/index/main'
+include { GENMAP_MAPPABILITY           } from '../../modules/nf-core/modules/genmap/mappability/main'
 include { SEQLEVELS_STYLE              } from '../../modules/local/bioc/seqlevelsstyle'
 include { ENSEMBL_UCSC_CONVERT
-    ENSEMBL_UCSC_CONVERT as ENSEMBL_UCSC_CONVERT2       } from '../../modules/local/bioc/ensembl_ucsc_convert'        addParams(options: params.options.ensembl_ucsc_convert)
-include { UCSC_WIGTOBIGWIG             } from '../../modules/nf-core/modules/ucsc/wigtobigwig/main'             addParams(options: params.options.ucsc_wigtobigwig)
-include { UCSC_BIGWIGAVERAGEOVERBED    } from '../../modules/nf-core/modules/ucsc/bigwigaverageoverbed/main'    addParams(options: params.options.maps_mapability)
-include { MAPS_MERGE                   } from '../../modules/local/maps/merge'                   addParams(options: params.options.maps_merge)
-include { MAPS_FEATURE                 } from '../../modules/local/maps/feature'                 addParams(options: params.options.maps_feature)
+    ENSEMBL_UCSC_CONVERT as ENSEMBL_UCSC_CONVERT2       } from '../../modules/local/bioc/ensembl_ucsc_convert'
+include { UCSC_WIGTOBIGWIG             } from '../../modules/nf-core/modules/ucsc/wigtobigwig/main'
+include { UCSC_BIGWIGAVERAGEOVERBED    } from '../../modules/nf-core/modules/ucsc/bigwigaverageoverbed/main'
+include { MAPS_MERGE                   } from '../../modules/local/maps/merge'
+include { MAPS_FEATURE                 } from '../../modules/local/maps/feature'
 
 workflow MAPS_MULTIENZYME {
     take:

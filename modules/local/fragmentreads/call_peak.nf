@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process CALL_R1PEAK {
     tag "$meta.id"
     label 'process_high'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -31,7 +22,7 @@ process CALL_R1PEAK {
     tuple val(meta), path("*.bdg")                   , emit: bdg
 
     script:
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -41,7 +32,7 @@ process CALL_R1PEAK {
     #######################################################################
     #######################################################################
     pkgs <- c("rtracklayer")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)
@@ -88,7 +79,13 @@ process CALL_R1PEAK {
         peaks <- sort(peaks)
     }
     export(peaks, "${prefix}.bed")
-    export(peaks, "${prefix}.narrowPeak")
+    np <- paste(as.character(seqnames(peaks)), start(peaks)-1, end(peaks),
+                ".", mcols(peaks)[, "score"],
+                ".", mcols(peaks)[, "signalValue"],
+                mcols(peaks)[, "pValue"],
+                mcols(peaks)[, "qValue"],
+                dist, sep="\t")
+    writeLines(np, "${prefix}.narrowPeak")
     r1reads <- promoters(r1reads, upstream=75, downstream=75)
     cvg <- coverage(r1reads)
     export(cvg, "${prefix}_pileup.bdg", format="bedgraph")

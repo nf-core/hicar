@@ -1,10 +1,9 @@
 /*
  * Call interaction peaks by MAPS
  */
-params.options = [:]
 
-include { CIRCOS_PREPARE            } from '../../modules/local/circos/circos_prepare'    addParams(options: params.options.circos_prepare)
-include { CIRCOS                    } from '../../modules/local/circos/circos'            addParams(options: params.options.circos)
+include { CIRCOS_PREPARE            } from '../../modules/local/circos/circos_prepare'
+include { CIRCOS                    } from '../../modules/local/circos/circos'
 
 workflow RUN_CIRCOS {
     take:

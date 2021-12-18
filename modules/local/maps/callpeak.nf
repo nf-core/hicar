@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process MAPS_CALLPEAK {
     tag "$meta.id"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-monocle=2.20.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -27,6 +18,7 @@ process MAPS_CALLPEAK {
     path "versions.yml"          , emit: versions
 
     script:
+    def args = task.ext.args ?: ''
     """
     mv maps_out ${meta.id}_${bin_size}
     ## arguments:
@@ -38,10 +30,10 @@ process MAPS_CALLPEAK {
     ## FDR - -log10(fdr) cutoff, default 2
     ## FILTER - file containing bins that need to be filtered out. Format: two columns "chrom", "bin". "chrom" contains 'chr1','chr2',.. "bin" is bin label
     ## regresison_type - pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson
-    MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id} $bin_size $options.args
+    MAPS_regression_and_peak_caller.r "${meta.id}_${bin_size}/" ${meta.id} $bin_size $args
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         MAPS: 1.1.0
     END_VERSIONS
     for i in \$(ls *.version.txt); do

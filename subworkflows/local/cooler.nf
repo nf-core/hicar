@@ -1,18 +1,19 @@
 /*
  * pair the proper mapped pairs
  */
-params.options = [:]
 
-include { COOLER_CLOAD   } from '../../modules/local/cooler/cload/main'   addParams(options: params.options.cooler_cload)
-include { COOLER_MERGE   } from '../../modules/local/cooler/merge/main'   addParams(options: params.options.cooler_merge)
-include { COOLER_ZOOMIFY } from '../../modules/local/cooler/zoomify/main' addParams(options: params.options.cooler_zoomify)
-include { COOLER_DUMP    } from '../../modules/nf-core/modules/cooler/dump/main'    addParams(options: params.options.cooler_dump_per_group)
+include { COOLER_CLOAD   } from '../../modules/local/cooler/cload/main'
+include { COOLER_MERGE   } from '../../modules/local/cooler/merge/main'
+include { COOLER_ZOOMIFY } from '../../modules/local/cooler/zoomify/main'
 include { COOLER_DUMP
-    as COOLER_DUMP_SAMPLE} from '../../modules/nf-core/modules/cooler/dump/main'    addParams(options: params.options.cooler_dump_per_sample)
-include { DUMPINTRAREADS } from '../../modules/local/cooler/dumpintrareads'    addParams(options: params.options.dumpintrareads_per_group)
+    as COOLER_DUMP_PER_GROUP    } from '../../modules/nf-core/modules/cooler/dump/main'
+include { COOLER_DUMP
+    as COOLER_DUMP_PER_SAMPLE   } from '../../modules/nf-core/modules/cooler/dump/main'
 include { DUMPINTRAREADS
-    as DUMPINTRAREADS_SAMPLE} from '../../modules/local/cooler/dumpintrareads'    addParams(options: params.options.dumpintrareads_per_sample)
-include { JUICER         } from '../../modules/local/cooler/juicer'    addParams(options: params.options.juicer)
+    as DUMPINTRAREADS_PER_GROUP } from '../../modules/local/cooler/dumpintrareads'
+include { DUMPINTRAREADS
+    as DUMPINTRAREADS_PER_SAMPLE} from '../../modules/local/cooler/dumpintrareads'
+include { JUICER         } from '../../modules/local/cooler/juicer'
 
 workflow COOLER {
     take:
@@ -37,20 +38,20 @@ workflow COOLER {
     // create mcooler file for visualization
     COOLER_ZOOMIFY(COOLER_MERGE.out.cool)
     // dump long.intra.bedpe for each group for MAPS to call peaks
-    COOLER_DUMP(COOLER_MERGE.out.cool, []).bedpe | DUMPINTRAREADS
+    COOLER_DUMP_PER_GROUP(COOLER_MERGE.out.cool, []).bedpe | DUMPINTRAREADS_PER_GROUP
     if(juicer_tools_jar){
-        JUICER(DUMPINTRAREADS.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
+        JUICER(DUMPINTRAREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
         ch_version = ch_version.mix(JUICER.out.versions)
     }
 
     // dump long.intra.bedpe for each sample
-    COOLER_DUMP_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool]}, [])
-    DUMPINTRAREADS_SAMPLE(COOLER_DUMP_SAMPLE.out.bedpe)
-    ch_version = ch_version.mix(DUMPINTRAREADS.out.versions)
+    COOLER_DUMP_PER_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool]}, [])
+    DUMPINTRAREADS_PER_SAMPLE(COOLER_DUMP_PER_SAMPLE.out.bedpe)
+    ch_version = ch_version.mix(DUMPINTRAREADS_PER_GROUP.out.versions)
 
     emit:
-    mcool       = COOLER_ZOOMIFY.out.mcool        // channel: [ val(meta), [mcool] ]
-    bedpe       = DUMPINTRAREADS.out.bedpe        // channel: [ val(meta), [bedpe] ]
-    samplebedpe = DUMPINTRAREADS_SAMPLE.out.bedpe // channel: [ val(meta), [bedpe] ]
-    versions    = ch_version                      // channel: [ path(version) ]
+    mcool       = COOLER_ZOOMIFY.out.mcool                  // channel: [ val(meta), [mcool] ]
+    bedpe       = DUMPINTRAREADS_PER_GROUP.out.bedpe        // channel: [ val(meta), [bedpe] ]
+    samplebedpe = DUMPINTRAREADS_PER_SAMPLE.out.bedpe       // channel: [ val(meta), [bedpe] ]
+    versions    = ch_version                                // channel: [ path(version) ]
 }

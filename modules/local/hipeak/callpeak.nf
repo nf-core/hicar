@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process CALL_HIPEAK {
     tag "$meta.id"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-monocle=2.20.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -26,6 +17,7 @@ process CALL_HIPEAK {
     path "versions.yml"                          , emit: versions
 
     script:
+    def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -35,7 +27,7 @@ process CALL_HIPEAK {
     #######################################################################
     #######################################################################
     pkgs <- c("VGAM", "MASS")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)
@@ -54,8 +46,8 @@ process CALL_HIPEAK {
     OUTPUT = "${meta.id}.peaks.csv"
     REG_TYPE = 'pospoisson'
     mm <- read.csv("$counts")
-    if(grepl("-m", "$options.args") || grepl("--regression_type", "$options.args")){
-        args <- strsplit("$options.args", "\\\\s+")[[1]]
+    if(grepl("-m", "$args") || grepl("--regression_type", "$args")){
+        args <- strsplit("$args", "\\\\s+")[[1]]
         id <- args=="-m" | args=="--regression_type"
         id <- which(id)[1]
         if(args[id+1] %in% c("negbinom", "pospoisson")){

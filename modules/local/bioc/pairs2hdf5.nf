@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process BIOC_PAIRS2HDF5 {
     tag "$meta.id"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -27,7 +18,7 @@ process BIOC_PAIRS2HDF5 {
     path "versions.yml"           , emit: versions
 
     script:
-
+    def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
 
@@ -48,7 +39,7 @@ process BIOC_PAIRS2HDF5 {
     #######################################################################
 
     pkgs <- c("rhdf5")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)
@@ -63,7 +54,7 @@ process BIOC_PAIRS2HDF5 {
     tileWidth <- 1e7 # this will create about 200 groups for human data
     block_size <- 1e6 # the size of block for tempfile
     keepDup <- FALSE # remove duplicates or not
-    if(grepl("keep-dup", "$options.args")){
+    if(grepl("keep-dup", "$args")){
         keepDup <- TRUE
     }
     chrom_sizes <- read.delim("$chromsizes", header=FALSE)

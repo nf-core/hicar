@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process IGV {
     label 'process_low'
     label 'error_ignore'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "python=3.8" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -28,11 +19,11 @@ process IGV {
 
     script:
     """
-    create_igv.py $track $species $options.publish_dir
+    create_igv.py $track $species $task.publishDir.path
     echo "collect in ${track} and copy all the files into relative folder in a web-server." > readme.txt
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         python: \$(echo \$(python --version) | sed 's/Python //')
     END_VERSIONS
     """
