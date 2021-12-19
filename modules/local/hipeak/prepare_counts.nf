@@ -17,7 +17,7 @@ process PREPARE_COUNTS {
     path "versions.yml"           , emit: versions
 
     script:
-    def software = "CALL_HIPEAK"
+    def args   = task.ext.args ?: "1e9"
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -47,6 +47,7 @@ process PREPARE_COUNTS {
     ## make_option(c("-f", "--fasta"), type="character", default=NULL, help="genome fasta file", metavar="string")
     OUTPUT <- "counts.${meta.id}.csv"
     NCORE <- "$task.cpus"
+    peak_pair_block <- ifelse(!is.na(as.numeric($args)), as.numeric($args)[1], 1e9)
     FASTA <- "$fasta"
     CUT <- "$cut"
     MAPPABILITY <- "$mappability"
@@ -118,7 +119,6 @@ process PREPARE_COUNTS {
 
     gc(reset=TRUE)
     param <- SnowParam(workers = NCORE, progressbar = TRUE, type = "SOCK")
-    peak_pair_block <- 1e9
     for(chrom1 in chromosomes){
         for(chrom2 in chromosomes){
             message("working on ", chrom1, " and ", chrom2)

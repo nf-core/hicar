@@ -16,7 +16,7 @@ include { COOLER_DIGEST
 include { BIOC_PAIRS2HDF5
     } from '../../../modules/local/bioc/pairs2hdf5'
 include { ATAC_PEAK
-    } from '../../../subworkflows/local/callatacpeak.nf'
+    } from '../../../subworkflows/local/callatacpeak'
 include { R1_PEAK
     } from '../../../subworkflows/local/calldistalpeak'
 include { HI_PEAK
