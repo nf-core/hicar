@@ -125,6 +125,9 @@ cool_bin = Channel.fromList(params.cool_bin.tokenize('_'))
 workflow HICAR {
 
     ch_versions = Channel.empty()
+    ch_multiqc_files = Channel.empty()
+    ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
 
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
@@ -155,6 +158,7 @@ workflow HICAR {
             ch_reads
         )
         ch_versions = ch_versions.mix(FASTQC.out.versions.first().ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
     }
 
     //
@@ -165,6 +169,7 @@ workflow HICAR {
             ch_reads
         )
         ch_versions = ch_versions.mix(CUTADAPT.out.versions.ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
         reads4mapping = CUTADAPT.out.reads
     }else{
         reads4mapping = ch_reads
@@ -201,6 +206,9 @@ workflow HICAR {
     //
     BAM_STAT(SAMTOOLS_MERGE.out.bam)
     ch_versions = ch_versions.mix(BAM_STAT.out.versions.ifEmpty(null))
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
 
     //
     // SUBWORKFLOW: filter reads, output pair (like hic pair), raw (pair), and stats
@@ -211,6 +219,7 @@ workflow HICAR {
         PREPARE_GENOME.out.digest_genome
     )
     ch_versions = ch_versions.mix(PAIRTOOLS_PAIRE.out.versions.ifEmpty(null))
+    ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))
 
     //
     // combine bin_size and create cooler file, and dump long_bedpe
@@ -236,6 +245,7 @@ workflow HICAR {
         PREPARE_GENOME.out.gtf
     )
     ch_versions = ch_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
+    ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
 
     //
     // calling distal peaks: [ meta, bin_size, path(macs2), path(long_bedpe), path(short_bed), path(background) ]
@@ -259,6 +269,7 @@ workflow HICAR {
                 .set{ maps_input }
     MAPS_PEAK(maps_input, ch_make_maps_runfile_source)
     ch_versions = ch_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
+    ch_multiqc_files = ch_multiqc_files.mix(MAPS_PEAK.out.stats.collect().ifEmpty([]))
 
     /*MAPS_PEAK.out.peak.map{[it[0].id+'.'+it[1]+'.contacts',
                             getPublishedFolder( modules,
@@ -346,6 +357,7 @@ workflow HICAR {
             .set{ch_maps_anno}
         BIOC_CHIPPEAKANNO_MAPS(ch_maps_anno, PREPARE_GENOME.out.gtf)
         ch_versions = ch_versions.mix(BIOC_CHIPPEAKANNO_MAPS.out.versions.ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO_MAPS.out.png.collect().ifEmpty([]))
         if(params.virtual_4c){
             BIOC_CHIPPEAKANNO_MAPS.out.csv
                 .mix(
@@ -386,6 +398,7 @@ workflow HICAR {
         if(ch_diffhicar){
             DIFFHICAR(ch_diffhicar)
             ch_versions = ch_versions.mix(DIFFHICAR.out.versions.ifEmpty(null))
+            ch_multiqc_files = ch_multiqc_files.mix(DIFFHICAR.out.stats.collect().ifEmpty([]))
             //annotation
             if(!params.skip_peak_annotation){
                 BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
@@ -423,6 +436,8 @@ workflow HICAR {
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
     )
+    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect().ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.yml.collect().ifEmpty([]))
 
     if(!params.skip_multiqc){
         //
@@ -431,24 +446,7 @@ workflow HICAR {
         workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        ch_multiqc_files = Channel.empty()
-        ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
-        ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect().ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.yml.collect().ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
         ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-        ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO_MAPS.out.png.collect().ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(MAPS_PEAK.out.stats.collect().ifEmpty([]))
-        ch_multiqc_files = ch_multiqc_files.mix(DIFFHICAR.out.stats.collect().ifEmpty([]))
         ch_multiqc_files
             .flatten()
             .map { it -> if (it) [ it.baseName, it ] }
