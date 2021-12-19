@@ -4,59 +4,23 @@ nextflow.enable.dsl = 2
 
 // run test: PROFILE=docker pytest --tag callhipeak --symlink --kwdof
 // run simulate: PROFILE=docker nextflow run path/to/nf-core-hicar/tests/workflow/hipeak/ -entry test_call_hi_peak -c path/to/nf-core-hicar/nextflow.config,path/to/nf-core-hicar/tests/config/nextflow.config --reads 1e6
-// Don't overwrite global params.modules, create a copy instead and use that within the main script.
-def modules = params.modules.clone()
-def getSubWorkFlowParam(modules, mods) {
-    def Map options = [:]
-    mods.each{
-        val ->
-        options[val] = modules[val]?:[:]
-    }
-    return options
-}
 
 include { GUNZIP
-    } from '../../../modules/nf-core/modules/gunzip/main' addParams(
-        options: [publish_files:''] )
+    } from '../../../modules/nf-core/modules/gunzip/main'
 include { GUNZIP as GUNZIP2
-    } from '../../../modules/nf-core/modules/gunzip/main' addParams(
-        options: [publish_files:''] )
+    } from '../../../modules/nf-core/modules/gunzip/main'
 include { CHROMSIZES
-    } from '../../../modules/local/genome/chromsizes' addParams(
-        options: [publish_files:''] )
+    } from '../../../modules/local/genome/chromsizes'
 include { COOLER_DIGEST
-    } from '../../../modules/nf-core/modules/cooler/digest/main' addParams(
-        options: [publish_files:''] )
+    } from '../../../modules/nf-core/modules/cooler/digest/main'
 include { BIOC_PAIRS2HDF5
-    } from '../../../modules/local/bioc/pairs2hdf5' addParams(
-        options: [publish_files:'', args:'--keep-dup'] )
+    } from '../../../modules/local/bioc/pairs2hdf5'
 include { ATAC_PEAK
-    } from '../../../subworkflows/local/callatacpeak.nf' addParams(
-        options: getSubWorkFlowParam(modules, [
-            'pairtools_select_short', 'merge_reads', 'shift_reads',
-            'macs2_atac', 'dump_reads_per_group', 'dump_reads_per_sample',
-            'merge_peak', 'atacqc', 'bedtools_genomecov_per_group',
-            'bedtools_genomecov_per_sample', 'bedtools_sort_per_group',
-            'bedtools_sort_per_sample', 'ucsc_bedclip',
-            'ucsc_bedgraphtobigwig_per_group',
-            'ucsc_bedgraphtobigwig_per_sample']) )
+    } from '../../../subworkflows/local/callatacpeak'
 include { R1_PEAK
-    } from '../../../subworkflows/local/calldistalpeak' addParams(
-    options: getSubWorkFlowParam(modules, [
-        'merge_r1reads', 'r1reads', 'call_r1peak',
-        'dump_r1_reads_per_group', 'dump_r1_reads_per_sample',
-        'merge_r1peak', 'r1qc', 'bedtools_genomecov_per_group',
-        'bedtools_genomecov_per_sample', 'bedtools_sort_per_group',
-        'bedtools_sort_per_sample', 'ucsc_bedclip',
-        'ucsc_bedgraphtobigwig_per_r1_group',
-        'ucsc_bedgraphtobigwig_per_r1_sample']))
+    } from '../../../subworkflows/local/calldistalpeak'
 include { HI_PEAK
-    } from '../../../subworkflows/local/hipeak' addParams(
-        options: getSubWorkFlowParam(modules, [
-            'parepare_counts', 'call_hipeak', 'assign_type',
-            'diff_hipeak', 'chippeakanno_hipeak',
-            'chippeakanno_diffhipeak',
-            'pair2bam']))
+    } from '../../../subworkflows/local/hipeak'
 
 process CREATE_PAIRS {
     publishDir "${params.outdir}/pairs",

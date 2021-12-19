@@ -1,20 +1,19 @@
 /*
  * Uncompress and prepare reference genome files
  */
-params.options = [:]
 
 include {
     GUNZIP as GUNZIP_FASTA;
     GUNZIP as GUNZIP_GTF;
     GUNZIP as GUNZIP_GFF;
     GUNZIP as GUNZIP_GENE_BED;
-    GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../modules/nf-core/modules/gunzip/main'               addParams( options: params.options.gunzip        )
-include { GTF2BED                     } from '../../modules/local/gtf2bed'                             addParams( options: params.options.gtf2bed       )
-include { CHROMSIZES                  } from '../../modules/local/genome/chromsizes'                   addParams( options: params.options.chromsizes    )
-include { GENOME_FILTER               } from '../../modules/local/genome/filter'                       addParams( options: params.options.genomefilter  )
-include { COOLER_DIGEST               } from '../../modules/nf-core/modules/cooler/digest/main'        addParams( options: params.options.digest_genome )
-include { GFFREAD                     } from '../../modules/nf-core/modules/gffread/main'              addParams( options: params.options.gffread       )
-include { BWA_INDEX                   } from '../../modules/nf-core/modules/bwa/index/main'            addParams( options: params.options.bwa_index     )
+    GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../modules/nf-core/modules/gunzip/main'
+include { GTF2BED                     } from '../../modules/local/gtf2bed'
+include { CHROMSIZES                  } from '../../modules/local/genome/chromsizes'
+include { GENOME_FILTER               } from '../../modules/local/genome/filter'
+include { COOLER_DIGEST               } from '../../modules/nf-core/modules/cooler/digest/main'
+include { GFFREAD                     } from '../../modules/nf-core/modules/gffread/main'
+include { BWA_INDEX                   } from '../../modules/nf-core/modules/bwa/index/main'
 
 workflow PREPARE_GENOME {
     main:

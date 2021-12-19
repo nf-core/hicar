@@ -1,14 +1,5 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process DIFF_HIPEAK {
     label 'process_medium'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-diffhic=1.24.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -27,7 +18,7 @@ process DIFF_HIPEAK {
     path "versions.yml"                       , emit: versions
 
     script:
-    prefix   = options.suffix ? "${options.suffix}" : "diffhicar"
+    prefix   = task.ext.prefix ? "${task.ext.prefix}" : "diffhicar"
     """
     #!/usr/bin/env Rscript
 
@@ -38,7 +29,7 @@ process DIFF_HIPEAK {
     #######################################################################
     #######################################################################
     pkgs <- c("edgeR", "InteractionSet", "rhdf5")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)

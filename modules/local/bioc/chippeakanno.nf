@@ -1,16 +1,7 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process BIOC_CHIPPEAKANNO {
     tag "$bin_size"
     label 'process_medium'
     label 'error_ignore'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.26.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -30,7 +21,7 @@ process BIOC_CHIPPEAKANNO {
     path "versions.yml"                       , emit: versions
 
     script:
-    prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
     """
     #!/usr/bin/env Rscript
 
@@ -41,7 +32,7 @@ process BIOC_CHIPPEAKANNO {
     #######################################################################
     #######################################################################
     pkgs <- c("ChIPpeakAnno", "rtracklayer", "GenomicFeatures", "ggplot2")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)

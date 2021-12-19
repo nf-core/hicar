@@ -1,16 +1,7 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process DIFFHICAR {
     tag "$bin_size"
     label 'process_medium'
     label 'error_ignore'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-edger=3.32.1" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -23,12 +14,12 @@ process DIFFHICAR {
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")
 
     output:
-    tuple val(bin_size), path("${prefix}/*"), emit: diff
+    tuple val(bin_size), path("${prefix}/*") , emit: diff
     path "${prefix}/*.qc.json"               , emit: stats
     path "versions.yml"                      , emit: versions
 
     script:
-    prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -39,7 +30,7 @@ process DIFFHICAR {
     #######################################################################
     library(edgeR)
     versions <- c(
-        "${getProcessName(task.process)}:",
+        "${task.process}:",
         paste("    edgeR:", as.character(packageVersion("edgeR"))))
     writeLines(versions, "versions.yml")
 

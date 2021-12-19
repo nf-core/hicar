@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process ASSIGN_TYPE {
     tag "$meta.id"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.26.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -28,6 +19,7 @@ process ASSIGN_TYPE {
     path "versions.yml"                                   , emit: versions
 
     script:
+    def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -37,7 +29,7 @@ process ASSIGN_TYPE {
     #######################################################################
     #######################################################################
     pkgs <- c("graph", "RBGL", "InteractionSet")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)
@@ -76,7 +68,7 @@ process ASSIGN_TYPE {
     option_list <- list("count_cutoff"=c("--count_cutoff", "-c", "integer"),
                         "ratio_cutoff"=c("--ratio_cutoff", "-r", "numeric"),
                         "fdr"=c("--fdr", "-f", "integer"))
-    opt <- parse_args(option_list, strsplit("$options.args", "\\\\s+")[[1]])
+    opt <- parse_args(option_list, strsplit("$args", "\\\\s+")[[1]])
     if(!is.null(opt\$count_cutoff)){
         COUNT_CUTOFF <- opt\$count_cutoff
     }

@@ -1,16 +1,7 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process BIOC_ENRICH {
     tag "$bin_size"
     label 'process_medium'
     label 'error_ignore'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:bin_size) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-clusterprofiler=3.18.1" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -28,12 +19,12 @@ process BIOC_ENRICH {
     path "versions.yml"                                , emit: versions
 
     script:
-    prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ? "${task.ext.prefix}${bin_size}" : "diffhic_bin${bin_size}"
     """
     enrich.r -s ${ucscname} -o "${prefix}/enrichment" $options.args
 
     # *.version.txt files will be created in the rscripts
-    echo "${getProcessName(task.process)}:" > versions.yml
+    echo "${task.process}:" > versions.yml
     for i in \$(ls *.version.txt); do
     echo "    \${i%.version.txt}: \$(<\$i)" >> versions.yml
     done
