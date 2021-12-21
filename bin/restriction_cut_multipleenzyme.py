@@ -99,10 +99,7 @@ def find_site(fasta,seq,outfile,pos,cores, binsize):
 
     manager = mp.Manager()
     q = manager.Queue()
-    NCORE = cores - 1
-    if(NCORE<1):
-        NCORE = 1
-    pool = mp.Pool(NCORE)
+    pool = mp.Pool(cores)
     watcher = pool.apply_async(listener, (outfile, q))
     jobs = []
     for seq_record in SeqIO.parse(fasta, "fasta"):
