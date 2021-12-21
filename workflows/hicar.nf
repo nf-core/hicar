@@ -271,16 +271,14 @@ workflow HICAR {
     ch_versions = ch_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
     ch_multiqc_files = ch_multiqc_files.mix(MAPS_PEAK.out.stats.collect().ifEmpty([]))
 
-    /*MAPS_PEAK.out.peak.map{[it[0].id+'.'+it[1]+'.contacts',
-                            getPublishedFolder( modules,
-                                                'maps_reformat',
-                                                [:])+it[2].name]}
+    MAPS_PEAK.out.peak.map{[it[0].id+'.'+it[1]+'.contacts',
+                            RelativePublishFolder.getPublishedFolder(workflow,
+                                                'MAPS_REFORMAT')+it[2].name]}
         .mix(ATAC_PEAK.out
                     .bws.map{[it[0].id+"_R2",
-                        getPublishedFolder( modules,
-                                            'ucsc_bedgraphtobigwig_per_group',
-                                            [:])+it[1].name]})
-        .set{ch_trackfiles} // collect track files for igv*/
+                        RelativePublishFolder.getPublishedFolder(workflow,
+                                            'UCSC_BEDGRAPHTOBIGWIG_PER_GROUP')+it[1].name]})
+        .set{ch_trackfiles} // collect track files for igv
 
     //
     // calling R1 peaks, output R1 narrowPeak and reads in peak
@@ -294,10 +292,10 @@ workflow HICAR {
             params.r1_pval_thresh
         )
         ch_versions = ch_versions.mix(R1_PEAK.out.versions.ifEmpty(null))
-        /*ch_trackfiles = ch_trackfiles.mix(
+        ch_trackfiles = ch_trackfiles.mix(
             R1_PEAK.out.bws.map{[it[0].id+"_R1",
-                getPublishedFolder(modules,
-                    'ucsc_bedgraphtobigwig_per_r1_group', [:])+it[1].name]})*/
+                RelativePublishFolder.getPublishedFolder(workflow,
+                    'UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP')+it[1].name]})
 
         // merge ATAC_PEAK with R1_PEAK by group id
         distalpair = PAIRTOOLS_PAIRE.out.hdf5.map{meta, bed -> [meta.group, bed]}
@@ -316,12 +314,11 @@ workflow HICAR {
             params.skip_diff_analysis
         )
         ch_versions = ch_versions.mix(HI_PEAK.out.versions.ifEmpty(null))
-        /*ch_trackfiles = ch_trackfiles.mix(
+        ch_trackfiles = ch_trackfiles.mix(
             HI_PEAK.out.bedpe
                     .map{[it[0].id+"_HiPeak",
-                        getPublishedFolder( modules,
-                                            'assign_type',
-                                            [:])+it[1].name]})*/
+                        RelativePublishFolder.getPublishedFolder(workflow,
+                                            'ASSIGN_TYPE')+it[1].name]})
 
         RUN_CIRCOS(
             HI_PEAK.out.bedpe,
@@ -336,15 +333,15 @@ workflow HICAR {
     //
     // Create igv index.html file
     //
-    /*ch_trackfiles.collect{it.join('\t')}
+    ch_trackfiles.collect{it.join('\t')}
         .flatten()
         .collectFile(
             name     :'track_files.txt',
-            storeDir :getPublishedFolder(modules, 'igv', params),
+            storeDir : params.outdir+'/'+RelativePublishFolder.getPublishedFolder(workflow, 'IGV'),
             newLine  : true, sort:{it[0]})
-        .set{ igv_track_files }*/
+        .set{ igv_track_files }
     //igv_track_files.view()
-    //IGV(igv_track_files, PREPARE_GENOME.out.ucscname)
+    IGV(igv_track_files, PREPARE_GENOME.out.ucscname, RelativePublishFolder.getPublishedFolder(workflow, 'IGV'))
 
     //
     // Annotate the MAPS peak

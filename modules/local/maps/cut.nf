@@ -1,6 +1,7 @@
 process MAPS_CUT {
     tag "$bin_size"
     label 'process_high'
+    label 'error_retry'
 
     conda (params.enable_conda ? "conda-forge::biopython=1.70" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {

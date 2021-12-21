@@ -12,6 +12,7 @@ process IGV {
     input:
     path track
     val species
+    val outdir
 
     output:
     path "{index.html,readme.txt}"   , emit: igv
@@ -19,7 +20,7 @@ process IGV {
 
     script:
     """
-    create_igv.py $track $species $task.publishDir.path
+    create_igv.py $track $species "${outdir.replaceAll('/$', '')}"
     echo "collect in ${track} and copy all the files into relative folder in a web-server." > readme.txt
 
     cat <<-END_VERSIONS > versions.yml
