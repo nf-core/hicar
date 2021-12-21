@@ -31,6 +31,7 @@ process CALL_R1PEAK {
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################
+    options(scipen=10)
     pkgs <- c("rtracklayer")
     versions <- c("${task.process}:")
     for(pkg in pkgs){
