@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process MAPS_REFORMAT {
     tag "$meta.id"
     label 'process_high'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
     conda (params.enable_conda ? "conda-forge::r-data.table=1.12.2" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -41,7 +32,7 @@ process MAPS_REFORMAT {
     # ## 3. handle multiple input files
     # ## 4. handle the empty input file
     #########################################
-    versions <- c("${getProcessName(task.process)}:", "    MAPS: 1.1.0")
+    versions <- c("${task.process}:", "    MAPS: 1.1.0")
     writeLines(versions, "versions.yml") # write versions.yml
 
     options("scipen"=999)

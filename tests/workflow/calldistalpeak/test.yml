@@ -1,0 +1,13 @@
+- name: subworkflow calldistalpeak
+  command: nextflow run tests/workflow/calldistalpeak/ -entry test_call_frag_peak -c tests/config/nextflow.config
+  tags:
+    - calldistalpeak
+  files:
+    - path: output/fragmentPeak/merged_peaks/merged_peak.bed
+    - path: output/fragmentPeak/peaks_per_Group/gp1_pileup.bdg
+    - path: output/fragmentPeak/peaks_per_Group/gp1.bed
+    - path: output/fragmentPeak/peaks_per_Group/gp1.narrowPeak
+    - path: output/fragmentPeak/R1_bigwig/byGroup/gp1.bigWig
+    - path: output/fragmentPeak/R1_bigwig/pos1/test.bigWig
+    - path: output/results.txt
+      md5sum: 21da93069c74dfbc3c02999e8f27a712

@@ -99,6 +99,8 @@ def find_site(fasta,seq,outfile,pos,cores, binsize):
 
     manager = mp.Manager()
     q = manager.Queue()
+    if(cores> mp.cpu_count()):
+        cores = mp.cpu_count()
     pool = mp.Pool(cores)
     watcher = pool.apply_async(listener, (outfile, q))
     jobs = []

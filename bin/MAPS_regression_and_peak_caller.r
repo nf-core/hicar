@@ -11,7 +11,7 @@
 # ## 2. export the COUNT_CUTOFF, RATIO_CUTOFF and FDR parameters
 # ## 3. Automatic detect the chromosome names
 # ## 4. Handle the error if the input count table is empty
-# ## 5. Prefilter the data before fit to vglm to handle the NA error by function trimDAta and checkdata
+# ## 5. Prefilter the data before fit to vglm to handle the NA error by replace the loglikelihood function.
 # ## 6. Handle the error if output is empty
 # ## 7. Handle the error if AND or XOR table is empty
 # ## 8. clean unused code
@@ -122,40 +122,33 @@ dataset_length_xor = length(mm_combined_xor$bin1_mid)
 dataset_length = dataset_length_and + dataset_length_xor
 
 ## doing statistics and resampling
-checkdata <- function(mm){
-    mf <- vglm(count ~ loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm, method="model.frame")
-    y <- model.response(mf, "any")
-    w <- model.weights(mf)
-    if (!length(w)) {
-        w <- rep_len(1, nrow(mf))
-    }
-    lambda.init <- Init.mu(y = y, w = w, imethod = 1, imu = NULL)
-    eta <- theta2eta(lambda.init, "loglink", earg = list(
-            theta = NULL, bvalue = NULL, inverse = FALSE, deriv = 0,
-            short = TRUE, tag = FALSE))
-    lambda <- eta2theta(eta, "loglink", earg = list(theta = NULL,
-        bvalue = NULL, inverse = FALSE, deriv = 0, short = TRUE,
+loglikelihood <- function (mu, y, w, residuals = FALSE, eta, extra = NULL, summation = TRUE) {
+    lambda <- eta2theta(eta, "loglink", earg = list(bvalue = NULL, inverse = FALSE, deriv = 0, short = TRUE,
         tag = FALSE))
-    ll.elts <- dgaitpois(y, lambda, truncate = 0, log = TRUE)
-}
-trimData <- function(mm){
-    ll.elts <- checkdata(mm)
-    while(any(is.infinite(ll.elts))){
-        mm <- mm[!is.infinite(ll.elts), , drop=FALSE]
-        ll.elts <- checkdata(mm)
+    if (residuals) {
+        stop("loglikelihood residuals not implemented yet")
     }
-    mm
+    else {
+        ll.elts <- c(w) * dgaitpois(y, lambda, truncate = 0,
+            log = TRUE)
+        if (summation) {
+            sum(ll.elts[!is.infinite(ll.elts)])
+        }
+        else {
+            ll.elts
+        }
+    }
 }
 pospoisson_regression <- function(mm, dataset_length) {
-    mm <- trimData(mm)
+    family <- pospoisson()
+    family@loglikelihood <- loglikelihood
     # fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm)
-    fit <- vglm(count ~ loggc + logm + logdist + logShortCount, family = pospoisson(), data = mm)
+    fit <- vglm(count ~ loggc + logm + logdist + logShortCount, family = family, data = mm)
     mm$expected = fitted(fit)
     mm$p_val = ppois(mm$count, mm$expected, lower.tail = FALSE, log.p = FALSE) / ppois(0, mm$expected, lower.tail = FALSE, log.p = FALSE)
     m1 = mm[ mm$p_val > 1/length(mm$p_val),]
-    m1 <- trimData(m1)
     # fit <- vglm(count ~ logl + loggc + logm + logdist + logShortCount, family = pospoisson(), data = m1)
-    fit <- vglm(count ~  loggc + logm + logdist + logShortCount, family = pospoisson(), data = m1)
+    fit <- vglm(count ~  loggc + logm + logdist + logShortCount, family = family, data = m1)
     coeff<-round(coef(fit),10)
     # mm$expected2 <- round(exp(coeff[1] + coeff[2]*mm$logl + coeff[3]*mm$loggc + coeff[4]*mm$logm + coeff[5]*mm$logdist + coeff[6]*mm$logShortCount), 10)
     mm$expected2 <- round(exp(coeff[1]  + coeff[2]*mm$loggc + coeff[3]*mm$logm + coeff[4]*mm$logdist + coeff[5]*mm$logShortCount), 10)

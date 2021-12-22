@@ -1,0 +1,16 @@
+callatacpeak:
+  - subworkflows/local/callatacpeak.nf
+  - tests/workflow/callatacpeak/**
+calldistalpeak:
+  - subworkflows/local/calldistalpeak.nf
+  - tests/workflow/calldistalpeak/**
+callhipeak:
+  - modules/local/atacreads/**
+  - modules/nf-core/modules/macs2/callpeak/**
+  - modules/nf-core/modules/pairtools/select/**
+  - modules/local/bioc/pairs2hdf5.nf
+  - modules/nf-core/modules/cooler/digest/**
+  - subworkflows/local/callatacpeak.nf
+  - subworkflows/local/calldistalpeak.nf
+  - subworkflows/local/hipeak.nf
+  - tests/workflow/hipeak/**

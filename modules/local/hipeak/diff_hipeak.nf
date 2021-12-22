@@ -1,14 +1,5 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process DIFF_HIPEAK {
     label 'process_medium'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-diffhic=1.24.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -19,7 +10,6 @@ process DIFF_HIPEAK {
 
     input:
     path peaks, stageAs: "peaks/*"
-    path summary, stageAs: "summary/*"
     path distalpair, stageAs: "pairs/*"
 
     output:
@@ -28,7 +18,7 @@ process DIFF_HIPEAK {
     path "versions.yml"                       , emit: versions
 
     script:
-    prefix   = options.suffix ? "${options.suffix}" : "diffhicar"
+    prefix   = task.ext.prefix ? "${task.ext.prefix}" : "diffhicar"
     """
     #!/usr/bin/env Rscript
 
@@ -39,7 +29,7 @@ process DIFF_HIPEAK {
     #######################################################################
     #######################################################################
     pkgs <- c("edgeR", "InteractionSet", "rhdf5")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)
@@ -74,20 +64,23 @@ process DIFF_HIPEAK {
     getPath <- function(root, ...){
         paste(root, ..., sep="/")
     }
-    readPairs <- function(pair, chrom1, chrom2, gi){
-        tileWidth <- h5read(pair, "header/tile_width")
+    readPairs <- function(pair, chrom1, chrom2){
         h5content <- h5ls(pair)
         h5content <- h5content[, "group"]
         h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
+        h5content <- unique(h5content)
         n <- h5content[grepl(paste0("data.", chrom1, ".", chrom2), h5content)]
         n <- getPath(n, "position")
-        inf <- H5Fopen(pair)
+        inf <- H5Fopen(pair, flags="H5F_ACC_RDONLY")
         on.exit({H5Fclose(inf)})
         pc <- lapply(n, function(.ele){
             if(H5Lexists(inf, .ele)){
                 h5read(inf, .ele)
             }
         })
+        H5Fclose(inf)
+        h5closeAll()
+        on.exit()
         pc <- do.call(rbind, pc)
     }
     pc <- dir("pairs", "h5\$", full.names = FALSE)
@@ -97,7 +90,7 @@ process DIFF_HIPEAK {
             chr_ <- strsplit(chr, sep)[[1]]
             chrom1 <- chr_[1]
             chrom2 <- chr_[2]
-            ps <- readPairs(pairs, chrom1, chrom2, .peak)
+            ps <- readPairs(pairs, chrom1, chrom2)
             counts_total <- h5read(pairs, "header/total")
             if(length(ps)<1){
                 return(NULL)

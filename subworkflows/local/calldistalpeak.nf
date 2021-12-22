@@ -1,36 +1,35 @@
 /*
- * call peak by MACS2 for ATAC reads
+ * call peak by fragment reads
  */
-params.options = [:]
-
-include { R1READS             } from '../../modules/local/atacreads/r1reads'          addParams(options: params.options.r1reads)
-include { MERGEREADS
-    as MERGE_R1READS          } from '../../modules/local/atacreads/mergereads'       addParams(options: params.options.merge_r1reads)
-include { MACS2_CALLPEAK
-    as MACS2_CALLR1PEAK       } from '../../modules/nf-core/modules/macs2/callpeak/main'            addParams(options: params.options.macs2_callr1peak)
-include { DUMPREADS
-    as DUMPR1READS            } from '../../modules/local/atacreads/dumpreads'        addParams(options: params.options.dump_r1_reads_per_group)
-include { DUMPREADS
-    as DUMPR1READS_SAMPLE     } from '../../modules/local/atacreads/dumpreads'        addParams(options: params.options.dump_r1_reads_per_sample)
+include { R1READS             } from '../../modules/local/fragmentreads/r1reads'
+include { MERGE_READS
+    as MERGE_R1READS          } from '../../modules/local/atacreads/mergereads'
+include { CALL_R1PEAK         } from '../../modules/local/fragmentreads/call_peak'
+include { DUMP_READS
+    as DUMP_R1_READS_PER_GROUP     } from '../../modules/local/atacreads/dumpreads'
+include { DUMP_READS
+    as DUMP_R1_READS_PER_SAMPLE    } from '../../modules/local/atacreads/dumpreads'
 include { MERGE_PEAK
-    as MERGE_R1PEAK           } from '../../modules/local/atacreads/mergepeak'        addParams(options: params.options.merge_r1peak)
+    as MERGE_R1PEAK           } from '../../modules/local/atacreads/mergepeak'
 include { BEDTOOLS_GENOMECOV
-    as BEDTOOLS_GENOMECOV_R1SAM } from '../../modules/nf-core/modules/bedtools/genomecov/main'  addParams(options: params.options.bedtools_genomecov_per_sample)
-include { BEDTOOLS_SORT       } from '../../modules/nf-core/modules/bedtools/sort/main'  addParams(options: params.options.bedtools_sort_per_group)
-include { BEDTOOLS_SORT
-    as BEDTOOLS_SORT_R1SAM    } from '../../modules/nf-core/modules/bedtools/sort/main'  addParams(options: params.options.bedtools_sort_per_sample)
-include { UCSC_BEDCLIP        } from '../../modules/nf-core/modules/ucsc/bedclip/main'  addParams(options: params.options.ucsc_bedclip)
+    as BEDTOOLS_GENOMECOV_PER_R1SAMPLE } from '../../modules/nf-core/modules/bedtools/genomecov/main'
+include { BEDFILES_SORT
+    as BEDFILES_SORT_PER_GROUP       } from '../../modules/local/atacreads/bedsort'
+include { BEDFILES_SORT
+    as BEDFILES_SORT_PER_SAMPLE      } from '../../modules/local/atacreads/bedsort'
+include { UCSC_BEDCLIP        } from '../../modules/nf-core/modules/ucsc/bedclip/main'
 include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_R1BEDGRAPHTOBIGWIG     } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'  addParams(options: params.options.ucsc_bedgraphtobigwig_per_r1_group)
+    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP  } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
 include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_R1SAM } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'  addParams(options: params.options.ucsc_bedgraphtobigwig_per_r1_sample)
+    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
 
 workflow R1_PEAK {
     take:
-    distalpair  // channel: [ val(meta), [pairs] ]
+    distalpair // channel: [ val(meta), [pairs] ]
     chromsizes // channel: [ path(size) ]
-    macs_gsize // channel: value
+    cut        // channel: [ path(cut) ]
     gtf        // channel: [ path(gtf) ]
+    pval       // val
 
     main:
     // extract and sort R1 reads
@@ -45,12 +44,12 @@ workflow R1_PEAK {
     MERGE_R1READS(read4merge)
     ch_version = ch_version.mix(MERGE_R1READS.out.versions)
 
-    // call ATAC narrow peaks for group
-    MACS2_CALLR1PEAK(MERGE_R1READS.out.bed.map{[it[0], it[1], []]}, macs_gsize)
-    ch_version = ch_version.mix(MACS2_CALLR1PEAK.out.versions)
+    // call fragment narrow peaks for group
+    CALL_R1PEAK(MERGE_R1READS.out.bed, cut, pval)
+    ch_version = ch_version.mix(CALL_R1PEAK.out.versions)
 
     // merge peaks
-    r1_peaks = MACS2_CALLR1PEAK.out.peak.map{it[1]}.collect()
+    r1_peaks = CALL_R1PEAK.out.peak.map{it[1]}.collect()
     MERGE_R1PEAK(r1_peaks)
 
     // stats
@@ -58,27 +57,26 @@ workflow R1_PEAK {
     //ch_version = ch_version.mix(R1QC.out.versions)
 
     // dump R1 reads for each group for maps
-    DUMPR1READS(MERGE_R1READS.out.bed)
-    BEDTOOLS_SORT(MACS2_CALLR1PEAK.out.bdg.map{[it[0], it[1].findAll{it.toString().contains('pileup')}]}, "bedgraph")
-    UCSC_BEDCLIP(BEDTOOLS_SORT.out.sorted, chromsizes)
-    UCSC_R1BEDGRAPHTOBIGWIG(UCSC_BEDCLIP.out.bedgraph, chromsizes)
+    DUMP_R1_READS_PER_GROUP(MERGE_R1READS.out.bed)
+    BEDFILES_SORT_PER_GROUP(CALL_R1PEAK.out.bdg, "bedgraph")
+    UCSC_BEDCLIP(BEDFILES_SORT_PER_GROUP.out.sorted, chromsizes)
+    UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
-    DUMPR1READS_SAMPLE(R1READS.out.bed)
-    ch_version = ch_version.mix(DUMPR1READS_SAMPLE.out.versions)
-    BEDTOOLS_GENOMECOV_R1SAM(R1READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
-    BEDTOOLS_SORT_R1SAM(BEDTOOLS_GENOMECOV_R1SAM.out.genomecov, "bedgraph")
-    ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_R1SAM.out.versions)
-    UCSC_BEDGRAPHTOBIGWIG_R1SAM(BEDTOOLS_SORT_R1SAM.out.sorted, chromsizes)
-    ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_R1SAM.out.versions)
+    DUMP_R1_READS_PER_SAMPLE(R1READS.out.bed)
+    ch_version = ch_version.mix(DUMP_R1_READS_PER_SAMPLE.out.versions)
+    BEDTOOLS_GENOMECOV_PER_R1SAMPLE(R1READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
+    BEDFILES_SORT_PER_SAMPLE(BEDTOOLS_GENOMECOV_PER_R1SAMPLE.out.genomecov, "bedgraph")
+    ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_PER_R1SAMPLE.out.versions)
+    UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE(BEDFILES_SORT_PER_SAMPLE.out.sorted, chromsizes)
+    ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE.out.versions)
 
     emit:
-    peak       = MACS2_CALLR1PEAK.out.peak              // channel: [ val(meta), path(peak) ]
-    xls        = MACS2_CALLR1PEAK.out.xls               // channel: [ val(meta), path(xls) ]
+    peak       = CALL_R1PEAK.out.peak                   // channel: [ val(meta), path(peak) ]
     mergedpeak = MERGE_R1PEAK.out.peak                  // channel: [ path(bed) ]
     //stats      = R1QC.out.stats                       // channel: [ path(csv) ]
-    reads      = DUMPR1READS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
-    samplereads= DUMPR1READS.out.peak                   // channel: [ val(meta), path(bedgraph) ]
-    bws        = UCSC_R1BEDGRAPHTOBIGWIG.out.bigwig     // channel: [ val(meta), path(bigwig) ]
+    reads      = DUMP_R1_READS_PER_GROUP.out.peak       // channel: [ val(meta), path(bedgraph) ]
+    samplereads= DUMP_R1_READS_PER_GROUP.out.peak       // channel: [ val(meta), path(bedgraph) ]
+    bws        = UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP.out.bigwig     // channel: [ val(meta), path(bigwig) ]
     versions   = ch_version                             // channel: [ path(version) ]
 }

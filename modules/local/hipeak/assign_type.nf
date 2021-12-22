@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process ASSIGN_TYPE {
     tag "$meta.id"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.26.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -28,6 +19,7 @@ process ASSIGN_TYPE {
     path "versions.yml"                                   , emit: versions
 
     script:
+    def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -37,7 +29,7 @@ process ASSIGN_TYPE {
     #######################################################################
     #######################################################################
     pkgs <- c("graph", "RBGL", "InteractionSet")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)
@@ -76,7 +68,7 @@ process ASSIGN_TYPE {
     option_list <- list("count_cutoff"=c("--count_cutoff", "-c", "integer"),
                         "ratio_cutoff"=c("--ratio_cutoff", "-r", "numeric"),
                         "fdr"=c("--fdr", "-f", "integer"))
-    opt <- parse_args(option_list, strsplit("$options.args", "\\\\s+")[[1]])
+    opt <- parse_args(option_list, strsplit("$args", "\\\\s+")[[1]])
     if(!is.null(opt\$count_cutoff)){
         COUNT_CUTOFF <- opt\$count_cutoff
     }
@@ -106,7 +98,7 @@ process ASSIGN_TYPE {
 
         group <- unique(rbind(as.data.frame(ol1), as.data.frame(ol2)))
         colnames(group) <- c("from", "to")
-        group\$weight <- 1L
+        group\$weight <- rep(1L, nrow(group))
         group <- split(group, seqnames(first(gi)[group\$from]))
         group <- lapply(group, function(.ele){
             .ele <- graphBAM(.ele)
@@ -120,7 +112,9 @@ process ASSIGN_TYPE {
         final\$Cluster[group\$id] <- group\$g
         final\$ClusterSize <- 0
         final\$ClusterSize[group\$id] <- table(group\$g)[group\$g]
-        final\$Cluster[is.na(final\$Cluster)] <- seq(from=max(group\$g)+1, to=max(group\$g)+sum(is.na(final\$Cluster)))
+        max_group <- max(group\$g)
+        if(is.infinite(max_group)) max_group <- 0
+        final\$Cluster[is.na(final\$Cluster)] <- seq(from=max_group+1, to=max_group+sum(is.na(final\$Cluster)))
         final\$NegLog10P <- -log10( final\$p_val_reg2 )
         final\$NegLog10P[is.na(final\$NegLog10P)] <- 0
         final\$NegLog10P[is.infinite(final\$NegLog10P)] <- max(final\$NegLog10P[!is.infinite(final\$NegLog10P)]+1)
@@ -164,7 +158,7 @@ process ASSIGN_TYPE {
 
     peaks <- if(nrow(mm)>0) subset(mm, count >= COUNT_CUTOFF & ratio2 >= RATIO_CUTOFF & -log10(fdr) > FDR) else data.frame()
     if (dim(peaks)[1] == 0) {
-        print(paste('ERROR caller_hipeak.r: 0 bin pairs with count >= ',COUNT_CUTOFF,' observed/expected ratio >= ',RATIO_CUTOFF,' and -log10(fdr) > ',fdr_cutoff,sep=''))
+        print(paste('ERROR caller_hipeak.r: 0 bin pairs with count >= ',COUNT_CUTOFF,' observed/expected ratio >= ',RATIO_CUTOFF,' and -log10(fdr) > ',FDR,sep=''))
         quit()
     }
 

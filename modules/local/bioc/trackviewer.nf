@@ -1,16 +1,7 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process BIOC_TRACKVIEWER {
     tag "$bin_size"
     label 'process_high'
     label 'error_ignore'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -31,7 +22,8 @@ process BIOC_TRACKVIEWER {
     path "versions.yml"           , emit: versions
 
     script:
-    prefix   = options.suffix ? "${options.suffix}${bin_size}" : "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
+    def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
 
@@ -43,7 +35,7 @@ process BIOC_TRACKVIEWER {
     #######################################################################
 
     pkgs <- c("trackViewer", "GenomicFeatures", "InteractionSet", "rtracklayer", "rhdf5")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)
@@ -65,7 +57,7 @@ process BIOC_TRACKVIEWER {
     ## make_option(c("-c", "--cores"), type="integer", default=1, help="Number of cores", metavar="integer")
     ## make_option(c("-e", "--events"), type="character", default=NULL, help="given events csv file, must be ginteractions file", metavar="string")
     maxEvent <- 25
-    args <- strsplit("${options.args}", "\\\\s+")[[1]]
+    args <- strsplit("${args}", "\\\\s+")[[1]]
     parse_args <- function(options, args){
         out <- lapply(options, function(.ele){
             if(any(.ele[-3] %in% args)){
@@ -176,7 +168,7 @@ process BIOC_TRACKVIEWER {
         idx <- getIndex(range, tileWidth)
         idx <- expand.grid(idx, idx)
         idx <- paste(idx[, 1], idx[, 2], sep="_")
-        inf <- H5Fopen(pair)
+        inf <- H5Fopen(pair, flags="H5F_ACC_RDONLY")
         on.exit(H5Fclose(inf))
         pc <- lapply(idx, function(.ele){
             n <- getPath("data", chrom, chrom, .ele, "position")
@@ -192,6 +184,9 @@ process BIOC_TRACKVIEWER {
             }
         })
         strand <- do.call(rbind, strand)
+        H5Fclose(inf)
+        h5closeAll()
+        on.exit()
         GInteractions(anchor1 = GRanges(chrom, IRanges(pc[, 1], width=readwidth), strand = strand[, 1]),
                     anchor2 = GRanges(chrom, IRanges(pc[, 2], width=readwidth), strand = strand[, 2]))
     }

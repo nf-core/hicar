@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process READS_STAT {
     tag "$meta.id"
     label 'process_high'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
     conda (params.enable_conda ? "r::r-magrittr=1.5" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -26,11 +17,11 @@ process READS_STAT {
     path "versions.yml"           , emit: versions
 
     script:
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
     """
     #!/usr/bin/env Rscript
     ## generate the statistis for each samples
-    versions <- c("${getProcessName(task.process)}:",
+    versions <- c("${task.process}:",
         paste0("    R:", paste(R.version\$major, R.version\$minor, sep=".")))
     writeLines(versions, "versions.yml") # wirte versions.yml
 

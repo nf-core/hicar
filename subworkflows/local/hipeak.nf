@@ -1,21 +1,20 @@
 /*
  * Call interaction peaks by MAPS
  */
-params.options = [:]
 
-include { PREPARE_COUNTS            } from '../../modules/local/hipeak/prepare_counts'    addParams(options: params.options.parepare_counts)
-include { CALL_HIPEAK               } from '../../modules/local/hipeak/callpeak'          addParams(options: params.options.call_hipeak)
-include { ASSIGN_TYPE               } from '../../modules/local/hipeak/assign_type'       addParams(options: params.options.assign_type)
-include { DIFF_HIPEAK               } from '../../modules/local/hipeak/diff_hipeak'       addParams(options: params.options.diff_hipeak)
+include { PREPARE_COUNTS            } from '../../modules/local/hipeak/prepare_counts'
+include { CALL_HIPEAK               } from '../../modules/local/hipeak/callpeak'
+include { ASSIGN_TYPE               } from '../../modules/local/hipeak/assign_type'
+include { DIFF_HIPEAK               } from '../../modules/local/hipeak/diff_hipeak'
 include { BIOC_CHIPPEAKANNO
-    as BIOC_CHIPPEAKANNO_HIPEAK     } from '../../modules/local/bioc/chippeakanno'        addParams(options: params.options.chippeakanno_hipeak)
+    as BIOC_CHIPPEAKANNO_HIPEAK     } from '../../modules/local/bioc/chippeakanno'
 include { BIOC_CHIPPEAKANNO
-    as BIOC_CHIPPEAKANNO_DIFFHIPEAK } from '../../modules/local/bioc/chippeakanno'        addParams(options: params.options.chippeakanno_diffhipeak)
-include { PAIR2BAM                  } from '../../modules/local/bioc/pair2bam'            addParams(options: params.options.pair2bam)
+    as BIOC_CHIPPEAKANNO_DIFFHIPEAK } from '../../modules/local/bioc/chippeakanno'
+include { PAIR2BAM                  } from '../../modules/local/bioc/pair2bam'
 
 workflow HI_PEAK {
     take:
-    peaks                // channel: [ meta, r2peak, p1peak, distalpair ]
+    peaks                // channel: [ meta, r2peak, r1peak, distalpair ]
     gtf                  // channel: [ path(gtf) ]
     fasta                // channel: [ path(fasta) ]
     digest_genome        // channel: [ path(digest_genome) ]
@@ -52,7 +51,6 @@ workflow HI_PEAK {
         hipeaks = ASSIGN_TYPE.out.peak.map{it[1]}.collect().filter{it.size()>1}
         if(hipeaks){
             DIFF_HIPEAK(hipeaks,
-                        ASSIGN_TYPE.out.summary.map{it[1]}.collect(),
                         peaks.map{it[3]}.collect())
             ch_version = ch_version.mix(DIFF_HIPEAK.out.versions.ifEmpty(null))
             stats = DIFF_HIPEAK.out.stats

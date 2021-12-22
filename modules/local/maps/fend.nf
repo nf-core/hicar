@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process MAPS_FEND {
     tag "$bin_size"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -27,14 +18,15 @@ process MAPS_FEND {
     path "versions.yml"                     , emit: versions
 
     script:
+    def args = task.ext.args ?: ''
     """
     awk -vOFS="\t" '{print \$3,\$4,\$4,\$3"_"\$1,"0",\$2}' $cut | \\
-        bedtools slop $options.args \\
+        bedtools slop $args \\
             -r $bin_size -g $chrom_sizes > \\
             ${cut}.bed
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         bedtools: \$(echo \$(bedtools --version) | sed -e "s/bedtools v//g")
         MAPS: 1.1.0
     END_VERSIONS
