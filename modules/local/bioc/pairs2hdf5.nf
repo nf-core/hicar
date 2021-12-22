@@ -18,7 +18,7 @@ process BIOC_PAIRS2HDF5 {
     path "versions.yml"           , emit: versions
 
     script:
-    def args = task.ext.args ?: ''
+    def args = task.ext.args ?: 'keep-dup'
     """
     #!/usr/bin/env Rscript
 
