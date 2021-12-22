@@ -1,15 +1,7 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process MAPS_CUT {
     tag "$bin_size"
     label 'process_high'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
+    label 'error_retry'
 
     conda (params.enable_conda ? "conda-forge::biopython=1.70" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -47,7 +39,7 @@ process MAPS_CUT {
         -c $task.cpus
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         MAPS: 1.1.0
     END_VERSIONS
     """

@@ -1,16 +1,7 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process PAIR2BAM {
     tag "$meta.id"
     label 'process_high'
     label 'error_ignore'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -27,8 +18,7 @@ process PAIR2BAM {
     path "versions.yml"                                  , emit: versions
 
     script:
-    def software = getSoftwareName(task.process)
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def prefix   = task.ext.prefix ?: "${meta.id}"
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -38,7 +28,7 @@ process PAIR2BAM {
     #######################################################################
     #######################################################################
     pkgs <- c("Rsamtools", "InteractionSet", "rhdf5")
-    versions <- c("${getProcessName(task.process)}:")
+    versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
         library(pkg, character.only=TRUE)
@@ -60,17 +50,6 @@ process PAIR2BAM {
     ## loading data
     getPath <- function(root, ...){
         paste(root, ..., sep="/")
-    }
-    readPairs <- function(pair){
-        inf <- H5Fopen(pair)
-        on.exit(H5Fclose(inf))
-        pc <- lapply(idx, function(.ele){
-            n <- getPath("data", chrom1, chrom2, .ele, "position")
-            if(H5Lexists(inf, n)){
-                h5read(inf, n)
-            }
-        })
-        pc <- do.call(rbind, pc)
     }
     createReadsName <- function(ids, width=6, prefix="r"){
         paste0(prefix, formatC(ids, width=width, flag="0"))
@@ -132,6 +111,7 @@ process PAIR2BAM {
             }
         }
         close(sam_con)
+        h5closeAll()
         on.exit()
         si <- do.call(rbind, strsplit(header, "\\\\t"))
         si <- as.numeric(sub("LN:", "", si[, 3]))

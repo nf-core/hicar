@@ -1,0 +1,29 @@
+- name: subworkflow callhipeak
+  command: nextflow run tests/workflow/hipeak/ -entry test_call_hi_peak -c tests/config/nextflow.config
+  tags:
+    - callhipeak
+  files:
+    - path: output/HiPeak/test.1.peaks
+    - path: output/HiPeak/test.1.bedpe
+    - path: output/HiPeak/summary.test.txt
+    - path: output/HiPeak/distalpair_in_peak_bams_4_igv/test.bam
+    - path: output/HiPeak/distalpair_in_peak_bams_4_igv/test.bam.bai
+    - path: output/ATACpeak/QC/TSSEscore_FRiP.csv
+    - path: output/ATACpeak/QC/aggregateTSSEscoreToTSS.csv
+    - path: output/ATACpeak/merged_peaks/merged_peak.bed
+    - path: output/ATACpeak/peaks_per_Group/gp1_control_lambda.bdg
+    - path: output/ATACpeak/peaks_per_Group/gp1_treat_pileup.bdg
+    - path: output/ATACpeak/peaks_per_Group/gp1_summits.bed
+    - path: output/ATACpeak/peaks_per_Group/gp1_peaks.xls
+    - path: output/ATACpeak/peaks_per_Group/gp1_peaks.narrowPeak
+    - path: output/ATACpeak/R2_bigwig/byGroup/gp1.bigWig
+    - path: output/ATACpeak/R2_bigwig/Tn5InsSitesBySample/test.bigWig
+    - path: output/fragmentPeak/merged_peaks/merged_peak.bed
+    - path: output/fragmentPeak/peaks_per_Group/gp1_pileup.bdg
+    - path: output/fragmentPeak/peaks_per_Group/gp1.bed
+    - path: output/fragmentPeak/peaks_per_Group/gp1.narrowPeak
+    - path: output/fragmentPeak/R1_bigwig/byGroup/gp1.bigWig
+    - path: output/fragmentPeak/R1_bigwig/pos1/test.bigWig
+    - path: output/results.csv
+    - path: output/results.txt
+      md5sum: 21da93069c74dfbc3c02999e8f27a712

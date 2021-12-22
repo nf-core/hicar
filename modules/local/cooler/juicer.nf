@@ -1,16 +1,7 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process JUICER {
     tag "${meta.id}"
     label 'process_medium'
     label 'error_ignore'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::java-jdk=8.0.112" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -30,7 +21,8 @@ process JUICER {
     path "versions.yml"                          , emit: versions
 
     script:
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
+    def args = task.ext.args ?: ''
     """
     ## thanks https://www.biostars.org/p/360254/
     tail -n +2 $gi | sort -k2,2d -k6,6d > ${gi}.sorted
@@ -57,11 +49,11 @@ process JUICER {
     java ${juicer_jvm_params} -jar ${juicer_tools_jar} pre \\
         -r \$res \\
         \${skip_do_norm} \\
-        $options.args --threads $task.cpus ${gi}.sorted ${prefix}.${meta.bin}.hic $chromsize
+        $args --threads $task.cpus ${gi}.sorted ${prefix}.${meta.bin}.hic $chromsize
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
-        ${getSoftwareName(task.process)}: \$(echo \$(java -jar ${juicer_tools_jar} --version 2>&1) | sed 's/^.*Version //; s/Usage.*\$//')
+    "${task.process}":
+        java: \$(echo \$(java -jar ${juicer_tools_jar} --version 2>&1) | sed 's/^.*Version //; s/Usage.*\$//')
     END_VERSIONS
     """
 }

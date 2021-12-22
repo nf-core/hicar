@@ -1,14 +1,5 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process MERGE_PEAK {
     label 'process_medium'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
 
     conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -25,17 +16,17 @@ process MERGE_PEAK {
     path "versions.yml"       , emit: versions
 
     script:
-    def software = "bedtools"
+    def args = task.ext.args ?: ''
     """
     cat *.narrowPeak | \\
         cut -f1-3 | \\
         sort -k1,1 -k2,2n | \\
-        bedtools merge $options.args \\
+        bedtools merge $args \\
             -i stdin > merged_peak.bed
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
-        ${getSoftwareName(task.process)}: \$(echo \$(bedtools --version) | sed -e "s/bedtools v//g")
+    "${task.process}":
+        bedtools: \$(echo \$(bedtools --version) | sed -e "s/bedtools v//g")
     END_VERSIONS
     """
 }

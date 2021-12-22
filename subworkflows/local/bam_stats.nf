@@ -1,13 +1,12 @@
 /*
  * Createing Stats for mapping results
  */
-params.options = [:]
 
-include { SAMTOOLS_SORT                } from '../../modules/nf-core/modules/samtools/sort/main'                     addParams(options: params.options.samtools_sort)
-include { SAMTOOLS_INDEX               } from '../../modules/nf-core/modules/samtools/index/main'                    addParams(options: params.options.samtools_index)
-include { SAMTOOLS_STATS               } from '../../modules/nf-core/modules/samtools/stats/main'                    addParams(options: params.options.samtools_stats)
-include { SAMTOOLS_IDXSTATS            } from '../../modules/nf-core/modules/samtools/idxstats/main'                 addParams(options: params.options.samtools_idxstats)
-include { SAMTOOLS_FLAGSTAT            } from '../../modules/nf-core/modules/samtools/flagstat/main'                 addParams(options: params.options.samtools_flagstat)
+include { SAMTOOLS_SORT                } from '../../modules/nf-core/modules/samtools/sort/main'
+include { SAMTOOLS_INDEX               } from '../../modules/nf-core/modules/samtools/index/main'
+include { SAMTOOLS_STATS               } from '../../modules/nf-core/modules/samtools/stats/main'
+include { SAMTOOLS_IDXSTATS            } from '../../modules/nf-core/modules/samtools/idxstats/main'
+include { SAMTOOLS_FLAGSTAT            } from '../../modules/nf-core/modules/samtools/flagstat/main'
 
 workflow BAM_STAT {
     take:

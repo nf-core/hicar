@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process MAPS_MAPS{
     tag "$meta.id"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "pandas=1.1.5" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -27,7 +18,7 @@ process MAPS_MAPS{
     path "versions.yml"          , emit: versions
 
     script:
-    def software  = "MAPS"
+    def args = task.ext.args ?: ''
     """
     ## 2 steps
     ## step 1, prepare the config file for MAPS. The file will be used for multiple steps
@@ -42,13 +33,13 @@ process MAPS_MAPS{
         $bin_size \\
         0 \\
         "${meta.id}_${bin_size}/" \\
-        ${options.args}
+        $args
     ## step 2, parse the signals into .xor and .and files, details please refer: doi:10.1371/journal.pcbi.1006982
     ## by default, the sex chromosome will be excluded.
     MAPS.py "${meta.id}_${bin_size}/maps_${meta.id}.maps"
 
     cat <<-END_VERSIONS > versions.yml
-    ${getProcessName(task.process)}:
+    "${task.process}":
         MAPS: 1.1.0
     END_VERSIONS
     """

@@ -1,15 +1,6 @@
-// Import generic module functions
-include { initOptions; saveFiles; getSoftwareName; getProcessName } from '../functions'
-
-params.options = [:]
-options        = initOptions(params.options)
-
 process SEQLEVELS_STYLE {
     tag "$bed"
     label 'process_low'
-    publishDir "${params.outdir}",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
     conda (params.enable_conda ? "bioconda::bioconductor-genomeinfodb=1.26.4" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -26,14 +17,12 @@ process SEQLEVELS_STYLE {
     path "versions.yml"           , emit: versions
 
     script:
-    def software = "GenomeInfoDb"
-
     """
     #!/usr/bin/env Rscript
 
     library(GenomeInfoDb)
     versions <- c(
-        "${getProcessName(task.process)}:",
+        "${task.process}:",
         paste("    GenomeInfoDb:", as.character(packageVersion("GenomeInfoDb"))))
     writeLines(versions, "versions.yml")
 

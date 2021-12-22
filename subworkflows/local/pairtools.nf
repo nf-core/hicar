@@ -1,22 +1,21 @@
 /*
  * pair the proper mapped pairs
  */
-params.options = [:]
 
-include { PAIRTOOLS_DEDUP    } from '../../modules/nf-core/modules/pairtools/dedup/main'    addParams(options: params.options.paritools_dedup)
-include { PAIRTOOLS_FLIP     } from '../../modules/nf-core/modules/pairtools/flip/main'     addParams(options: params.options.pairtools_flip)
-include { PAIRTOOLS_PARSE    } from '../../modules/nf-core/modules/pairtools/parse/main'    addParams(options: params.options.pairtools_parse)
-include { PAIRTOOLS_RESTRICT } from '../../modules/nf-core/modules/pairtools/restrict/main' addParams(options: params.options.pairtools_restrict)
-include { PAIRTOOLS_SELECT   } from '../../modules/nf-core/modules/pairtools/select/main'   addParams(options: params.options.pairtools_select)
+include { PAIRTOOLS_DEDUP    } from '../../modules/nf-core/modules/pairtools/dedup/main'
+include { PAIRTOOLS_FLIP     } from '../../modules/nf-core/modules/pairtools/flip/main'
+include { PAIRTOOLS_PARSE    } from '../../modules/nf-core/modules/pairtools/parse/main'
+include { PAIRTOOLS_RESTRICT } from '../../modules/nf-core/modules/pairtools/restrict/main'
+include { PAIRTOOLS_SELECT   } from '../../modules/nf-core/modules/pairtools/select/main'
 include { PAIRTOOLS_SELECT
-    as PAIRTOOLS_SELECT_LONG } from '../../modules/nf-core/modules/pairtools/select/main'   addParams(options: params.options.pairtools_select_long)
-include { PAIRTOOLS_SORT     } from '../../modules/nf-core/modules/pairtools/sort/main'     addParams(options: params.options.pairtools_sort)
-include { PAIRIX             } from '../../modules/nf-core/modules/pairix/main'             addParams(options: params.options.pairix)
-include { READS_STAT         } from '../../modules/local/reads_stat'                        addParams(options: params.options.reads_stat)
-include { READS_SUMMARY      } from '../../modules/local/reads_summary'                     addParams(options: params.options.reads_summary)
-include { PAIRSQC            } from '../../modules/local/pairix/pairsqc'                    addParams(options: params.options.pairsqc)
-include { PAIRSPLOT          } from '../../modules/local/pairix/pairsplot'                  addParams(options: params.options.pairsplot)
-include { BIOC_PAIRS2HDF5    } from '../../modules/local/bioc/pairs2hdf5'                   addParams(options: params.options.pairs2hdf5)
+    as PAIRTOOLS_SELECT_LONG } from '../../modules/nf-core/modules/pairtools/select/main'
+include { PAIRTOOLS_SORT     } from '../../modules/nf-core/modules/pairtools/sort/main'
+include { PAIRIX             } from '../../modules/nf-core/modules/pairix/main'
+include { READS_STAT         } from '../../modules/local/reads_stat'
+include { READS_SUMMARY      } from '../../modules/local/reads_summary'
+include { PAIRSQC            } from '../../modules/local/pairix/pairsqc'
+include { PAIRSPLOT          } from '../../modules/local/pairix/pairsplot'
+include { BIOC_PAIRS2HDF5    } from '../../modules/local/bioc/pairs2hdf5'
 
 workflow PAIRTOOLS_PAIRE {
     take:

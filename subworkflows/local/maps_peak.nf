@@ -1,13 +1,12 @@
 /*
  * Call interaction peaks by MAPS
  */
-params.options = [:]
 
-include { MAPS_MAPS             } from '../../modules/local/maps/maps'         addParams(options: params.options.maps_maps)
-include { MAPS_CALLPEAK         } from '../../modules/local/maps/callpeak'     addParams(options: params.options.maps_callpeak)
+include { MAPS_MAPS             } from '../../modules/local/maps/maps'
+include { MAPS_CALLPEAK         } from '../../modules/local/maps/callpeak'
 include { READS_SUMMARY
-    as MAPS_STATS               } from '../../modules/local/reads_summary'      addParams(options: params.options.maps_stats)
-include { MAPS_REFORMAT         } from '../../modules/local/maps/reformat'     addParams(options: params.options.maps_reformat)
+    as MAPS_STATS               } from '../../modules/local/reads_summary'
+include { MAPS_REFORMAT         } from '../../modules/local/maps/reformat'
 
 workflow MAPS_PEAK {
     take:

@@ -5,9 +5,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [12/01/2021]
 
+- fix the bug in calling peaks for `pospoisson regression`
+- simplify the fragment peak calling by call peaks only for fragmentation sites
+- add unit test for local `subworkflow`
 - change R1 reads name to fragment reads in documentation
 - use hdf5 to improve the IO efficency
-- call HiPeak for unique reads counts
 - fix the file path for igv.py
 - improve trackviewer.nf
 - update gunzip module
@@ -15,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix the empty output of PCA analysis for `multiQC`.
 - replace `zcat` by `gunzip -c`
 - update documentation of readme
-- fix the wrong estimated gonme size for unsupported genome.
+- fix the wrong estimated genome size for unsupported genome.
 - fix multiple typo.
 - optimize the code for checksums.nf
 - add commit number to source code downloaded from github
