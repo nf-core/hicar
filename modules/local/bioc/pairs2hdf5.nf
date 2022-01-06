@@ -240,7 +240,7 @@ process BIOC_PAIRS2HDF5 {
 
         # read pairs
         #columns: readID chrom1 pos1 chrom2 pos2 strand1 strand2 pair_type
-        tmp_h5 <- tempfile(fileext = "h5")
+        tmp_h5 <- tempfile(tmpdir=getwd(), fileext = ".h5")
         h5createFile(tmp_h5)
         block_idx <- try(read_pair_write_hd5(inf, tmp_h5, root))
         #rewrite
