@@ -63,6 +63,7 @@ process CALL_R1PEAK {
     dist <- distanceToNearest(digest)
     dist <- median(mcols(dist)[, "distance"])
     peaks <- promoters(peaks, upstream=dist, downstream=dist)
+    peaks <- GenomicRanges::trim(peaks)
     rd <- reduce(peaks, with.revmap=TRUE)
     revmap <- mcols(rd)[, "revmap"]
     l <- lengths(revmap)>1
