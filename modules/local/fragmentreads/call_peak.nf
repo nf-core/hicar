@@ -81,7 +81,7 @@ process CALL_R1PEAK {
         peaks <- sort(peaks)
     }
     if(any(start(peaks)<1)){
-      start(peaks[start(peaks)<1]) <- 1
+        start(peaks[start(peaks)<1]) <- 1
     }
     export(peaks, "${prefix}.bed")
     np <- paste(as.character(seqnames(peaks)), start(peaks)-1, end(peaks),

@@ -46,7 +46,7 @@ process PREPARE_COUNTS {
     ## make_option(c("-o", "--output"), type="character", default="counts.csv", help="output folder", metavar="string")
     ## make_option(c("-f", "--fasta"), type="character", default=NULL, help="genome fasta file", metavar="string")
     OUTPUT <- "counts.${meta.id}.csv"
-    NCORE <- "$task.cpus"
+    NCORE <- as.numeric("$task.cpus")
     peak_pair_block <- ifelse(!is.na(as.numeric($args)), as.numeric($args)[1], 1e9)
     FASTA <- "$fasta"
     CUT <- "$cut"
