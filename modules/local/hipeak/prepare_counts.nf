@@ -17,7 +17,7 @@ process PREPARE_COUNTS {
     path "versions.yml"           , emit: versions
 
     script:
-    def args   = task.ext.args ?: "1e9"
+    def args   = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -45,9 +45,33 @@ process PREPARE_COUNTS {
     ## make_option(c("-m", "--mappability"), type="character", default=NULL, help="mappability file", metavar="string")
     ## make_option(c("-o", "--output"), type="character", default="counts.csv", help="output folder", metavar="string")
     ## make_option(c("-f", "--fasta"), type="character", default=NULL, help="genome fasta file", metavar="string")
+    parse_args <- function(options, args){
+        out <- lapply(options, function(.ele){
+            if(any(.ele[-3] %in% args)){
+                if(.ele[3]=="logical"){
+                    TRUE
+                }else{
+                    id <- which(args %in% .ele[-3])[1]
+                    x <- args[id+1]
+                    mode(x) <- .ele[3]
+                    x
+                }
+            }
+        })
+    }
+    option_list <- list("peak_pair_block"=c("--peak_pair_block", "-b", "integer"),
+                        "snow_type"=c("--snow_type", "-t", "character"))
+    opt <- parse_args(option_list, strsplit("$args", "\\\\s+")[[1]])
     OUTPUT <- "counts.${meta.id}.csv"
     NCORE <- as.numeric("$task.cpus")
-    peak_pair_block <- ifelse(!is.na(as.numeric($args)), as.numeric($args)[1], 1e9)
+    SNOW_TYPE <- "SOCK"
+    peak_pair_block <- 1e9
+    if(!is.null(opt\$peak_pair_block)){
+        peak_pair_block <- opt\$peak_pair_block
+    }
+    if(!is.null(opt\$snow_type)){
+        SNOW_TYPE <- opt\$snow_type
+    }
     FASTA <- "$fasta"
     CUT <- "$cut"
     MAPPABILITY <- "$mappability"
@@ -118,10 +142,14 @@ process PREPARE_COUNTS {
     gis <- NULL
 
     gc(reset=TRUE)
-    param <- SnowParam(workers = NCORE, progressbar = TRUE, type = "SOCK")
+    if(SNOW_TYPE=="FORK"){
+        param <- MulticoreParam(workers = NCORE, progressbar = TRUE)
+    }else{
+        param <- SnowParam(workers = NCORE, progressbar = TRUE, type = SNOW_TYPE)
+    }
     for(chrom1 in chromosomes){
         for(chrom2 in chromosomes){
-            message("working on ", chrom1, " and ", chrom2)
+            message("working on ", chrom1, " and ", chrom2, " from ", Sys.time())
             r1peak <- R1PEAK[[chrom1]]
             r2peak <- R2PEAK[[chrom2]]
             message("read reads")
@@ -133,11 +161,11 @@ process PREPARE_COUNTS {
                                         GRanges(chrom2, IRanges(reads[, 2], width=150)))
                 peak_pairs <- expand.grid(seq_along(r1peak), seq_along(r2peak))
                 peak_pairs <- split(peak_pairs,
-                                    rep(seq.int(ceiling(nrow(peak_pairs)/peak_pair_block)),
-                                        each=peak_pair_block)[seq.int(nrow(peak_pairs))])
+                                    as.integer(ceiling(seq.int(nrow(peak_pairs))/peak_pair_block)))
                 message("count reads")
                 gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak){
                     .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
+                    reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
                     S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
                     S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
                     .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]

@@ -313,6 +313,22 @@
                     "fa_icon": "fas fa-mountain",
                     "hidden": true,
                     "default": false
+                },
+                "cluster_type":{
+                    "type": "string",
+                    "descripton": "Type of cluster to use",
+                    "help_text": "Possible values are 'SOCK' (default), 'MPI' and 'FORK'.",
+                    "fa_icon": "fas fa-network-wired",
+                    "hidden": false,
+                    "default": "SOCK"
+                },
+                "peak_pair_block":{
+                    "type": "number",
+                    "descripton": "The block number of peak pair",
+                    "help_text": "The block number of peak pair in each thread to count the reads. Smaller number will decrease the memory cost and increase the computation time for parepare the counts in hipeak calling.",
+                    "fa_icon": "fas fa-th",
+                    "hidden": true,
+                    "default": "1e9"
                 }
             }
         },
