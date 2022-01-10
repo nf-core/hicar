@@ -307,28 +307,28 @@
                     "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/MAPS/make_maps_runfile.py",
                     "default": "https://raw.githubusercontent.com/ijuric/MAPS/18c1a337f222130d7c5735d051614e2a253d5319/bin/MAPS/make_maps_runfile.py"
                 },
-                "remove_dup":{
+                "remove_dup": {
                     "type": "boolean",
                     "description": "remove duplicates for high resolution peaks or not",
                     "fa_icon": "fas fa-mountain",
                     "hidden": true,
                     "default": false
                 },
-                "cluster_type":{
+                "cluster_type": {
                     "type": "string",
-                    "descripton": "Type of cluster to use",
+                    "description": "Type of cluster to use",
                     "help_text": "Possible values are 'SOCK' (default), 'MPI' and 'FORK'.",
                     "fa_icon": "fas fa-network-wired",
                     "hidden": false,
                     "default": "SOCK"
                 },
-                "peak_pair_block":{
+                "peak_pair_block": {
                     "type": "number",
-                    "descripton": "The block number of peak pair",
+                    "description": "The block number of peak pair",
                     "help_text": "The block number of peak pair in each thread to count the reads. Smaller number will decrease the memory cost and increase the computation time for parepare the counts in hipeak calling.",
                     "fa_icon": "fas fa-th",
                     "hidden": true,
-                    "default": "1e9"
+                    "default": 1000000000
                 }
             }
         },
