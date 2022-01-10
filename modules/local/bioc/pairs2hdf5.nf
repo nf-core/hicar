@@ -202,12 +202,24 @@ process BIOC_PAIRS2HDF5 {
                 })
                 pc <- do.call(rbind, pc)
                 if(!keepDup) pc <- unique(pc)
+                npc <- nrow(pc)
+                chunk_size <- ceiling(sqrt(npc)/1000)*1000
                 h5createGroup(out_h5, n)
                 pos <- getPath(n, "position")
+                if(npc>1000){
+                    h5createDataset(out_h5, pos, dims = dim(pc[, c(1, 2)]),
+                                    storage.mode = "integer",
+                                    chunk = c(chunk_size, 2))
+                }
                 h5write(as.matrix(pc[, c(1, 2)]), out_h5, pos)
                 strand <- getPath(n, "strand")
+                if(npc>1000){
+                    h5createDataset(out_h5, strand, dims = dim(pc[, c(3, 4)]),
+                                    storage.mode = "character", size = 1,
+                                    chunk = c(chunk_size, 2))
+                }
                 h5write(as.matrix(pc[, c(3, 4)]), out_h5, strand)
-                nrow(pc)
+                npc
             }else{
                 0
             }
