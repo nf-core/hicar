@@ -1,6 +1,7 @@
 process BIOC_TRACKVIEWER {
     tag "$bin_size"
     label 'process_high'
+    label 'process_long'
     label 'error_ignore'
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
