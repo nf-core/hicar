@@ -57,6 +57,7 @@ process BIOC_TRACKVIEWER {
     ## make_option(c("-o", "--output"), type="character", default=".", help="output folder", metavar="string")
     ## make_option(c("-c", "--cores"), type="integer", default=1, help="Number of cores", metavar="integer")
     ## make_option(c("-e", "--events"), type="character", default=NULL, help="given events csv file, must be ginteractions file", metavar="string")
+    maxRegionWidth <- 1e6
     maxEvent <- 25
     args <- strsplit("${args}", "\\\\s+")[[1]]
     parse_args <- function(options, args){
@@ -139,9 +140,11 @@ process BIOC_TRACKVIEWER {
     link <- gi2track(grs_narrow)
     setTrackStyleParam(link, "tracktype", "link")
     setTrackStyleParam(link, "color", c("gray80", "yellow", "brown"))
-    reg <- reduce(GRanges(seqnames(first(grs)),
+    reg0 <- GRanges(seqnames(first(grs)),
                             IRanges(start = start(first(grs)),
-                                    end = end(second(grs)))), min.gapwidth = gap)
+                                    end = end(second(grs))))
+    reg0 <- reg0[width(reg0)<maxRegionWidth]
+    reg <- reduce(reg0, min.gapwidth = gap)
     gr1 <- unique(subsetByOverlaps(reg, grs))
     gr1 <- gr1[seq.int(min(maxEvent, length(gr1)))]
     prettyMax <- function(x){
@@ -307,11 +310,18 @@ process BIOC_TRACKVIEWER {
                 v4c_first <- get_v4c(first(bait), second(bait))
                 v4c_second <- get_v4c(second(bait), first(bait))
                 ids <- getGeneIDsFromTxDb(gr, txdb)
-                genes <- geneTrack(ids, txdb, map[ids], asList=FALSE)
-                tL <- trackList(genes, link, heat, v4c_first, v4c_second,
-                                heightDist = c(1, 1, 2*length(heat),
-                                2*length(v4c_first), 2*length(v4c_second)))
-                names(tL)[2] <- "called links"
+                if(length(ids)){
+                    genes <- geneTrack(ids, txdb, map[ids], asList=FALSE)
+                    tL <- trackList(genes, link, heat, v4c_first, v4c_second,
+                                    heightDist = c(1, 1, 2*length(heat),
+                                    2*length(v4c_first), 2*length(v4c_second)))
+                    names(tL)[2] <- "called links"
+                }else{
+                    tL <- trackList(link, heat, v4c_first, v4c_second,
+                                    heightDist = c(1, 2*length(heat),
+                                    2*length(v4c_first), 2*length(v4c_second)))
+                    names(tL)[1] <- "called links"
+                }
                 pdf(file.path(output, paste0("event_", i, "_", seqnames(gr), ":", start(gr), "-", end(gr), ".pdf")),
                     width = 9, height = length(tL))
                 viewTracks(tL, gr=gr, autoOptimizeStyle = TRUE)
