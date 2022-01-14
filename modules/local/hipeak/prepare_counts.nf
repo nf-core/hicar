@@ -85,11 +85,14 @@ process PREPARE_COUNTS {
     mcols(R2PEAK) <- NULL
     binCounts <- dir("binCount", "bedpe", full.names=TRUE)
     if(length(binCounts)){
-        binCounts <- do.call(rbind, lapply(binCounts, read.delim, header=FALSE))
-        binCounts <- unique(binCounts[binCounts[, 7]>0, , drop=FALSE])
-        binCounts <-   with(binCounts,
-                            GInteractions(anchor1=GRanges(V1, IRanges(V2+1, V3)),
-                                        anchor2=GRanges(V4, IRanges(V5+1, V6))))
+        binCounts <- do.call(rbind, lapply(binCounts, read.delim, header=TRUE))
+        binCounts <- unique(binCounts[binCounts[, "count"]>0, , drop=FALSE])
+        binCounts <-  GInteractions(anchor1=GRanges(binCounts[, "chrom1"], IRanges(binCounts[, "start1"]+1, binCounts[, "end1"])),
+                                    anchor2=GRanges(binCounts[, "chrom2"], IRanges(binCounts[, "start2"]+1, binCounts[, "end2"])))
+        ## add sel-connections
+        selCounts <- GInteractions(anchor1=regions(binCounts),
+                                    anchor2=regions(binCounts))
+        binCounts <- c(binCounts, selCounts)
     }else{
         binCounts <- GInteractions()
     }
@@ -178,6 +181,7 @@ process PREPARE_COUNTS {
                     gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak, binCounts){
                         .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
                         .gi <- IRanges::subsetByOverlaps(.gi, binCounts)
+                        if(length(.gi)<1) return(InteractionSet::GInteractions())
                         reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
                         S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
                         S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))

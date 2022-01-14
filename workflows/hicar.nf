@@ -303,7 +303,7 @@ workflow HICAR {
         grouped_reads_peak = ATAC_PEAK.out.peak.map{[it[0].id, it[1]]}
                                 .join(R1_PEAK.out.peak.map{[it[0].id, it[1]]})
                                 .join(distalpair)
-                                .join(COOLER.out.bedpe.map{[it[0].id, it[1]]})
+                                .join(COOLER.out.groupbedpe.map{[it[0].id, it[1]]})
                                 .map{[[id:it[0]], it[1], it[2], it[3], it[4]]}
         HI_PEAK(
             grouped_reads_peak,
