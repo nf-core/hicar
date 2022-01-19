@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [12/01/2021]
 
+- fix the bug for R1 peak calling when the peak is out-of-bound ranges.
 - fix the bug in calling peaks for `pospoisson regression`
 - simplify the fragment peak calling by call peaks only for fragmentation sites
 - add unit test for local `subworkflow`

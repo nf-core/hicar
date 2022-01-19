@@ -1,6 +1,7 @@
 process PREPARE_COUNTS {
     tag "$meta.id"
     label 'process_high'
+    label 'process_long'
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -10,14 +11,14 @@ process PREPARE_COUNTS {
     }
 
     input:
-    tuple val(meta), path(r2peak, stageAs:"R2peak/*"), path(r1peak, stageAs: "R1peak/*"), path(distalpair, stageAs: "pairs/*"), path(mappability), path(fasta), path(cut)
+    tuple val(meta), path(r2peak, stageAs:"R2peak/*"), path(r1peak, stageAs: "R1peak/*"), path(distalpair, stageAs: "pairs/*"), path(bin_count, stageAs:"binCount/*"), path(mappability), path(fasta), path(cut)
 
     output:
     tuple val(meta), path("*.csv"), emit: counts
     path "versions.yml"           , emit: versions
 
     script:
-    def args   = task.ext.args ?: "1e9"
+    def args   = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
     #######################################################################
@@ -45,9 +46,33 @@ process PREPARE_COUNTS {
     ## make_option(c("-m", "--mappability"), type="character", default=NULL, help="mappability file", metavar="string")
     ## make_option(c("-o", "--output"), type="character", default="counts.csv", help="output folder", metavar="string")
     ## make_option(c("-f", "--fasta"), type="character", default=NULL, help="genome fasta file", metavar="string")
+    parse_args <- function(options, args){
+        out <- lapply(options, function(.ele){
+            if(any(.ele[-3] %in% args)){
+                if(.ele[3]=="logical"){
+                    TRUE
+                }else{
+                    id <- which(args %in% .ele[-3])[1]
+                    x <- args[id+1]
+                    mode(x) <- .ele[3]
+                    x
+                }
+            }
+        })
+    }
+    option_list <- list("peak_pair_block"=c("--peak_pair_block", "-b", "integer"),
+                        "snow_type"=c("--snow_type", "-t", "character"))
+    opt <- parse_args(option_list, strsplit("$args", "\\\\s+")[[1]])
     OUTPUT <- "counts.${meta.id}.csv"
-    NCORE <- "$task.cpus"
-    peak_pair_block <- ifelse(!is.na(as.numeric($args)), as.numeric($args)[1], 1e9)
+    NCORE <- as.numeric("$task.cpus")
+    SNOW_TYPE <- "SOCK"
+    peak_pair_block <- 1e9
+    if(!is.null(opt\$peak_pair_block)){
+        peak_pair_block <- opt\$peak_pair_block
+    }
+    if(!is.null(opt\$snow_type)){
+        SNOW_TYPE <- opt\$snow_type
+    }
     FASTA <- "$fasta"
     CUT <- "$cut"
     MAPPABILITY <- "$mappability"
@@ -58,6 +83,19 @@ process PREPARE_COUNTS {
     R2PEAK <- import("$r2peak")
     mcols(R1PEAK) <- NULL
     mcols(R2PEAK) <- NULL
+    binCounts <- dir("binCount", "bedpe", full.names=TRUE)
+    if(length(binCounts)){
+        binCounts <- do.call(rbind, lapply(binCounts, read.delim, header=TRUE))
+        binCounts <- unique(binCounts[binCounts[, "count"]>0, , drop=FALSE])
+        binCounts <-  GInteractions(anchor1=GRanges(binCounts[, "chrom1"], IRanges(binCounts[, "start1"]+1, binCounts[, "end1"])),
+                                    anchor2=GRanges(binCounts[, "chrom2"], IRanges(binCounts[, "start2"]+1, binCounts[, "end2"])))
+        ## add sel-connections
+        selCounts <- GInteractions(anchor1=regions(binCounts),
+                                    anchor2=regions(binCounts))
+        binCounts <- c(binCounts, selCounts)
+    }else{
+        binCounts <- GInteractions()
+    }
     ## split by chromsome
     R1PEAK <- split(R1PEAK, seqnames(R1PEAK))
     R2PEAK <- split(R2PEAK, seqnames(R2PEAK))
@@ -118,10 +156,14 @@ process PREPARE_COUNTS {
     gis <- NULL
 
     gc(reset=TRUE)
-    param <- SnowParam(workers = NCORE, progressbar = TRUE, type = "SOCK")
+    if(SNOW_TYPE=="FORK"){
+        param <- MulticoreParam(workers = NCORE, progressbar = TRUE)
+    }else{
+        param <- SnowParam(workers = NCORE, progressbar = TRUE, type = SNOW_TYPE)
+    }
     for(chrom1 in chromosomes){
         for(chrom2 in chromosomes){
-            message("working on ", chrom1, " and ", chrom2)
+            message("working on ", chrom1, " and ", chrom2, " from ", Sys.time())
             r1peak <- R1PEAK[[chrom1]]
             r2peak <- R2PEAK[[chrom2]]
             message("read reads")
@@ -133,15 +175,27 @@ process PREPARE_COUNTS {
                                         GRanges(chrom2, IRanges(reads[, 2], width=150)))
                 peak_pairs <- expand.grid(seq_along(r1peak), seq_along(r2peak))
                 peak_pairs <- split(peak_pairs,
-                                    rep(seq.int(ceiling(nrow(peak_pairs)/peak_pair_block)),
-                                        each=peak_pair_block)[seq.int(nrow(peak_pairs))])
+                                    as.integer(ceiling(seq.int(nrow(peak_pairs))/peak_pair_block)))
                 message("count reads")
-                gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak){
-                    .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
-                    S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
-                    S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
-                    .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
-                }, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)
+                if(length(binCounts)){
+                    gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak, binCounts){
+                        .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
+                        .gi <- IRanges::subsetByOverlaps(.gi, binCounts)
+                        if(length(.gi)<1) return(InteractionSet::GInteractions())
+                        reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
+                        S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
+                        S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
+                        .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
+                    }, reads=reads, r1peak=r1peak, r2peak=r2peak, binCounts=binCounts, BPPARAM = param)
+                }else{
+                    gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak){
+                        .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
+                        reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
+                        S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
+                        S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
+                        .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
+                    }, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)
+                }
                 gi <- Reduce(c, gi)
                 if(length(gi)>0){
                     gis <- c(gis, gi)

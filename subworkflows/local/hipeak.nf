@@ -14,7 +14,7 @@ include { PAIR2BAM                  } from '../../modules/local/bioc/pair2bam'
 
 workflow HI_PEAK {
     take:
-    peaks                // channel: [ meta, r2peak, r1peak, distalpair ]
+    peaks                // channel: [ meta, r2peak, r1peak, distalpair, bin_count ]
     gtf                  // channel: [ path(gtf) ]
     fasta                // channel: [ path(fasta) ]
     digest_genome        // channel: [ path(digest_genome) ]
@@ -25,7 +25,7 @@ workflow HI_PEAK {
 
     main:
     //create count table
-    //input=val(meta), path(r2peak), path(r1peak), path(distalpair)
+    //input=val(meta), path(r2peak), path(r1peak), path(distalpair), path(bin_count)
     ch_version = PREPARE_COUNTS(peaks.combine(mappability).combine(fasta).combine(digest_genome)).versions
     //regression and peak calling
     CALL_HIPEAK(PREPARE_COUNTS.out.counts)
