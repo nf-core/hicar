@@ -170,7 +170,7 @@ process PREPARE_COUNTS {
             reads <- bplapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2, BPPARAM = param)
             h5closeAll()
             reads <- do.call(rbind, c(reads, make.row.names = FALSE))
-            if(length(reads)){
+            if(length(reads) && length(r1peak) && length(r2peak)){
                 reads <- GInteractions(GRanges(chrom1, IRanges(reads[, 1], width=150)),
                                         GRanges(chrom2, IRanges(reads[, 2], width=150)))
                 peak_pairs <- expand.grid(seq_along(r1peak), seq_along(r2peak))
