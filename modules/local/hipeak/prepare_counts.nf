@@ -10,7 +10,7 @@ process PREPARE_COUNTS {
     }
 
     input:
-    tuple val(meta), path(r2peak, stageAs:"R2peak/*"), path(r1peak, stageAs: "R1peak/*"), path(distalpair, stageAs: "pairs/*"), path(bin_count, stageAs:"binCount/*"), val(chrom1)
+    tuple val(meta), path(r2peak, stageAs:"R2peak/*"), path(r1peak, stageAs: "R1peak/*"), path(distalpair, stageAs: "pairs/*"), val(chrom1)
 
     output:
     tuple val(meta), path("*.rds"), optional: true, emit: counts
@@ -82,19 +82,6 @@ process PREPARE_COUNTS {
     R2PEAK <- import("$r2peak")
     mcols(R1PEAK) <- NULL
     mcols(R2PEAK) <- NULL
-    binCounts <- dir("binCount", "bedpe", full.names=TRUE)
-    if(length(binCounts)){
-        binCounts <- do.call(rbind, lapply(binCounts, read.delim, header=TRUE))
-        binCounts <- unique(binCounts[binCounts[, "count"]>0, , drop=FALSE])
-        binCounts <-  GInteractions(anchor1=GRanges(binCounts[, "chrom1"], IRanges(binCounts[, "start1"]+1, binCounts[, "end1"])),
-                                    anchor2=GRanges(binCounts[, "chrom2"], IRanges(binCounts[, "start2"]+1, binCounts[, "end2"])))
-        ## add sel-connections
-        selCounts <- GInteractions(anchor1=regions(binCounts),
-                                    anchor2=regions(binCounts))
-        binCounts <- c(binCounts, selCounts)
-    }else{
-        binCounts <- GInteractions()
-    }
     ## split by chromsome
     R1PEAK <- split(R1PEAK, seqnames(R1PEAK))
     R2PEAK <- split(R2PEAK, seqnames(R2PEAK))
@@ -131,29 +118,6 @@ process PREPARE_COUNTS {
         pc <- do.call(rbind, pc)
     }
 
-    getMscore <- function(gr){
-        gr1 <- split(unique(gr), as.character(seqnames(unique(gr))))
-        gr0 <- lapply(gr1, function(.ele) .ele[seq.int(min(50, length(.ele)))])
-        available_chr <- vapply(gr0, FUN=function(chr){
-            out <- try(ms <- import(MAPPABILITY, which=chr))
-            if(inherits(out, "try-error")) return(FALSE)
-            return(length(ms)>0)
-        }, FUN.VALUE=logical(1))
-        available_chr <- names(available_chr)[available_chr]
-        mscore <- import(MAPPABILITY, which=gr[seqnames(gr) %in% available_chr], as="RleList")
-        chr <- intersect(names(mscore), names(gr1))
-        vw <- Views(mscore[chr], gr1[chr])
-        sc <- viewMeans(vw)
-        vs <- ranges(vw)
-        vs <- as(vs, "GRanges")
-        vs\$score <- unlist(sc, use.names=FALSE)
-        ol <- findOverlaps(gr, vs, type="equal")
-        ol <- ol[!duplicated(queryHits(ol))]
-        score <- vs[subjectHits(ol)]\$score[match(seq_along(gr), queryHits(ol))]
-        score[is.na(score)] <- 0
-        score
-    }
-
     ### load counts
     gis <- NULL
 
@@ -179,25 +143,13 @@ process PREPARE_COUNTS {
                 peak_pairs <- split(peak_pairs,
                                     as.integer(ceiling(seq.int(nrow(peak_pairs))/peak_pair_block)))
                 message("count reads")
-                if(length(binCounts)){
-                    gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak, binCounts){
-                        .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
-                        .gi <- IRanges::subsetByOverlaps(.gi, binCounts)
-                        if(length(.gi)<1) return(InteractionSet::GInteractions())
-                        reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
-                        S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
-                        S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
-                        .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
-                    }, reads=reads, r1peak=r1peak, r2peak=r2peak, binCounts=binCounts, BPPARAM = param)
-                }else{
-                    gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak){
-                        .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
-                        reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
-                        S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
-                        S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
-                        .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
-                    }, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)
-                }
+                gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak, binCounts){
+                    .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
+                    reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
+                    S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
+                    S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
+                    .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
+                }, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)
                 gi <- Reduce(c, gi)
                 if(length(gi)>0){
                     gis <- c(gis, gi)
