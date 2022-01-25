@@ -1,7 +1,6 @@
 process PREPARE_COUNTS {
     tag "$meta.id"
     label 'process_high'
-    label 'process_long'
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
@@ -11,11 +10,11 @@ process PREPARE_COUNTS {
     }
 
     input:
-    tuple val(meta), path(r2peak, stageAs:"R2peak/*"), path(r1peak, stageAs: "R1peak/*"), path(distalpair, stageAs: "pairs/*"), path(bin_count, stageAs:"binCount/*"), path(mappability), path(fasta), path(cut)
+    tuple val(meta), path(r2peak, stageAs:"R2peak/*"), path(r1peak, stageAs: "R1peak/*"), path(distalpair, stageAs: "pairs/*"), path(bin_count, stageAs:"binCount/*"), val(chrom1)
 
     output:
-    tuple val(meta), path("*.csv"), emit: counts
-    path "versions.yml"           , emit: versions
+    tuple val(meta), path("*.rds"), optional: true, emit: counts
+    path "versions.yml"                           , emit: versions
 
     script:
     def args   = task.ext.args ?: ''
@@ -27,7 +26,7 @@ process PREPARE_COUNTS {
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################
-    pkgs <- c("rtracklayer", "InteractionSet", "Biostrings", "Rsamtools", "rhdf5", "BiocParallel")
+    pkgs <- c("rtracklayer", "InteractionSet", "rhdf5", "BiocParallel")
     versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
@@ -46,6 +45,8 @@ process PREPARE_COUNTS {
     ## make_option(c("-m", "--mappability"), type="character", default=NULL, help="mappability file", metavar="string")
     ## make_option(c("-o", "--output"), type="character", default="counts.csv", help="output folder", metavar="string")
     ## make_option(c("-f", "--fasta"), type="character", default=NULL, help="genome fasta file", metavar="string")
+    ## make_option(c("-1", "--chrom1"), type="character", default=NULL, help="chromosome1", metavar="string")
+    ## make_option(c("-2", "--chrom2"), type="character", default=NULL, help="chromosome1", metavar="string")
     parse_args <- function(options, args){
         out <- lapply(options, function(.ele){
             if(any(.ele[-3] %in% args)){
@@ -63,7 +64,8 @@ process PREPARE_COUNTS {
     option_list <- list("peak_pair_block"=c("--peak_pair_block", "-b", "integer"),
                         "snow_type"=c("--snow_type", "-t", "character"))
     opt <- parse_args(option_list, strsplit("$args", "\\\\s+")[[1]])
-    OUTPUT <- "counts.${meta.id}.csv"
+    CHROM1 <- "$chrom1"
+    OUTPUT <- "counts.${meta.id}.${chrom1}.rds"
     NCORE <- as.numeric("$task.cpus")
     SNOW_TYPE <- "SOCK"
     peak_pair_block <- 1e9
@@ -73,9 +75,6 @@ process PREPARE_COUNTS {
     if(!is.null(opt\$snow_type)){
         SNOW_TYPE <- opt\$snow_type
     }
-    FASTA <- "$fasta"
-    CUT <- "$cut"
-    MAPPABILITY <- "$mappability"
     pattern <- "h5" ## h5 is postfix of output of pairtools pairs2hdf5
     pairs <- dir("pairs", paste0(pattern, "\$"), full.names=TRUE)
     names(pairs) <- sub(paste0("\\\\.", pattern), "", basename(pairs))
@@ -106,6 +105,9 @@ process PREPARE_COUNTS {
     chromosomes <- chromosomes[!grepl("M", chromosomes)] ## remove chrM/chrMT
     if(length(chromosomes)==0){
         stop("no valid data in same chromosome.")
+    }
+    if(!CHROM1 %in% chromosomes){
+        stop("chromosome1 is not available.")
     }
 
     ## loading data
@@ -161,7 +163,7 @@ process PREPARE_COUNTS {
     }else{
         param <- SnowParam(workers = NCORE, progressbar = TRUE, type = SNOW_TYPE)
     }
-    for(chrom1 in chromosomes){
+    for(chrom1 in CHROM1){
         for(chrom2 in chromosomes){
             message("working on ", chrom1, " and ", chrom2, " from ", Sys.time())
             r1peak <- R1PEAK[[chrom1]]
@@ -206,31 +208,6 @@ process PREPARE_COUNTS {
         }
     }
     gis <- do.call(c, gis)
-    ### load gc content
-    fa <- FaFile(file=FASTA)
-    gc1 <- letterFrequency(getSeq(fa, first(gis)), letters="CG", as.prob=TRUE)
-    gc2 <- letterFrequency(getSeq(fa, second(gis)), letters="CG", as.prob=TRUE)
-    gis\$gc <- gc1 * gc2 + 1e-9
-    ### load enzyme cut number in R1
-    cut <- import(CUT)
-    start(cut) <- end(cut)
-    gis\$cut <- countOverlaps(first(gis), cut)+0.1
-    ### load mapping score
-    m1 <- getMscore(first(gis))
-    m2 <- getMscore(second(gis))
-    gis\$mappability <- m1*m2 + 1e-6
-    ### get distance of the anchors
-    gis\$dist <- distance(first(gis), second(gis))+1
-    gis\$dist[is.na(gis\$dist)] <- max(gis\$dist, na.rm=TRUE)*100 ##trans interactions
-    gis\$length <- width(first(gis))*width(second(gis))
-
-    mm <- log(as.data.frame(mcols(gis)[, c("length", "cut", "gc", "mappability", "dist", "shortCount")]))
-    mm <- cbind(as.data.frame(first(gis)), as.data.frame(second(gis)), gis\$count, mm)
-    colnames(mm) <- c("chr1", "start1", "end1", "width1", "strand1",
-                    "chr2", "start2", "end2", 'width2', "strand2",
-                    "count", "logl", "logn", "loggc", "logm", "logdist", 'logShortCount')
-    mm\$strand1 <- NULL
-    mm\$strand2 <- NULL
-    write.csv(mm, OUTPUT, row.names=FALSE)
+    saveRDS(gis, OUTPUT)
     """
 }
