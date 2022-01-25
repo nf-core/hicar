@@ -307,6 +307,7 @@ workflow HICAR {
                                 .map{[[id:it[0]], it[1], it[2], it[3], it[4]]}
         HI_PEAK(
             grouped_reads_peak,
+            PREPARE_GENOME.out.chrom_sizes,
             PREPARE_GENOME.out.gtf,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.digest_genome,
