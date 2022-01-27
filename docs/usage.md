@@ -265,6 +265,11 @@ The openssl installation have issues for `conda`. Try to reinstall it by
 The perl-statistics-basic installed in wrong location. Try to reinstall it by
 `conda activate work/conda/env-xxxxx && perl -MCPAN -e 'CPAN::install(Statistics::Basic)'`
 
+* `Error in result[[njob]] <- value :
+    attempt to select less than one element in OneIndex`
+
+The error may caused by out of memory (although the error message seems to be unrelated to memory). Try to set `--peak_pair_block` to a smaller number less than 1e9.
+
 ### Known issue with Juicer_tools
 
 If you are using [Juicer_tools](https://github.com/aidenlab/juicer/wiki/) with GPU supported, it is not supported by the containers. We are using [Juicer Tools Pre](https://github.com/aidenlab/juicer/wiki/Pre) to create the [hic files](https://doi.org/10.1016/j.cels.2016.07.002) from aligned HiCAR reads.
