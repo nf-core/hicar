@@ -93,9 +93,6 @@ process PREPARE_COUNTS {
     if(length(chromosomes)==0){
         stop("no valid data in same chromosome.")
     }
-    if(!CHROM1 %in% chromosomes){
-        stop("chromosome1 is not available.")
-    }
 
     ## loading data
     readPairs <- function(pair, chrom1, chrom2){
@@ -121,13 +118,14 @@ process PREPARE_COUNTS {
     ### load counts
     gis <- NULL
 
-    gc(reset=TRUE)
-    if(SNOW_TYPE=="FORK"){
-        param <- MulticoreParam(workers = NCORE, progressbar = TRUE)
-    }else{
-        param <- SnowParam(workers = NCORE, progressbar = TRUE, type = SNOW_TYPE)
-    }
-    for(chrom1 in CHROM1){
+    if(CHROM1 %in% chromosomes){
+        gc(reset=TRUE)
+        if(SNOW_TYPE=="FORK"){
+            param <- MulticoreParam(workers = NCORE, progressbar = TRUE)
+        }else{
+            param <- SnowParam(workers = NCORE, progressbar = TRUE, type = SNOW_TYPE)
+        }
+        chrom1 <- CHROM1
         for(chrom2 in chromosomes){
             message("working on ", chrom1, " and ", chrom2, " from ", Sys.time())
             r1peak <- R1PEAK[[chrom1]]
