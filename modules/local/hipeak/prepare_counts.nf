@@ -157,7 +157,7 @@ process PREPARE_COUNTS {
             }
         }
     }
-    gis <- do.call(c, gis)
+    if(is.list(gis)) gis <- do.call(c, gis)
     saveRDS(gis, OUTPUT)
     """
 }
