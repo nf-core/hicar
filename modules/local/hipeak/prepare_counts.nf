@@ -126,12 +126,21 @@ process PREPARE_COUNTS {
             param <- SnowParam(workers = NCORE, progressbar = TRUE, type = SNOW_TYPE)
         }
         chrom1 <- CHROM1
+        parallel <- TRUE
         for(chrom2 in chromosomes){
             message("working on ", chrom1, " and ", chrom2, " from ", Sys.time())
             r1peak <- R1PEAK[[chrom1]]
             r2peak <- R2PEAK[[chrom2]]
             message("read reads")
-            reads <- bplapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2, BPPARAM = param)
+            if(parallel){
+                try_res <- try({reads <- bplapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2, BPPARAM = param)})
+                if(inherits(try_res, "try-error")){
+                    parallel <- FALSE
+                }
+            }
+            if(!parallel){
+                reads <- lapply(pairs, readPairs, chrom1=chrom1, chrom2=chrom2)
+            }
             h5closeAll()
             reads <- do.call(rbind, c(reads, make.row.names = FALSE))
             if(length(reads) && length(r1peak) && length(r2peak)){
@@ -141,13 +150,22 @@ process PREPARE_COUNTS {
                 peak_pairs <- split(peak_pairs,
                                     as.integer(ceiling(seq.int(nrow(peak_pairs))/peak_pair_block)))
                 message("count reads")
-                gi <- bplapply(peak_pairs, FUN=function(peak_pair, reads, r1peak, r2peak, binCounts){
+                countFUN <- function(peak_pair, reads, r1peak, r2peak, binCounts){
                     .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
                     reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
                     S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
                     S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
                     .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
-                }, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)
+                }
+                if(parallel){
+                    try_res <- try({gi <- bplapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)})
+                    if(inherits(try_res, "try-error")){
+                        parallel <- FALSE
+                    }
+                }
+                if(!parallel){
+                    gi <- lapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak)
+                }
                 gi <- Reduce(c, gi)
                 if(length(gi)>0){
                     gis <- c(gis, gi)
