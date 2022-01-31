@@ -3,11 +3,10 @@ process MAPS_CALLPEAK {
     label 'process_low'
 
     conda (params.enable_conda ? "bioconda::bioconductor-monocle=2.20.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bioconductor-monocle:2.20.0--r41h399db7b_0"
-    } else {
-        container "quay.io/biocontainers/bioconductor-monocle:2.20.0--r41h399db7b_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bioconductor-monocle:2.20.0--r41h399db7b_0' :
+        'quay.io/biocontainers/bioconductor-monocle:2.20.0--r41h399db7b_0' }"
 
     input:
     tuple val(meta), val(bin_size), path(macs2), path(long_bedpe, stageAs: "long/*"), path(short_bed, stageAs: "short/*"), path(background), path(maps, stageAs: "maps_out/*")

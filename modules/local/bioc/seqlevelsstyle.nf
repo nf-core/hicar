@@ -3,11 +3,10 @@ process SEQLEVELS_STYLE {
     label 'process_low'
 
     conda (params.enable_conda ? "bioconda::bioconductor-genomeinfodb=1.26.4" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bioconductor-genomeinfodb:1.26.4--r40hdfd78af_0"
-    } else {
-        container "quay.io/biocontainers/bioconductor-genomeinfodb:1.26.4--r40hdfd78af_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bioconductor-genomeinfodb:1.26.4--r40hdfd78af_0' :
+        'quay.io/biocontainers/bioconductor-genomeinfodb:1.26.4--r40hdfd78af_0' }"
 
     input:
     path bed

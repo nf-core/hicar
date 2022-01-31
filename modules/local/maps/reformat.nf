@@ -3,11 +3,10 @@ process MAPS_REFORMAT {
     label 'process_high'
 
     conda (params.enable_conda ? "conda-forge::r-data.table=1.12.2" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/r-data.table:1.12.2"
-    } else {
-        container "quay.io/biocontainers/r-data.table:1.12.2"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/r-data.table:1.12.2' :
+        'quay.io/biocontainers/r-data.table:1.12.2' }"
 
     input:
     tuple val(meta), val(bin_size), path(peak)
