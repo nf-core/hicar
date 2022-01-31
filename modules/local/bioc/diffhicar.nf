@@ -4,11 +4,10 @@ process DIFFHICAR {
     label 'error_ignore'
 
     conda (params.enable_conda ? "bioconda::bioconductor-edger=3.32.1" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bioconductor-edger:3.32.1--r40h399db7b_0"
-    } else {
-        container "quay.io/biocontainers/bioconductor-edger:3.32.1--r40h399db7b_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bioconductor-edger:3.32.1--r40h399db7b_0' :
+        'quay.io/biocontainers/bioconductor-edger:3.32.1--r40h399db7b_0' }"
 
     input:
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")

@@ -2,11 +2,10 @@ process GENOME_FILTER {
     label 'process_low'
 
     conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0"
-    } else {
-        container "quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0' :
+        'quay.io/biocontainers/bedtools:2.30.0--hc088bd4_0' }"
 
     input:
     path sizes
@@ -18,7 +17,7 @@ process GENOME_FILTER {
 
     script:
     def file_out = "${sizes.simpleName}.include_regions.bed"
-    if (params.blacklist) {
+    if (blacklist) {
         """
         sortBed -i $blacklist -g $sizes | complementBed -i stdin -g $sizes > $file_out
         cat <<-END_VERSIONS > versions.yml

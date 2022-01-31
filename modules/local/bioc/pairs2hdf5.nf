@@ -3,11 +3,10 @@ process BIOC_PAIRS2HDF5 {
     label 'process_long'
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0"
-    } else {
-        container "quay.io/biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0' :
+        'quay.io/biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0' }"
 
     input:
     tuple val(meta), path(pairs)

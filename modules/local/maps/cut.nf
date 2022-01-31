@@ -5,11 +5,10 @@ process MAPS_CUT {
     label 'error_retry'
 
     conda (params.enable_conda ? "conda-forge::biopython=1.70" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/biopython:1.70--np112py36_1"
-    } else {
-        container "quay.io/biocontainers/biopython:1.70--np112py36_1"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/biopython:1.70--np112py36_1' :
+        'quay.io/biocontainers/biopython:1.70--np112py36_1' }"
 
     input:
     path fasta

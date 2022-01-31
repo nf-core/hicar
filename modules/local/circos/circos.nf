@@ -4,11 +4,10 @@ process CIRCOS {
     label 'error_ignore'
 
     conda (params.enable_conda ? "bioconda::circos=0.69.8" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/circos:0.69.8--hdfd78af_1"
-    } else {
-        container "quay.io/biocontainers/circos:0.69.8--hdfd78af_1"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/circos:0.69.8--hdfd78af_1' :
+        'quay.io/biocontainers/circos:0.69.8--hdfd78af_1' }"
 
     input:
     tuple val(meta), path(data)

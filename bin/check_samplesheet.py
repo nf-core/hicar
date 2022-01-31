@@ -6,7 +6,7 @@ import argparse
 
 
 def parse_args(args=None):
-    Description = "Reformat nf-core/ttest samplesheet file and check its contents."
+    Description = "Reformat nf-core/hicar samplesheet file and check its contents."
     Epilog = "Example usage: python check_samplesheet.py <FILE_IN> <FILE_OUT>"
 
     parser = argparse.ArgumentParser(description=Description, epilog=Epilog)
