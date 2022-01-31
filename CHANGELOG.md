@@ -4,6 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## v1.0dev - [01/25/2022]
+
 - update the old syntax.
 - prepare reads count for hipeak by chromosome.
 - fix the bug for R1 peak calling when the peak is out-of-bound ranges.
