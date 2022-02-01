@@ -45,7 +45,6 @@ process PREPARE_COUNTS {
     ## make_option(c("-o", "--output"), type="character", default="counts.csv", help="output folder", metavar="string")
     ## make_option(c("-f", "--fasta"), type="character", default=NULL, help="genome fasta file", metavar="string")
     ## make_option(c("-1", "--chrom1"), type="character", default=NULL, help="chromosome1", metavar="string")
-    ## make_option(c("-2", "--chrom2"), type="character", default=NULL, help="chromosome1", metavar="string")
     parse_args <- function(options, args){
         out <- lapply(options, function(.ele){
             if(any(.ele[-3] %in% args)){
@@ -145,31 +144,47 @@ process PREPARE_COUNTS {
             if(length(reads) && length(r1peak) && length(r2peak)){
                 reads <- GInteractions(GRanges(chrom1, IRanges(reads[, 1], width=150)),
                                         GRanges(chrom2, IRanges(reads[, 2], width=150)))
-                peak_pairs <- expand.grid(seq_along(r1peak), seq_along(r2peak))
-                peak_pairs <- split(peak_pairs,
-                                    as.integer(ceiling(seq.int(nrow(peak_pairs))/peak_pair_block)))
-                message("count reads")
-                countFUN <- function(peak_pair, reads, r1peak, r2peak, binCounts){
-                    .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]])
+                ## count twice,
+                ## first, merge the r1peak with gap 5k and filter the peak with 0 counts
+                ## second, count for filtered r1peak
+                r1peak_s <- reduce(r1peak, min.gapwidth=5000, with.revmap=TRUE)
+                countFUN <- function(peak_pair, reads, r1peak, r2peak){
+                    .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]],
+                                                        p1=peak_pair[, 1], p2=peak_pair[, 2])
                     reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
                     S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
                     S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
                     .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
                 }
-                if(parallel){
-                    try_res <- try({gi <- bplapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)})
-                    if(inherits(try_res, "try-error")){
-                        parallel <- FALSE
+                countFUNbyPairs <- function(r1peak, r2peak, peak_pairs, parallel){
+                    peak_pairs_group <- ceiling(nrow(peak_pairs)/peak_pair_block)
+                    peak_pairs_group <- rep(seq.int(peak_pairs_group), each= peak_pair_block)
+                    peak_pairs <- split(peak_pairs,
+                                        peak_pairs_group[seq.int(nrow(peak_pairs))])
+                    if(parallel){
+                        try_res <- try({gi <- bplapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)})
+                        if(inherits(try_res, "try-error")){
+                            parallel <- FALSE
+                        }
                     }
+                    if(!parallel){
+                        gi <- lapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak)
+                    }
+                    gi <- Reduce(c, gi)
+                    gi
                 }
-                if(!parallel){
-                    gi <- lapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak)
-                }
-                gi <- Reduce(c, gi)
+                message("count reads")
+                peak_pairs <- expand.grid(seq_along(r1peak_s), seq_along(r2peak))
+                gi <- countFUNbyPairs(r1peak_s, r2peak, peak_pairs, parallel)
+                peak_pairs <- mcols(r1peak_s)[mcols(gi)[, "p1"], "revmap"]
+                peak_pairs <- data.frame(p1=unlist(peak_pairs),
+                                        p2=rep(mcols(gi)[, "p2"], lengths(peak_pairs)))
+                rm(gi)
+                gi <- countFUNbyPairs(r1peak, r2peak, peak_pairs, parallel)
                 if(length(gi)>0){
                     gis <- c(gis, gi)
                 }
-                rm(peak_pairs)
+                rm(peak_pairs, gi)
                 gc(reset=TRUE)
             }
         }
