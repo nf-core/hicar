@@ -14,7 +14,7 @@ in single nucleotide resolution within and among chromosomes.
 
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
+You will need to create a samplesheet with information about the samples you would like to analzse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
 
 ```console
 --input '[path to samplesheet file]'
@@ -264,6 +264,11 @@ The openssl installation have issues for `conda`. Try to reinstall it by
 
 The perl-statistics-basic installed in wrong location. Try to reinstall it by
 `conda activate work/conda/env-xxxxx && perl -MCPAN -e 'CPAN::install(Statistics::Basic)'`
+
+* `Error in result[[njob]] <- value :
+    attempt to select less than one element in OneIndex`
+
+The error may caused by out of memory (although the error message seems to be unrelated to memory). Try to set `--peak_pair_block` to a smaller number less than 1e9.
 
 ### Known issue with Juicer_tools
 

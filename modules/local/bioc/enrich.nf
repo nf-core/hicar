@@ -4,11 +4,10 @@ process BIOC_ENRICH {
     label 'error_ignore'
 
     conda (params.enable_conda ? "bioconda::bioconductor-clusterprofiler=3.18.1" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0"
-    } else {
-        container "quay.io/biocontainers/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0' :
+        'quay.io/biocontainers/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0' }"
 
     input:
     tuple val(bin_size), path(diff)
@@ -19,7 +18,7 @@ process BIOC_ENRICH {
     path "versions.yml"                                , emit: versions
 
     script:
-    prefix   = task.ext.prefix ? "${task.ext.prefix}${bin_size}" : "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
     """
     enrich.r -s ${ucscname} -o "${prefix}/enrichment" $options.args
 

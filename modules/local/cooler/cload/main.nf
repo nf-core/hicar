@@ -3,11 +3,10 @@ process COOLER_CLOAD {
     label 'process_high'
 
     conda (params.enable_conda ? "bioconda::cooler=0.8.11" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/cooler:0.8.11--pyh3252c3a_0"
-    } else {
-        container "quay.io/biocontainers/cooler:0.8.11--pyh3252c3a_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/cooler:0.8.11--pyh3252c3a_0' :
+        'quay.io/biocontainers/cooler:0.8.11--pyh3252c3a_0' }"
 
     input:
     tuple val(meta), path(pairs), path(index)
@@ -19,12 +18,12 @@ process COOLER_CLOAD {
     path "versions.yml"                           , emit: versions
 
     script:
-    def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
+    def prefix   = task.ext.prefix ?: "${meta.id}"
     def args     = task.ext.args.tokenize()
     def tool     = (task.ext.args.contains('hiclib')) ? "hiclib" :
         (task.ext.args.contains('tabix')) ? 'tabix' :
         (task.ext.args.contains('pairs')) ? 'pairs' : 'pairix'
-    def nproc    = tool == "pairix" || tool == 'tabix'? "--nproc ${task.cpus}" : ''
+    def nproc    = tool in ['pairix','tabix'] ? "--nproc ${task.cpus}" : ''
     args.removeIf { it.contains('hiclib') }
     args.removeIf { it.contains('tabix') }
     args.removeIf { it.contains('pairs') }

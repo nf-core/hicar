@@ -292,10 +292,10 @@ workflow test_call_hi_peak {
     validpair  = ATAC_PEAK.out.mergedpeak
                     .combine( R1_PEAK.out.mergedpeak )
                     .combine( hdf5 )
-                    .combine( hdf5 )
-                    .map{[[id:"test", group:"gp1"], it[0], it[1], it[2], it[3]]}
+                    .map{[[id:"test"], it[0], it[1], it[2]]}
     HI_PEAK (
         validpair,
+        chromsizes,
         Channel.fromPath(params.test_data.gtf),
         fasta,
         digest_genome_bed,

@@ -3,11 +3,10 @@ process ENSEMBL_UCSC_CONVERT {
     label 'process_medium'
 
     conda (params.enable_conda ? "bioconda::bioconductor-rtracklayer=1.50.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2"
-    } else {
-        container "quay.io/biocontainers/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' :
+        'quay.io/biocontainers/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' }"
 
     input:
     tuple val(bin_size), path(fname)

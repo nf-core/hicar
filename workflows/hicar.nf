@@ -303,10 +303,10 @@ workflow HICAR {
         grouped_reads_peak = ATAC_PEAK.out.peak.map{[it[0].id, it[1]]}
                                 .join(R1_PEAK.out.peak.map{[it[0].id, it[1]]})
                                 .join(distalpair)
-                                .join(COOLER.out.groupbedpe.map{[it[0].id, it[1]]})
-                                .map{[[id:it[0]], it[1], it[2], it[3], it[4]]}
+                                .map{[[id:it[0]], it[1], it[2], it[3]]}
         HI_PEAK(
             grouped_reads_peak,
+            PREPARE_GENOME.out.chrom_sizes,
             PREPARE_GENOME.out.gtf,
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.digest_genome,

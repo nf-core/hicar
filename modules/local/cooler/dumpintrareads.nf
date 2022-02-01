@@ -3,11 +3,10 @@ process DUMPINTRAREADS {
     label 'process_medium'
 
     conda (params.enable_conda ? "anaconda::gawk=5.1.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/gawk:5.1.0"
-    } else {
-        container "quay.io/biocontainers/gawk:5.1.0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/gawk:5.1.0' :
+        'quay.io/biocontainers/gawk:5.1.0' }"
 
     input:
     tuple val(meta), path(bedpe)
@@ -18,7 +17,7 @@ process DUMPINTRAREADS {
     path  "versions.yml"                                   , emit: versions
 
     script:
-    def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
+    def prefix   = task.ext.prefix ?: "${meta.id}"
     """
     awk -F "\t" \\
         '{if(\$1 == \$4) {print > "${prefix}."\$1".long.intra.bedpe"} }' \\
