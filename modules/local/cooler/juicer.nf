@@ -4,11 +4,10 @@ process JUICER {
     label 'error_ignore'
 
     conda (params.enable_conda ? "bioconda::java-jdk=8.0.112" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--1"
-    } else {
-        container "quay.io/biocontainers/java-jdk:8.0.112--1"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--1' :
+        'quay.io/biocontainers/java-jdk:8.0.112--1' }"
 
     input:
     tuple val(meta), path(gi)
@@ -21,7 +20,7 @@ process JUICER {
     path "versions.yml"                          , emit: versions
 
     script:
-    def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
+    def prefix   = task.ext.prefix ?: "${meta.id}"
     def args = task.ext.args ?: ''
     """
     ## thanks https://www.biostars.org/p/360254/

@@ -3,11 +3,10 @@ process CHECKSUMS {
     label 'process_low'
 
     conda (params.enable_conda ? "conda-forge::coreutils=8.31" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/coreutils:8.31--h14c3975_0 "
-    } else {
-        container "quay.io/biocontainers/coreutils:8.31--h14c3975_0 "
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/coreutils:8.31--h14c3975_0' :
+        'quay.io/biocontainers/coreutils:8.31--h14c3975_0' }"
 
     input:
     tuple val(meta), path(reads)

@@ -3,11 +3,10 @@ process ASSIGN_TYPE {
     label 'process_low'
 
     conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.26.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0"
-    } else {
-        container "quay.io/biocontainers/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' :
+        'quay.io/biocontainers/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' }"
 
     input:
     tuple val(meta), path(counts)

@@ -3,6 +3,7 @@
  */
 
 include { PREPARE_COUNTS            } from '../../modules/local/hipeak/prepare_counts'
+include { POST_COUNTS               } from '../../modules/local/hipeak/post_counts'
 include { CALL_HIPEAK               } from '../../modules/local/hipeak/callpeak'
 include { ASSIGN_TYPE               } from '../../modules/local/hipeak/assign_type'
 include { DIFF_HIPEAK               } from '../../modules/local/hipeak/diff_hipeak'
@@ -14,7 +15,8 @@ include { PAIR2BAM                  } from '../../modules/local/bioc/pair2bam'
 
 workflow HI_PEAK {
     take:
-    peaks                // channel: [ meta, r2peak, r1peak, distalpair, bin_count ]
+    peaks                // channel: [ meta, r2peak, r1peak, distalpair ]
+    chrom_size           // channel: [ path(chrom_size) ]
     gtf                  // channel: [ path(gtf) ]
     fasta                // channel: [ path(fasta) ]
     digest_genome        // channel: [ path(digest_genome) ]
@@ -25,10 +27,16 @@ workflow HI_PEAK {
 
     main:
     //create count table
-    //input=val(meta), path(r2peak), path(r1peak), path(distalpair), path(bin_count)
-    ch_version = PREPARE_COUNTS(peaks.combine(mappability).combine(fasta).combine(digest_genome)).versions
+    //input=val(meta), path(r2peak), path(r1peak), path(distalpair), val(chrom1)
+    chrom1 = chrom_size.splitCsv(sep:"\t", header: false, strip: true).map{it[0]}
+    ch_version = PREPARE_COUNTS(peaks.combine(chrom1)).versions
+    counts = PREPARE_COUNTS.out.counts.map{[it[0].id, it[1]]}
+                            .groupTuple()
+                            .map{[[id:it[0]], it[1]]}
+    POST_COUNTS(counts.combine(mappability).combine(fasta).combine(digest_genome))
+    ch_version = ch_version.mix(POST_COUNTS.out.versions)
     //regression and peak calling
-    CALL_HIPEAK(PREPARE_COUNTS.out.counts)
+    CALL_HIPEAK(POST_COUNTS.out.counts)
     ch_version = ch_version.mix(CALL_HIPEAK.out.versions)
     PAIR2BAM(CALL_HIPEAK.out.peak.join(peaks.map{[it[0], it[3]]}))
 

@@ -3,11 +3,10 @@ process R1READS {
     label 'process_low'
 
     conda (params.enable_conda ? "anaconda::gawk=5.1.0" : null)
-    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/gawk:5.1.0"
-    } else {
-        container "quay.io/biocontainers/gawk:5.1.0"
-    }
+    container "${ workflow.containerEngine == 'singularity' &&
+                    !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/gawk:5.1.0' :
+        'quay.io/biocontainers/gawk:5.1.0' }"
 
     input:
     tuple val(meta), path(pair)
