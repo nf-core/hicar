@@ -192,14 +192,32 @@ do_summaries <- function(peaks_and,peaks_xor, peaks, fraction, r) {
     if (ncol(peaks_and) == 0 & ncol(peaks_xor) == 0) {
         peaks = data.frame('count' = NA, 'dist'=NA, 'p_val_reg2'=NA, 'fdr'=NA)
     }
-    summary_one_fdr_val = data.frame('run' = r, 'log10_fdr_cutoff' = fdr_cutoff, 'singleton_fraction' = fraction,
-'AND_size'=length(peaks_and$count), 'AND_mean_dist'=mean(peaks_and$dist)*RESOLUTION,'AND_median_dist'=median(peaks_and$dist)*RESOLUTION,
-'AND_min_count'=min(peaks_and$count), 'AND_max_pval'=max(peaks_and$p_val_reg2), 'AND_max_fdr'=max(peaks_and$fdr),
-'XOR_size'=length(peaks_xor$count), 'XOR_mean_dist'=mean(peaks_xor$dist)*RESOLUTION,'XOR_median_dist'=median(peaks_xor$dist)*RESOLUTION,
-'XOR_min_count'=min(peaks_xor$count), 'XOR_max_pval'=max(peaks_xor$p_val_reg2), 'XOR_max_fdr'=max(peaks_xor$fdr),
-'size'=length(peaks$count), 'mean_dist'=mean(peaks$dist)*RESOLUTION,'median_dist'=median(peaks$dist)*RESOLUTION,
-'min_count'=min(peaks$count), 'max_pval'=max(peaks$p_val_reg2), 'max_fdr'=max(peaks$fdr)
-    )
+    summary_one_fdr_val = data.frame('run' = r,
+                                    'log10_fdr_cutoff' = fdr_cutoff,
+                                    'count_cutoff' = COUNT_CUTOFF,
+                                    'ratio_cutoff' = RATIO_CUTOFF,
+                                    'total_loops' = nrow(peaks),
+                                    'total_AND_loops'=nrow(peaks_and),
+                                    'total_XOR_loops'=nrow(peaks_xor),
+                                    'singleton_fraction' = fraction,
+                                    'AND_size'=length(peaks_and$count),
+                                    'AND_mean_dist'=mean(peaks_and$dist, na.rm=TRUE)*RESOLUTION,
+                                    'AND_median_dist'=median(peaks_and$dist, na.rm=TRUE)*RESOLUTION,
+                                    'AND_min_count'=min(peaks_and$count, na.rm=TRUE),
+                                    'AND_max_pval'=max(peaks_and$p_val_reg2, na.rm=TRUE),
+                                    'AND_max_fdr'=max(peaks_and$fdr, na.rm=TRUE),
+                                    'XOR_size'=length(peaks_xor$count),
+                                    'XOR_mean_dist'=mean(peaks_xor$dist, na.rm=TRUE)*RESOLUTION,
+                                    'XOR_median_dist'=median(peaks_xor$dist, na.rm=TRUE)*RESOLUTION,
+                                    'XOR_min_count'=min(peaks_xor$count, na.rm=TRUE),
+                                    'XOR_max_pval'=max(peaks_xor$p_val_reg2, na.rm=TRUE),
+                                    'XOR_max_fdr'=max(peaks_xor$fdr, na.rm=TRUE),
+                                    'size'=length(peaks$count),
+                                    'mean_dist'=mean(peaks$dist, na.rm=TRUE)*RESOLUTION,
+                                    'median_dist'=median(peaks$dist, na.rm=TRUE)*RESOLUTION,
+                                    'min_count'=min(peaks$count, na.rm=TRUE),
+                                    'max_pval'=max(peaks$p_val_reg2, na.rm=TRUE),
+                                    'max_fdr'=max(peaks$fdr, na.rm=TRUE))
     return(summary_one_fdr_val)
 }
 
