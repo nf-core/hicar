@@ -1,6 +1,6 @@
 process BIOC_PAIRS2HDF5 {
     tag "$meta.id"
-    label 'process_long'
+    label 'process_high'
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     container "${ workflow.containerEngine == 'singularity' &&
