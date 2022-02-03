@@ -51,7 +51,7 @@ process BIOC_PAIRS2HDF5 {
     comment_char <- "#"
     pattern <- "unselected.pairs.gz" ## this is from upstream output file.
     tileWidth <- 1e7 # this will create about 200 groups for human data
-    block_size <- 1e6 # the size of block for tempfile
+    block_size <- 1e7 # the size of block for tempfile
     keepDup <- FALSE # remove duplicates or not
     if(grepl("keep-dup", "$args")){
         keepDup <- TRUE
@@ -99,110 +99,46 @@ process BIOC_PAIRS2HDF5 {
     getPath <- function(root, ...){
         paste(root, ..., sep="/")
     }
-    getDataIndex <- function(block_idx, data, subG){
-        n <- nrow(data)-1
-        #start index for next data
-        idx <- ifelse(is.null(block_idx[[subG]]),
-                        0, block_idx[[subG]][["idx"]])
-        region <- c(start=idx, end=idx+n)
-        # block_index
-        block_index <- floor(region/block_size)
-        if(block_index[1]==block_index[2]){
-            block <- list(region-block_index*block_size+1)
-            names(block) <- block_index[1]
-        }else{
-            block <- list(c(region[1]-block_index[1]*block_size+1,
-                            block_size),
-                        c(1, region[2]-block_index[2]*block_size+1))
-            names(block) <- block_index
-        }
-        list(idx=region[2]+1, block=block, block_idx=block_index[2])
-    }
     createGroup <- function(obj, path){
         if(!H5Lexists(obj, path)){
             h5createGroup(obj, path)
         }
     }
-    read_pair_write_hd5 <- function(inf, out, root){
+    read_pair_write_tmp <- function(inf, out){
         ## check ncol
         h <- read.table(inf, nrow=1, comment.char = "#")
         n <- ncol(h) - 7
         f <- gzfile(inf, open = "r")
-        out <- H5Fopen(out)
         on.exit({
             close(f)
-            H5Fclose(out)
         })
-        block_idx <- list()
-        createGroup(out, root)
+        filenames <- c()
 
         while(nrow(pc <- getData(f, block_size, n))>0){
-            pc <- split(pc, pc[, 1])
-            for(i in names(pc)){
-                createGroup(out, getPath(root, i))
-                pc_j <- split(pc[[i]], pc[[i]][, 3])
-                for(j in names(pc_j)){
-                    createGroup(out, getPath(root, i, j))
-                    idx1 <- getIndex(pc_j[[j]][, 2], tileWidth)
-                    idx2 <- getIndex(pc_j[[j]][, 4], tileWidth)
-                    pc_sub <- split(pc_j[[j]][, -c(1, 3)],
-                                    paste(idx1, idx2, sep="_"))
-                    for(k in names(pc_sub)){
-                        subG <- getPath(root, i, j, k)
-                        createGroup(out, subG)
-                        idx <- getDataIndex(block_idx, pc_sub[[k]], subG)
-                        start <- as.matrix(pc_sub[[k]][, c(1, 2)])
-                        strand <- as.matrix(pc_sub[[k]][, c(3, 4)])
-                        block <- idx[["block"]]
-                        for(b in names(block)){
-                            subG_block <- getPath(subG, b)
-                            createGroup(out, subG_block)
-                            subG_start <- getPath(subG_block, "start")
-                            subG_strand <- getPath(subG_block, "strand")
-                            if(block[[b]][1]==1){
-                                h5createDataset(out, subG_start, dims=c(block[[b]][2], 2),
-                                                maxdims=c(block_size, 2),
-                                                storage.mode="integer")
-                                h5createDataset(out, subG_strand, dims=c(block[[b]][2], 2),
-                                                maxdims=c(block_size, 2),
-                                                storage.mode="character", size=1)
-                            }else{
-                                h5set_extent(out, subG_start, dims=c(block[[b]][2], 2))
-                                h5set_extent(out, subG_strand, dims=c(block[[b]][2], 2))
-                            }
-                            keep <- seq.int(diff(block[[b]])+1)
-                            h5write(start[keep, , drop=FALSE], out, subG_start,
-                                    index=list(seq(block[[b]][1], block[[b]][2]), NULL))
-                            h5write(strand[keep, , drop=FALSE], out, subG_strand,
-                                    index=list(seq(block[[b]][1], block[[b]][2]), NULL))
-                            start <- start[-keep, , drop=FALSE]
-                            strand <- strand[-keep, , drop=FALSE]
-                        }
-                        block_idx[[subG]] <-  idx
-                    }
-                }
-            }
-
+            idx1 <- getIndex(pc[, 2], tileWidth)
+            idx2 <- getIndex(pc[, 4], tileWidth)
+            idx1_2 <- paste(pc[, 1], pc[, 3], paste(idx1, idx2, sep="_"), sep="___")
+            pc <- split(pc[, -c(1, 3)], f=idx1_2)
+            filenames <- unique(c(filenames, file.path(out, names(pc))))
+            mapply(pc, names(pc), FUN=function(.data, .name){
+                write.table(.data, file = file.path(out, .name),
+                            append = TRUE, sep="\t", quote=FALSE,
+                            col.names=FALSE, row.names=FALSE)
+            })
         }
+
         close(f)
-        H5Fclose(out)
         on.exit()
-        block_idx
+        sort(filenames)
     }
-    read_hd5_write_hd5 <- function(in_h5, out_h5, block_idx, keepDup){
-        input <- H5Fopen(in_h5, flags="H5F_ACC_RDONLY")
-        on.exit(H5Fclose(input))
-        total <- lapply(names(block_idx), function(n){
-            if(H5Lexists(input, n)){
-                pc <- lapply(seq.int(block_idx[[n]][["block_idx"]]+1)-1, function(block){
-                    pos <- h5read(input, getPath(n, block, "start"))
-                    strand <- h5read(input, getPath(n, block, "strand"))
-                    cbind(as.data.frame(pos), as.data.frame(strand))
-                })
-                pc <- do.call(rbind, pc)
+    rewrite_hd5 <- function(filenames, out_h5, keepDup, root){
+        total <- lapply(filenames, function(n){
+            if(file.exists(n)){
+                pc <- read.delim(n, header=FALSE)
                 if(!keepDup) pc <- unique(pc)
                 npc <- nrow(pc)
                 chunk_size <- ceiling(sqrt(npc)/1000)*1000
+                n <- getPath(root, gsub("___", "/", basename(n)))
                 h5createGroup(out_h5, n)
                 pos <- getPath(n, "position")
                 if(npc>1000){
@@ -251,14 +187,14 @@ process BIOC_PAIRS2HDF5 {
 
         # read pairs
         #columns: readID chrom1 pos1 chrom2 pos2 strand1 strand2 pair_type
-        tmp_h5 <- tempfile(tmpdir=getwd(), fileext = ".h5")
-        h5createFile(tmp_h5)
-        block_idx <- try(read_pair_write_hd5(inf, tmp_h5, root))
+        tmp_dir <- "tmp_files"
+        dir.create(tmp_dir)
+        filenames <- try(read_pair_write_tmp(inf, tmp_dir))
         #rewrite
-        total <- read_hd5_write_hd5(tmp_h5, out, block_idx, keepDup)
+        total <- rewrite_hd5(filenames, out, keepDup, root)
         h5write(total, out, "header/total")
         h5closeAll()
-        unlink(tmp_h5)
+        unlink(tmp_dir, recursive=TRUE)
     }
     """
 }
