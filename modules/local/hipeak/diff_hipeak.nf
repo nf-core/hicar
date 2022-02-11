@@ -2,10 +2,11 @@ process DIFF_HIPEAK {
     label 'process_medium'
 
     conda (params.enable_conda ? "bioconda::bioconductor-diffhic=1.24.0" : null)
-    container "${ workflow.containerEngine == 'singularity' &&
-                    !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bioconductor-diffhic:1.24.0--r41h399db7b_0' :
-        'quay.io/biocontainers/bioconductor-diffhic:1.24.0--r41h399db7b_0' }"
+    if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
+        container "https://depot.galaxyproject.org/singularity/bioconductor-diffhic:1.24.0--r41h399db7b_0 "
+    } else {
+        container "quay.io/biocontainers/bioconductor-diffhic:1.24.0--r41h399db7b_0"
+    }
 
     input:
     path peaks, stageAs: "peaks/*"
@@ -17,6 +18,7 @@ process DIFF_HIPEAK {
     path "versions.yml"                       , emit: versions
 
     script:
+    def args   = task.ext.args ?: ''
     prefix   = task.ext.prefix ? "${task.ext.prefix}" : "diffhicar"
     """
     #!/usr/bin/env Rscript
@@ -27,7 +29,7 @@ process DIFF_HIPEAK {
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################
-    pkgs <- c("edgeR", "InteractionSet", "rhdf5")
+    pkgs <- c("edgeR", "InteractionSet", "rhdf5", "BiocParallel")
     versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
@@ -38,7 +40,28 @@ process DIFF_HIPEAK {
     }
     writeLines(versions, "versions.yml") # wirte versions.yml
 
+    parse_args <- function(options, args){
+        out <- lapply(options, function(.ele){
+            if(any(.ele[-3] %in% args)){
+                if(.ele[3]=="logical"){
+                    TRUE
+                }else{
+                    id <- which(args %in% .ele[-3])[1]
+                    x <- args[id+1]
+                    mode(x) <- .ele[3]
+                    x
+                }
+            }
+        })
+    }
+    option_list <- list("snow_type"=c("--snow_type", "-t", "character"))
+    opt <- parse_args(option_list, strsplit("$args", "\\\\s+")[[1]])
     prefix <- "$prefix"
+    NCORE <- as.numeric("$task.cpus")
+    SNOW_TYPE <- "SOCK"
+    if(!is.null(opt\$snow_type)){
+        SNOW_TYPE <- opt\$snow_type
+    }
 
     ## get peaks
     pf <- dir("peaks", "peaks", full.names = TRUE)
@@ -60,25 +83,30 @@ process DIFF_HIPEAK {
     peaks <- unique(GInteractions(first, second))
 
     ## get counts
+    if(SNOW_TYPE=="FORK"){
+        param <- MulticoreParam(workers = NCORE, progressbar = TRUE)
+    }else{
+        param <- SnowParam(workers = NCORE, progressbar = TRUE, type = SNOW_TYPE)
+    }
     getPath <- function(root, ...){
         paste(root, ..., sep="/")
     }
     readPairs <- function(pair, chrom1, chrom2){
-        h5content <- h5ls(pair)
+        h5content <- rhdf5::h5ls(pair)
         h5content <- h5content[, "group"]
         h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
         h5content <- unique(h5content)
         n <- h5content[grepl(paste0("data.", chrom1, ".", chrom2), h5content)]
         n <- getPath(n, "position")
-        inf <- H5Fopen(pair, flags="H5F_ACC_RDONLY")
-        on.exit({H5Fclose(inf)})
+        inf <- rhdf5::H5Fopen(pair, flags="H5F_ACC_RDONLY")
+        on.exit({rhdf5::H5Fclose(inf)})
         pc <- lapply(n, function(.ele){
-            if(H5Lexists(inf, .ele)){
-                h5read(inf, .ele)
+            if(rhdf5::H5Lexists(inf, .ele)){
+                rhdf5::h5read(inf, .ele)
             }
         })
-        H5Fclose(inf)
-        h5closeAll()
+        rhdf5::H5Fclose(inf)
+        rhdf5::h5closeAll()
         on.exit()
         pc <- do.call(rbind, pc)
     }
@@ -90,13 +118,14 @@ process DIFF_HIPEAK {
             chrom1 <- chr_[1]
             chrom2 <- chr_[2]
             ps <- readPairs(pairs, chrom1, chrom2)
-            counts_total <- h5read(pairs, "header/total")
+            counts_total <- rhdf5::h5read(pairs, "header/total")
             if(length(ps)<1){
                 return(NULL)
             }
-            ps <- GInteractions(GRanges(chrom1, IRanges(ps[, 1], width=150)),
-                                GRanges(chrom2, IRanges(ps[, 2], width=150)))
-            counts_tab <- countOverlaps(.peak, ps, use.region="both")
+            ps <- InteractionSet::GInteractions(
+                    GenomicRanges::GRanges(chrom1, IRanges::IRanges(ps[, 1], width=150)),
+                    GenomicRanges::GRanges(chrom2, IRanges::IRanges(ps[, 2], width=150)))
+            counts_tab <- IRanges::countOverlaps(.peak, ps, use.region="both")
             counts_tab <- cbind(ID=.peak\$ID, counts_tab)
             list(count=counts_tab, total=counts_total)
         })
@@ -110,7 +139,10 @@ process DIFF_HIPEAK {
 
     peaks\$ID <- seq_along(peaks)
     peaks.s <- split(peaks, paste(seqnames(first(peaks)), seqnames(second(peaks)), sep="___"))
-    cnts <- lapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s, sep="___")
+    try_res <- try({cnts <- bplapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s, sep="___", BPPARAM = param)})
+    if(inherits(try_res, "try-error")){
+        cnts <- lapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s, sep="___")
+    }
     h5closeAll()
     rm(peaks.s)
     samples <- sub("(_REP\\\\d+)\\\\.(.*?)h5\$", "\\\\1", pc)

@@ -122,7 +122,7 @@ Adapter-trimmed reads are mapped to the reference assembly using [BWA::mem](http
 
 * `pairs/`
     * `raw/*`: The raw reads pairs for each sample and stats for the pairs.
-    * `filtered/*`: The filtered files in hdf5 format. The hdf5 files in samefrag folder can be used to generate virtual 4C plots.
+    * `filtered/*`: The filtered files in hdf5 format. The hdf5 files in the folder can be used to generate virtual 4C plots.
     * `QC/*`: The quality analysis results.
 
 </details>
