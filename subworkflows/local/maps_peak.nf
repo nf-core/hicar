@@ -28,7 +28,7 @@ workflow MAPS_PEAK {
     MAPS_STATS(MAPS_CALLPEAK.out.summary.map{it[2]}.collect())
 
     emit:
-    peak         = MAPS_REFORMAT.out.bedpe      // channel: [ path(bedpe) ]
+    peak         = MAPS_REFORMAT.out.bedpe      // channel: [ meta, bin_size, path(bedpe) ]
     stats        = MAPS_STATS.out.summary       // channel: [ path(stats) ]
     versions     = ch_version                   // channel: [ path(version) ]
 }

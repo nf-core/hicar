@@ -46,7 +46,16 @@ process CIRCOS_PREPARE {
 
     dir.create(outfolder, showWarnings = FALSE)
 
-    pe <- import(interaction, format="BEDPE")
+    headerline <- readLines(interaction, n=1)
+    if(grepl("start1", headerline[1])){
+        ## output from MAPS
+        pe <- read.delim(interaction)
+        pe <- Pairs(GRanges(pe[, "chr1"], IRanges(pe[, "start1"]+1, pe[, "end1"])),
+                    GRanges(pe[, "chr2"], IRanges(pe[, "start2"]+1, pe[, "end2"])),
+                    score = pe[, "ClusterNegLog10P"])
+    }else{
+        pe <- import(interaction, format="BEDPE")
+    }
     seqlevelsStyle(first(pe)) <- seqlevelsStyle(second(pe)) <- "UCSC"
     pes <- pe[order(mcols(pe)\$score, decreasing=TRUE)]
     pes_cis <- pes[seqnames(first(pe))==seqnames(second(pe))]
