@@ -153,9 +153,12 @@ process PREPARE_COUNTS {
                     .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]],
                                                         p1=peak_pair[, 1], p2=peak_pair[, 2])
                     reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
+                    ## remove the interactions with distance smaller than 1K
+                    .dist <- IRanges::distance(first(.gi), second(.gi))
+                    .dist[is.na(.dist)] <- 3e9
                     S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
                     S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
-                    .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
+                    .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0 & .dist>1000]
                 }
                 countFUNbyPairs <- function(r1peak, r2peak, peak_pairs, reads, parallel){
                     peak_pairs_group <- ceiling(nrow(peak_pairs)/peak_pair_block)
