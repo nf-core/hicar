@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [01/25/2022]
 
+- add circos plot for MAPS loops.
 - update the old syntax.
 - prepare reads count for hipeak by chromosome.
 - fix the bug for R1 peak calling when the peak is out-of-bound ranges.
