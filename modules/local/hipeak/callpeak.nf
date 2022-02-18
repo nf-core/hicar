@@ -1,6 +1,6 @@
 process CALL_HIPEAK {
     tag "$meta.id"
-    label 'process_low'
+    label 'process_high'
 
     conda (params.enable_conda ? "bioconda::bioconductor-monocle=2.20.0" : null)
     container "${ workflow.containerEngine == 'singularity' &&

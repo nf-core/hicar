@@ -268,7 +268,12 @@ workflow HICAR {
                 .map{ background, reads -> //[group, bin_size, macs2, long_bedpe, short_bed, background]
                         [[id:reads[1]], background[0], reads[2], reads[3], reads[4], background[1]]}
                 .set{ maps_input }
-    MAPS_PEAK(maps_input, ch_make_maps_runfile_source)
+    MAPS_PEAK(
+        maps_input,
+        ch_make_maps_runfile_source,
+        PREPARE_GENOME.out.chrom_sizes,
+        params.juicer_jvm_params,
+        ch_juicer_tools)
     ch_versions = ch_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
     ch_multiqc_files = ch_multiqc_files.mix(MAPS_PEAK.out.stats.collect().ifEmpty([]))
 
