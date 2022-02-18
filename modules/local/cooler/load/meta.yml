@@ -1,7 +1,7 @@
-name: cooler_dump
-description: Dump a cooler’s data to a text stream.
+name: cooler_load
+description: Create a cooler from a pre-binned matrix.
 keywords:
-  - dump
+  - cool
 tools:
   - cooler:
       description: Sparse binary format for genomic interaction matrices
@@ -9,7 +9,7 @@ tools:
       documentation: https://cooler.readthedocs.io/en/latest/index.html
       tool_dev_url: https://github.com/open2c/cooler
       doi: "10.1093/bioinformatics/btz540"
-      licence: ["BSD-3-Clause"]
+      licence: ['BSD-3-clause']
 
 input:
   - meta:
@@ -17,13 +17,15 @@ input:
       description: |
         Groovy Map containing sample information
         e.g. [ id:'test', single_end:false ]
-  - cool:
+  - pairs:
       type: file
-      description: Path to COOL file
-      pattern: "*.{cool,mcool}"
-  - resolution:
+      description: Path to contacts (i.e. read pairs) file.
+  - cool_bin:
       type: value
-      description: Resolution
+      description: Bins size in bp
+  - chromsizes:
+      type: file
+      description: Path to a chromsizes file.
 
 output:
   - meta:
@@ -31,14 +33,17 @@ output:
       description: |
         Groovy Map containing sample information
         e.g. [ id:'test', single_end:false ]
-  - versions:
+  - version:
       type: file
-      description: File containing software versions
+      description: File containing software version
       pattern: "versions.yml"
-  - bedpe:
+  - cool:
       type: file
-      description: Output text file
-      pattern: "*.bedpe"
+      description: Output COOL file path
+      pattern: "*.cool"
+  - cool_bin:
+      type: value
+      description: Bins size in bp
 
 authors:
   - "@jianhong"

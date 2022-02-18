@@ -1,6 +1,6 @@
 process ASSIGN_TYPE {
     tag "$meta.id"
-    label 'process_low'
+    label 'process_high'
 
     conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.26.0" : null)
     container "${ workflow.containerEngine == 'singularity' &&
