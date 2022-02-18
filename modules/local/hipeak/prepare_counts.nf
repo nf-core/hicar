@@ -149,38 +149,46 @@ process PREPARE_COUNTS {
                 ## second, count for filtered r1peak
                 r1peak_s <- reduce(r1peak, min.gapwidth=5000, with.revmap=TRUE)
                 countFUN <- function(peak_pair, reads, r1peak, r2peak){
+                    r1peak\$revmap <- NULL
                     .gi <- InteractionSet::GInteractions(r1peak[peak_pair[, 1]], r2peak[peak_pair[, 2]],
                                                         p1=peak_pair[, 1], p2=peak_pair[, 2])
                     reads <- IRanges::subsetByOverlaps(reads, InteractionSet::regions(.gi))
+                    ## remove the interactions with distance smaller than 1K
+                    .dist <- IRanges::distance(first(.gi), second(.gi))
+                    .dist[is.na(.dist)] <- 3e9
                     S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
                     S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
-                    .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0]
+                    .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0 & .dist>1000]
                 }
-                countFUNbyPairs <- function(r1peak, r2peak, peak_pairs, parallel){
+                countFUNbyPairs <- function(r1peak, r2peak, peak_pairs, reads, parallel){
                     peak_pairs_group <- ceiling(nrow(peak_pairs)/peak_pair_block)
-                    peak_pairs_group <- rep(seq.int(peak_pairs_group), each= peak_pair_block)
-                    peak_pairs <- split(peak_pairs,
-                                        peak_pairs_group[seq.int(nrow(peak_pairs))])
-                    if(parallel){
-                        try_res <- try({gi <- bplapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)})
-                        if(inherits(try_res, "try-error")){
-                            parallel <- FALSE
+                    if(peak_pairs_group>1){
+                        peak_pairs_group <- rep(seq.int(peak_pairs_group), each= peak_pair_block)
+                        peak_pairs <- split(peak_pairs,
+                                            peak_pairs_group[seq.int(nrow(peak_pairs))])
+                        if(parallel){
+                            try_res <- try({gi <- bplapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak, BPPARAM = param)})
+                            if(inherits(try_res, "try-error")){
+                                parallel <- FALSE
+                            }
                         }
+                        if(!parallel){
+                            gi <- lapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak)
+                        }
+                        gi <- Reduce(c, gi)
+                    }else{
+                        gi <- countFUN(peak_pairs, reads, r1peak, r2peak)
                     }
-                    if(!parallel){
-                        gi <- lapply(peak_pairs, FUN=countFUN, reads=reads, r1peak=r1peak, r2peak=r2peak)
-                    }
-                    gi <- Reduce(c, gi)
                     gi
                 }
                 message("count reads")
                 peak_pairs <- expand.grid(seq_along(r1peak_s), seq_along(r2peak))
-                gi <- countFUNbyPairs(r1peak_s, r2peak, peak_pairs, parallel)
+                gi <- countFUNbyPairs(r1peak_s, r2peak, peak_pairs, reads, parallel)
                 peak_pairs <- mcols(r1peak_s)[mcols(gi)[, "p1"], "revmap"]
                 peak_pairs <- data.frame(p1=unlist(peak_pairs),
                                         p2=rep(mcols(gi)[, "p2"], lengths(peak_pairs)))
                 rm(gi)
-                gi <- countFUNbyPairs(r1peak, r2peak, peak_pairs, parallel)
+                gi <- countFUNbyPairs(r1peak, r2peak, peak_pairs, reads, parallel)
                 if(length(gi)>0){
                     gis <- c(gis, gi)
                 }

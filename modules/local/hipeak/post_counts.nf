@@ -80,7 +80,10 @@ process POST_COUNTS {
 
     gis <- do.call(c, gis)
     ### load gc content
-    fa <- FaFile(file=FASTA)
+    fa_idx <- indexFa(file=FASTA)
+    fa <- FaFile(file=FASTA, index=fa_idx)
+    seqinfo(gis) <- seqinfo(fa)[seqlevels(gis)]
+    gis <- trim(gis)
     gc1 <- letterFrequency(getSeq(fa, first(gis)), letters="CG", as.prob=TRUE)
     gc2 <- letterFrequency(getSeq(fa, second(gis)), letters="CG", as.prob=TRUE)
     gis\$gc <- gc1 * gc2 + 1e-9

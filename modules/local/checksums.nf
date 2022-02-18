@@ -23,6 +23,8 @@ process CHECKSUMS {
     gunzip -c ${prefix}_1.fastq.gz > ${prefix}_1.fastq
     gunzip -c ${prefix}_2.fastq.gz > ${prefix}_2.fastq
     md5sum ${prefix}_1.fastq ${prefix}_2.fastq > ${prefix}.md5
+    rm ${prefix}_1.fastq
+    rm ${prefix}_2.fastq
     if [ ! -z "${meta.md5_1 ?: ''}" ] && [ ! -z "${meta.md5_2 ?: ''}" ]; then
         cat <<-END_CHECKSUM | md5sum -c
     ${meta.md5_1}  ${prefix}_1.fastq.gz

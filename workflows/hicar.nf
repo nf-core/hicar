@@ -93,6 +93,7 @@ include { HI_PEAK } from '../subworkflows/local/hipeak'
 include { MAPS_MULTIENZYME } from '../subworkflows/local/multienzyme'
 include { MAPS_PEAK } from '../subworkflows/local/maps_peak'
 include { RUN_CIRCOS } from '../subworkflows/local/circos'
+include { RUN_CIRCOS as MAPS_CIRCOS } from '../subworkflows/local/circos'
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
 
 /*
@@ -267,9 +268,27 @@ workflow HICAR {
                 .map{ background, reads -> //[group, bin_size, macs2, long_bedpe, short_bed, background]
                         [[id:reads[1]], background[0], reads[2], reads[3], reads[4], background[1]]}
                 .set{ maps_input }
-    MAPS_PEAK(maps_input, ch_make_maps_runfile_source)
+    MAPS_PEAK(
+        maps_input,
+        ch_make_maps_runfile_source,
+        PREPARE_GENOME.out.chrom_sizes,
+        params.juicer_jvm_params,
+        ch_juicer_tools)
     ch_versions = ch_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
     ch_multiqc_files = ch_multiqc_files.mix(MAPS_PEAK.out.stats.collect().ifEmpty([]))
+
+    MAPS_CIRCOS(
+        MAPS_PEAK.out.peak.map{
+            meta, bin_size, bedpe ->
+                meta.id = "MAPS_PEAK_" + meta.id
+                [meta, bedpe]
+        },
+        PREPARE_GENOME.out.gtf,
+        PREPARE_GENOME.out.chrom_sizes,
+        PREPARE_GENOME.out.ucscname,
+        ch_circos_config
+    )
+    ch_versions = ch_versions.mix(MAPS_CIRCOS.out.versions.ifEmpty(null))
 
     MAPS_PEAK.out.peak.map{[it[0].id+'.'+it[1]+'.contacts',
                             RelativePublishFolder.getPublishedFolder(workflow,
