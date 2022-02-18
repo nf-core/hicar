@@ -1,6 +1,6 @@
 process MAPS_CALLPEAK {
     tag "$meta.id"
-    label 'process_low'
+    label 'process_high'
 
     conda (params.enable_conda ? "bioconda::bioconductor-monocle=2.20.0" : null)
     container "${ workflow.containerEngine == 'singularity' &&
@@ -14,6 +14,7 @@ process MAPS_CALLPEAK {
     output:
     tuple val(meta), val(bin_size), path("${meta.id}_${bin_size}/summary.*.txt"), optional: true, emit: summary
     tuple val(meta), val(bin_size), path("${meta.id}_${bin_size}/*.peaks"), optional: true, emit: peak
+    tuple val(meta), val(bin_size), path("${meta.id}_${bin_size}/reg_raw.*.MAPS2_*"), optional: true, emit: signal
     path "versions.yml"          , emit: versions
 
     script:

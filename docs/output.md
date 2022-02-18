@@ -148,6 +148,7 @@ The hdf5 filtered pairs contains following groups:
 
 * `cooler/mcool/*`: The mcool files for each group.
 * `cooler/hic/*`: The .hic files for each group.
+* `cooler/MAPS/*`: The mcool and .hic files normalized by MAPS fitting model for each group.
 
 </details>
 

@@ -1,6 +1,6 @@
 process MAPS_REFORMAT {
     tag "$meta.id"
-    label 'process_high'
+    label 'process_low'
 
     conda (params.enable_conda ? "conda-forge::r-data.table=1.12.2" : null)
     container "${ workflow.containerEngine == 'singularity' &&
