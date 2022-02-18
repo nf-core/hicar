@@ -35,16 +35,13 @@ workflow MAPS_PEAK {
     MAPS_RAW2BG2(MAPS_CALLPEAK.out.signal)
     ch_version = ch_version.mix(MAPS_RAW2BG2.out.versions)
     COOLER_LOAD(MAPS_RAW2BG2.out.bg2, chromsizes)
-    COOLER_LOAD.out.cool.view()
     ch_version = ch_version.mix(COOLER_LOAD.out.versions)
     // Merge contacts
     COOLER_LOAD.out.cool
                 .map{
                     meta, bin, cool ->
-                    [meta.id, bin, cool]
+                    [[id:meta.id, bin:bin], cool]
                 }
-                .groupTuple(by:[0, 1])
-                .map{id, bin, cool -> [[id:id, bin:bin], cool]}
                 .set{ch_cooler}
     COOLER_MERGE(ch_cooler)
     // create mcooler file for visualization
