@@ -56,7 +56,7 @@ process DIFF_HIPEAK {
     }
     option_list <- list("snow_type"=c("--snow_type", "-t", "character"))
     opt <- parse_args(option_list, strsplit("$args", "\\\\s+")[[1]])
-    prefix <- "$prefix"
+    PREFIX <- "$prefix"
     NCORE <- as.numeric("$task.cpus")
     SNOW_TYPE <- "SOCK"
     if(!is.null(opt\$snow_type)){
@@ -88,30 +88,30 @@ process DIFF_HIPEAK {
     }else{
         param <- SnowParam(workers = NCORE, progressbar = TRUE, type = SNOW_TYPE)
     }
-    getPath <- function(root, ...){
-        paste(root, ..., sep="/")
-    }
-    readPairs <- function(pair, chrom1, chrom2){
-        h5content <- rhdf5::h5ls(pair)
-        h5content <- h5content[, "group"]
-        h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
-        h5content <- unique(h5content)
-        n <- h5content[grepl(paste0("data.", chrom1, ".", chrom2), h5content)]
-        n <- getPath(n, "position")
-        inf <- rhdf5::H5Fopen(pair, flags="H5F_ACC_RDONLY")
-        on.exit({rhdf5::H5Fclose(inf)})
-        pc <- lapply(n, function(.ele){
-            if(rhdf5::H5Lexists(inf, .ele)){
-                rhdf5::h5read(inf, .ele)
-            }
-        })
-        rhdf5::H5Fclose(inf)
-        rhdf5::h5closeAll()
-        on.exit()
-        pc <- do.call(rbind, pc)
-    }
     pc <- dir("pairs", "h5\$", full.names = FALSE)
     countByOverlaps <- function(pairs, peaks, sep="___"){
+        getPath <- function(root, ...){
+            paste(root, ..., sep="/")
+        }
+        readPairs <- function(pair, chrom1, chrom2){
+            h5content <- rhdf5::h5ls(pair)
+            h5content <- h5content[, "group"]
+            h5content <- h5content[grepl("data.*\\\\d+_\\\\d+", h5content)]
+            h5content <- unique(h5content)
+            n <- h5content[grepl(paste0("data.", chrom1, ".", chrom2), h5content)]
+            n <- getPath(n, "position")
+            inf <- rhdf5::H5Fopen(pair, flags="H5F_ACC_RDONLY")
+            on.exit({rhdf5::H5Fclose(inf)})
+            pc <- lapply(n, function(.ele){
+                if(rhdf5::H5Lexists(inf, .ele)){
+                    rhdf5::h5read(inf, .ele)
+                }
+            })
+            rhdf5::H5Fclose(inf)
+            rhdf5::h5closeAll()
+            on.exit()
+            pc <- do.call(rbind, pc)
+        }
         cnt <- lapply(names(peaks), function(chr){
             .peak <- peaks[[chr]]
             chr_ <- strsplit(chr, sep)[[1]]
@@ -161,7 +161,7 @@ process DIFF_HIPEAK {
     rownames(cnts) <- seq_along(peaks)
     mcols(peaks) <- cnts
 
-    pf <- as.character(prefix)
+    pf <- as.character(PREFIX)
     dir.create(pf)
 
     fname <- function(subf, ext, ...){
