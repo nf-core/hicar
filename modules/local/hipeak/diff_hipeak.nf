@@ -56,7 +56,7 @@ process DIFF_HIPEAK {
     }
     option_list <- list("snow_type"=c("--snow_type", "-t", "character"))
     opt <- parse_args(option_list, strsplit("$args", "\\\\s+")[[1]])
-    prefix <- "$prefix"
+    PREFIX <- "$prefix"
     NCORE <- as.numeric("$task.cpus")
     SNOW_TYPE <- "SOCK"
     if(!is.null(opt\$snow_type)){
@@ -161,7 +161,7 @@ process DIFF_HIPEAK {
     rownames(cnts) <- seq_along(peaks)
     mcols(peaks) <- cnts
 
-    pf <- as.character(prefix)
+    pf <- as.character(PREFIX)
     dir.create(pf)
 
     fname <- function(subf, ext, ...){
