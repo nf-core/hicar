@@ -35,7 +35,7 @@ workflow MAPS_MULTIENZYME {
     if(!params.mappability){
         GENMAP_INDEX(fasta).index | GENMAP_MAPPABILITY
         ch_version = ch_version.mix(GENMAP_MAPPABILITY.out.versions)
-        mappability = UCSC_WIGTOBIGWIG(GENMAP_MAPPABILITY.out.wig, chromsizes).bw
+        mappability = UCSC_WIGTOBIGWIG(GENMAP_MAPPABILITY.out.wig.map{[[id:'mappability'], it]}, chromsizes).bw.map{it[1]}
         ch_version = ch_version.mix(UCSC_WIGTOBIGWIG.out.versions)
     }else{
         mappability = Channel.fromPath(params.mappability, checkIfExists: true)
