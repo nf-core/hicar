@@ -102,8 +102,8 @@ process ASSIGN_TYPE {
         group <- mapply(group, names(group), FUN=function(.ele, .name){
             if(length(unique(c(.ele[, 1], .ele[, 2])))>sqrt(.Machine\$integer.max)){
                 .nodes <- unique(c(.ele[, 1], .ele[, 2]))
-                .max_nodes <- floor(sqrt(.Machine\$integer.max))
-                .nodes_group <- rep(seq.int(ceiling(lengths(.nodes)/.max_nodes)),
+                .max_nodes <- floor(sqrt(.Machine\$integer.max)/2)
+                .nodes_group <- rep(seq.int(ceiling(length(.nodes)/.max_nodes)),
                                     each=.max_nodes)[seq_along(.nodes)]
                 names(.nodes_group) <- .nodes
                 .ele <- split(.ele, paste(.nodes_group[as.character(.ele[, 1])],
@@ -123,7 +123,7 @@ process ASSIGN_TYPE {
                 .gs <- lapply(.gs, unique)
                 .gs <- .gs[!duplicated(.gs)]
                 while(any(lengths(.gs)>1)){
-                    ## merge groups
+                    ## merge parents
                     .gsn <- vapply(.gs, FUN=function(.e) .e[1], FUN.VALUE=character(1))
                     .gsn <- rep(.gsn, lengths(.gs))
                     names(.gsn) <- unlist(.gs)
