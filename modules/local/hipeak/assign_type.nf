@@ -124,7 +124,7 @@ process ASSIGN_TYPE {
                 .gs <- .gs[!duplicated(.gs)]
                 while(any(lengths(.gs)>1)){
                     ## merge parents
-                    .gsn <- vapply(.gs, FUN=function(.e) .e[1], FUN.VALUE=character(1))
+                    .gsn <- vapply(.gs, FUN=function(.e) sort(.e)[1], FUN.VALUE=character(1))
                     .gsn <- rep(.gsn, lengths(.gs))
                     names(.gsn) <- unlist(.gs)
                     .gsn <- .gsn[names(.gsn)!=.gsn]
