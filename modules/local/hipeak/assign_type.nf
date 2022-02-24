@@ -78,12 +78,12 @@ process ASSIGN_TYPE {
         FDR <- opt\$fdr
     }
 
-    mm <- read.csv("$counts")
+    peaks <- read.csv("$counts")
 
     if(!all(c("chr1", "start1", "end1", "width1",
             "chr2", "start2", "end2", 'width2',
             "count", "logl", "logn", "loggc", "logm", "logdist", 'logShortCount',
-            "ratio2", 'fdr') %in% colnames(mm))){
+            "ratio2", 'fdr') %in% colnames(peaks))){
         stop("count table is not in correct format.")
     }
 
@@ -99,21 +99,60 @@ process ASSIGN_TYPE {
         colnames(group) <- c("from", "to")
         group\$weight <- rep(1L, nrow(group))
         group <- split(group, seqnames(first(gi)[group\$from]))
-        group <- lapply(group, function(.ele){
-            .ele <- graphBAM(.ele)
-            .ele <- connectedComp(ugraph(.ele))
-            .ele <- lapply(.ele, as.numeric)
-            data.frame(id=unlist(.ele), g=rep(seq_along(.ele), lengths(.ele)))
-        })
+        group <- mapply(group, names(group), FUN=function(.ele, .name){
+            if(length(unique(c(.ele[, 1], .ele[, 2])))>sqrt(.Machine\$integer.max)){
+                .nodes <- unique(c(.ele[, 1], .ele[, 2]))
+                .max_nodes <- floor(sqrt(.Machine\$integer.max)/2)
+                .nodes_group <- rep(seq.int(ceiling(length(.nodes)/.max_nodes)),
+                                    each=.max_nodes)[seq_along(.nodes)]
+                names(.nodes_group) <- .nodes
+                .ele <- split(.ele, paste(.nodes_group[as.character(.ele[, 1])],
+                                        .nodes_group[as.character(.ele[, 2])],
+                                        sep="_"))
+                .ele <- lapply(.ele, function(.e){
+                    .e <- graphBAM(.e)
+                    .e <- connectedComp(ugraph(.e))
+                    .e <- lapply(.e, as.numeric)
+                })
+                .g <- mapply(.ele, seq_along(.ele), FUN=function(.e, .id){
+                    data.frame( nodes=unlist(.e),
+                                group=rep(paste(.id, names(.e), sep="_"), lengths(.e)))
+                }, SIMPLIFY=FALSE)
+                .g <- do.call(rbind, .g)
+                .gs <- split(.g[, 2], .g[, 1])
+                .gs <- lapply(.gs, unique)
+                .gs <- .gs[!duplicated(.gs)]
+                while(any(lengths(.gs)>1)){
+                    ## merge parents
+                    .gsn <- vapply(.gs, FUN=function(.e) sort(.e)[1], FUN.VALUE=character(1))
+                    .gsn <- rep(.gsn, lengths(.gs))
+                    names(.gsn) <- unlist(.gs)
+                    .gsn <- .gsn[names(.gsn)!=.gsn]
+                    .k <- .g[, "group"] %in% names(.gsn)
+                    .g[.k, "group"] <- .gsn[.g[.k, "group"]]
+                    .gs <- split(.g[, 2], .g[, 1])
+                    .gs <- lapply(.gs, unique)
+                    .gs <- .gs[!duplicated(.gs)]
+                }
+                .g <- unique(.g)
+                .ele <- split(.g[, "nodes"], .g[, "group"])
+                names(.ele) <- seq_along(.ele)
+                rm(.g, .gs, .gsn, .nodes_group, .nodes)
+            }else{
+                .ele <- graphBAM(.ele)
+                .ele <- connectedComp(ugraph(.ele))
+                .ele <- lapply(.ele, as.numeric)
+            }
+            data.frame( id=unlist(.ele),
+                        g=rep(paste(.name, seq_along(.ele), sep="_"), lengths(.ele)))
+        }, SIMPLIFY=FALSE)
         group <- do.call(rbind, group)
 
         final\$Cluster <- NA
         final\$Cluster[group\$id] <- group\$g
         final\$ClusterSize <- 0
         final\$ClusterSize[group\$id] <- table(group\$g)[group\$g]
-        max_group <- max(group\$g)
-        if(is.infinite(max_group)) max_group <- 0
-        final\$Cluster[is.na(final\$Cluster)] <- seq(from=max_group+1, to=max_group+sum(is.na(final\$Cluster)))
+        if(any(is.na(final\$Cluster))) final\$Cluster[is.na(final\$Cluster)] <- paste0("Singleton_", seq.int(sum(is.na(final\$Cluster))))
         final\$NegLog10P <- -log10( final\$p_val_reg2 )
         final\$NegLog10P[is.na(final\$NegLog10P)] <- 0
         final\$NegLog10P[is.infinite(final\$NegLog10P)] <- max(final\$NegLog10P[!is.infinite(final\$NegLog10P)]+1)
@@ -149,13 +188,13 @@ process ASSIGN_TYPE {
         final\$ClusterType <- rep(NA, nrow(final))
         if(length(ol_)) final\$ClusterType[ ol_ ] <- 'Singleton'
         if(length(ol)){
-            final\$ClusterType[ seq_along(gi) %in% ol & final\$NegLog10P<RefValue  ] <-  'SharpPeak'
-            final\$ClusterType[ seq_along(gi) %in% ol & final\$NegLog10P>=RefValue  ] <- 'BroadPeak'
+            final\$ClusterType[ seq_along(gi) %in% ol & final\$NegLog10P < RefValue ] <-  'SharpPeak'
+            final\$ClusterType[ seq_along(gi) %in% ol & final\$NegLog10P >= RefValue ] <- 'BroadPeak'
         }
         return(final)
     }
 
-    peaks <- if(nrow(mm)>0) subset(mm, count >= COUNT_CUTOFF & ratio2 >= RATIO_CUTOFF & -log10(fdr) > FDR) else data.frame()
+    peaks <- if(nrow(peaks)>0) subset(peaks, count >= COUNT_CUTOFF & ratio2 >= RATIO_CUTOFF & -log10(fdr) > FDR) else data.frame()
     if (dim(peaks)[1] == 0) {
         print(paste('ERROR caller_hipeak.r: 0 bin pairs with count >= ',COUNT_CUTOFF,' observed/expected ratio >= ',RATIO_CUTOFF,' and -log10(fdr) > ',FDR,sep=''))
         quit()
