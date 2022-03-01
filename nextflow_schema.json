@@ -30,6 +30,13 @@
                     "default": "./results",
                     "fa_icon": "fas fa-folder-open"
                 },
+                "publish_dir_mode": {
+                    "type": "string",
+                    "description": "The file publishing method. Possible options are: symlink, relink, link, copy, copyNoFollow, move.",
+                    "default": "copy",
+                    "help_text": "See details at [nextflow website docs](https://www.nextflow.io/docs/latest/process.html#publishdir)",
+                    "fa_icon": "fa-solid fa-upload"
+                },
                 "email": {
                     "type": "string",
                     "description": "Email address for completion summary.",
