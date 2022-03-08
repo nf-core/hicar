@@ -63,7 +63,7 @@ process CIRCOS_PREPARE {
     if(length(pes_cis)>0){ # keep top 10K events for plot
         pes <- pes_cis[seq.int(min(1e4, length(pes_cis)))]
     }else{
-        pes <- NULL
+        stop("No data available for plot")
     }
     if(length(pes_trans)>0){
         pes <- sort(c(pes,
