@@ -37,9 +37,25 @@ process ATACQC {
             paste0("    ", pkg, ": ", as.character(packageVersion(pkg))))
     }
     writeLines(versions, "versions.yml") # wirte versions.yml
-
+    args <- strsplit("${args}", "\\\\s+")[[1]]
+    parse_args <- function(options, args){
+        out <- lapply(options, function(.ele){
+            if(any(.ele[-3] %in% args)){
+                if(.ele[3]=="logical"){
+                    TRUE
+                }else{
+                    id <- which(args %in% .ele[-3])[1]
+                    x <- args[id+1]
+                    mode(x) <- .ele[3]
+                    x
+                }
+            }
+        })
+    }
+    option_list <- list("pattern"=c("--pattern", "-p", "character"))
+    opt <- parse_args(option_list, args)
+    pattern <- opt[['pattern']] #"merged.ATAC.bed.gz"
     gtf <- "$gtf"
-    pattern <- "$args" #"merged.ATAC.bed.gz"
 
     readsFiles <- dir(".", pattern) ## postfix from mergedreads.nf
     peaksFiles <- dir(".", "narrowPeak|broadPeak") ## output from macs2

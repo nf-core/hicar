@@ -33,7 +33,7 @@ CONTROL,1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
 
 ### Full samplesheet
 
-HiCAR is require paired-end sequencing. Both fastq_1 and fastq_2 must be provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 4 columns to match those defined in the table below.
+HiCAR requires paired-end sequencing. Both fastq_1 and fastq_2 must be provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 4 columns to match those defined in the table below.
 
 If md5_1/2 is provided, the pipeline will check the checksums.
 

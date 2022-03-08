@@ -1,0 +1,5 @@
+group,replicate,fastq_1,fastq_2,md5_1,md5_2
+WT,1,s3://sra-pub-src-15/SRR13211988/hicar_rep1_L001_R1_001.fq.gz.1,s3://sra-pub-src-15/SRR13211988/hicar_rep1_L001_R2_001.fq.gz.1,,
+WT,2,s3://sra-pub-src-18/SRR13211989/hicar_rep2_L001_R1_001.fq.gz.1,s3://sra-pub-src-18/SRR13211989/hicar_rep2_L001_R2_001.fq.gz.1,,
+KD,1,s3://sra-pub-src-15/SRR13260055/GM12878_HiCAR_rep1_L001_R1_001.fastq.gz.1,s3://sra-pub-src-15/SRR13260055/GM12878_HiCAR_rep1_L001_R2_001.fastq.gz.1,,
+KD,2,s3://sra-pub-src-16/SRR13260056/GM12878_HiCAR_rep2_L001_R1_001.fastq.gz.1,s3://sra-pub-src-16/SRR13260056/GM12878_HiCAR_rep2_L001_R2_001.fastq.gz.1,,
