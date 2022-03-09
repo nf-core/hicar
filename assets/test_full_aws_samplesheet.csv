@@ -1,5 +1,5 @@
 group,replicate,fastq_1,fastq_2,md5_1,md5_2
-WT,1,s3://sra-pub-src-15/SRR13211988/hicar_rep1_L001_R1_001.fq.gz.1,s3://sra-pub-src-15/SRR13211988/hicar_rep1_L001_R2_001.fq.gz.1,,
-WT,2,s3://sra-pub-src-18/SRR13211989/hicar_rep2_L001_R1_001.fq.gz.1,s3://sra-pub-src-18/SRR13211989/hicar_rep2_L001_R2_001.fq.gz.1,,
-KD,1,s3://sra-pub-src-15/SRR13260055/GM12878_HiCAR_rep1_L001_R1_001.fastq.gz.1,s3://sra-pub-src-15/SRR13260055/GM12878_HiCAR_rep1_L001_R2_001.fastq.gz.1,,
-KD,2,s3://sra-pub-src-16/SRR13260056/GM12878_HiCAR_rep2_L001_R1_001.fastq.gz.1,s3://sra-pub-src-16/SRR13260056/GM12878_HiCAR_rep2_L001_R2_001.fastq.gz.1,,
+WT,1,https://dusom-cellbio.eso.duhs.duke.edu/dusom-cellbio-regeneromics-public/hicar_test_data/WT_rep1_R1.fastq.gz,https://dusom-cellbio.eso.duhs.duke.edu/dusom-cellbio-regeneromics-public/hicar_test_data/WT_rep1_R2.fastq.gz,aa066716889b7d3af399adcc7952bc3f,fd67a17f98f3e7a82b16683eadc45208
+WT,2,https://dusom-cellbio.eso.duhs.duke.edu/dusom-cellbio-regeneromics-public/hicar_test_data/WT_rep2_R1.fastq.gz,https://dusom-cellbio.eso.duhs.duke.edu/dusom-cellbio-regeneromics-public/hicar_test_data/WT_rep2_R2.fastq.gz,fd007746f44d03c3fc6ac446dc89ce23,53de11f3b8268a469ac0ab4bb25d3d27
+KD,1,https://dusom-cellbio.eso.duhs.duke.edu/dusom-cellbio-regeneromics-public/hicar_test_data/KD_rep1_R1.fastq.gz,https://dusom-cellbio.eso.duhs.duke.edu/dusom-cellbio-regeneromics-public/hicar_test_data/KD_rep1_R2.fastq.gz,144e421b7a34cc857ae8638ccf9419f8,fb19b300c2e79129ece2ca13a7cc5afb
+KD,2,https://dusom-cellbio.eso.duhs.duke.edu/dusom-cellbio-regeneromics-public/hicar_test_data/KD_rep2_R1.fastq.gz,https://dusom-cellbio.eso.duhs.duke.edu/dusom-cellbio-regeneromics-public/hicar_test_data/KD_rep2_R2.fastq.gz,c32db204c2383794764dc0dfb6b2e245,671ef51863612e063b1b4226478fb3fa
