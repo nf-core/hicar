@@ -33,6 +33,11 @@ if (!params.enzyme.toLowerCase() in RE_cutsite){
 }
 params.restriction_sites = RE_cutsite[params.enzyme.toLowerCase()]
 
+// if user defined Peaks
+ch_anchor_peaks = Channel.empty()
+if(params.anchor_peaks){
+    ch_anchor_peaks = file("${params.anchor_peaks}", checkIfExists: true)
+}
 /*
 ================================================================================
     CONFIG FILES
@@ -61,7 +66,6 @@ ch_feature_frag2bin_source   = file(params.feature_frag2bin_source,
                                     checkIfExists: true)
 ch_make_maps_runfile_source  = file(params.make_maps_runfile_source,
                                     checkIfExists: true)
-
 /*
 ================================================================================
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -238,12 +242,16 @@ workflow HICAR {
 
     //
     // calling ATAC peaks, output ATAC narrowPeak and reads in peak
+    // or user user predefined peaks
     //
     ATAC_PEAK(
         PAIRTOOLS_PAIRE.out.validpair,
         PREPARE_GENOME.out.chrom_sizes,
         PREPARE_GENOME.out.gsize,
-        PREPARE_GENOME.out.gtf
+        PREPARE_GENOME.out.gtf,
+        params.method,
+        params.anchor_peaks,
+        ch_anchor_peaks
     )
     ch_versions = ch_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
     ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
@@ -302,7 +310,7 @@ workflow HICAR {
     //
     // calling R1 peaks, output R1 narrowPeak and reads in peak
     //
-    if(params.high_resolution_R1){
+    if(params.high_resolution_R1 && params.method.toLowerCase()=="hicar"){
         R1_PEAK(
             PAIRTOOLS_PAIRE.out.distalpair,
             PREPARE_GENOME.out.chrom_sizes,
@@ -384,6 +392,7 @@ workflow HICAR {
                                     [meta.bin, mcool]}
                         .groupTuple())
                 .groupTuple()
+                .filter{it.size()>2} //filter to remove the groups with no different results.
                 .map{bin, df -> [bin, df[0], df[1]]}
                 .set{ch_maps_trackviewer}
             //ch_maps_trackviewer.view()
@@ -432,6 +441,7 @@ workflow HICAR {
                                 .map{meta, mcool -> [meta.bin, mcool]}
                                 .groupTuple())
                         .groupTuple()
+                        .filter{it.size()>2} //filter to remove the groups with no different results.
                         .map{bin, df -> [bin, df[0], df[1]]}
                         .set{ch_trackviewer}
                     //ch_trackviewer.view()

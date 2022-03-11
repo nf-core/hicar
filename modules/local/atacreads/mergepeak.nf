@@ -17,7 +17,7 @@ process MERGE_PEAK {
     script:
     def args = task.ext.args ?: ''
     """
-    cat *.narrowPeak | \\
+    cat $peak | \\
         cut -f1-3 | \\
         sort -k1,1 -k2,2n | \\
         bedtools merge $args \\
