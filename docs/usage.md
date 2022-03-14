@@ -150,6 +150,21 @@ Whilst the default requirements set within the pipeline will hopefully work for 
 For example, if the nf-core/hicar pipeline is failing after multiple re-submissions of the `MAPS_CUT` process due to an exit code of `137` this would indicate that there is an out of memory issue:
 
 ```console
+[9d/172ca5] NOTE: Process `NFCORE_HICAR:HICAR:MAPS_MULTIENZYME:MAPS_CUT` terminated with an error exit status (137) -- Execution is retried (1)
+Error executing process > 'NFCORE_HICAR:HICAR:MAPS_MULTIENZYME:MAPS_CUT (10000)'
+
+Caused by:
+    Process `NFCORE_HICAR:HICAR:MAPS_MULTIENZYME:MAPS_CUT (10000)` terminated with an error exit status (137)
+
+Command executed:
+    restriction_cut_multipleenzyme.py \
+        -f chr22.fa \
+        -s GTAC \
+        -p 1 \
+        -b 10000 \
+        -o 10000_CviQI.cut \
+        -c 2
+
 Command exit status:
     137
 
