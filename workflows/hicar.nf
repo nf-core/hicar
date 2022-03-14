@@ -384,6 +384,7 @@ workflow HICAR {
                                     [meta.bin, mcool]}
                         .groupTuple())
                 .groupTuple()
+                .filter{it.size()>2} //filter the sample without annotation table
                 .map{bin, df -> [bin, df[0], df[1]]}
                 .set{ch_maps_trackviewer}
             //ch_maps_trackviewer.view()
@@ -432,6 +433,7 @@ workflow HICAR {
                                 .map{meta, mcool -> [meta.bin, mcool]}
                                 .groupTuple())
                         .groupTuple()
+                        .filter{it.size()>2} //filter the sample without annotation table
                         .map{bin, df -> [bin, df[0], df[1]]}
                         .set{ch_trackviewer}
                     //ch_trackviewer.view()
