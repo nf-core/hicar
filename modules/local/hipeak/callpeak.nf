@@ -76,6 +76,9 @@ process CALL_HIPEAK {
             stop("loglikelihood residuals not implemented yet")
         }
         else {
+            if(exists('dgaitdpois', where = 'package:VGAM', mode='function')){
+                dgaitpois <- dgaitdpois
+            }
             ll.elts <- c(w) * dgaitpois(y, lambda, truncate = 0,
                 log = TRUE)
             if (summation) {
