@@ -12,7 +12,7 @@ workflow INPUT_CHECK {
     SAMPLESHEET_CHECK ( samplesheet )
         .csv
         .splitCsv ( header:true, sep:',' )
-        .map { create_fastq_channels(it) }
+        .map { create_fastq_channel(it) }
         .set { reads }
 
     emit:
@@ -21,13 +21,14 @@ workflow INPUT_CHECK {
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def create_fastq_channels(LinkedHashMap row) {
+def create_fastq_channel(LinkedHashMap row) {
     def meta = row.clone()
     meta.remove('fastq_1')
     meta.remove('fastq_2')
     meta.single_end   = false
 
-    def array = []
+    // add path(s) of the fastq file(s) to the meta map
+    def fastq_meta = []
     if (!file(row.fastq_1).exists()) {
         exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.fastq_1}"
     }
