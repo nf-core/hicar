@@ -275,7 +275,10 @@ workflow test_call_hi_peak {
         GUNZIP2(CREATE_PAIRS.out.pairs.map{[[id:"test", group:"gp1"], it]}).gunzip,
         chromsizes,
         macs_gsize,
-        gtf
+        gtf,
+        "HiCAR",
+        null,
+        Channel.empty()
     )
     R1_PEAK(
         CREATE_PAIRS.out.distalpairs.map{[[id:"test", group:"gp1"], it]},

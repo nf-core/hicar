@@ -1,7 +1,7 @@
 /*
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     VALIDATE INPUTS
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
@@ -33,10 +33,15 @@ if (!params.enzyme.toLowerCase() in RE_cutsite){
 }
 params.restriction_sites = RE_cutsite[params.enzyme.toLowerCase()]
 
+// if user defined Peaks
+ch_anchor_peaks = Channel.empty()
+if(params.anchor_peaks){
+    ch_anchor_peaks = file("${params.anchor_peaks}", checkIfExists: true)
+}
 /*
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     CONFIG FILES
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml",
@@ -48,9 +53,9 @@ ch_circos_config         = file("$projectDir/assets/circos.conf",
                                 checkIfExists: true)
 
 /*
-================================================================================
-    TOOLS SOURCE FILE
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    IMPORT LOCAL MODULES/SUBWORKFLOWS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 ch_juicer_tools              = file(params.juicer_tools_jar,
@@ -61,11 +66,10 @@ ch_feature_frag2bin_source   = file(params.feature_frag2bin_source,
                                     checkIfExists: true)
 ch_make_maps_runfile_source  = file(params.make_maps_runfile_source,
                                     checkIfExists: true)
-
 /*
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 //
@@ -97,9 +101,9 @@ include { RUN_CIRCOS as MAPS_CIRCOS } from '../subworkflows/local/circos'
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
 
 /*
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 //
@@ -113,9 +117,9 @@ include { BWA_MEM                     } from '../modules/nf-core/modules/bwa/mem
 include { SAMTOOLS_MERGE              } from '../modules/nf-core/modules/samtools/merge/main'
 
 /*
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 // Info required for completion email and summary
@@ -238,12 +242,16 @@ workflow HICAR {
 
     //
     // calling ATAC peaks, output ATAC narrowPeak and reads in peak
+    // or user user predefined peaks
     //
     ATAC_PEAK(
         PAIRTOOLS_PAIRE.out.validpair,
         PREPARE_GENOME.out.chrom_sizes,
         PREPARE_GENOME.out.gsize,
-        PREPARE_GENOME.out.gtf
+        PREPARE_GENOME.out.gtf,
+        params.method,
+        params.anchor_peaks,
+        ch_anchor_peaks
     )
     ch_versions = ch_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
     ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
@@ -302,7 +310,7 @@ workflow HICAR {
     //
     // calling R1 peaks, output R1 narrowPeak and reads in peak
     //
-    if(params.high_resolution_R1){
+    if(params.high_resolution_R1 && params.method.toLowerCase()=="hicar"){
         R1_PEAK(
             PAIRTOOLS_PAIRE.out.distalpair,
             PREPARE_GENOME.out.chrom_sizes,
@@ -484,9 +492,9 @@ workflow HICAR {
 }
 
 /*
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     COMPLETION EMAIL AND SUMMARY
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 workflow.onComplete {
@@ -497,7 +505,7 @@ workflow.onComplete {
 }
 
 /*
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     THE END
-================================================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */

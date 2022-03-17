@@ -13,6 +13,8 @@ include { MERGE_PEAK          } from '../../modules/local/atacreads/mergepeak'
 include { ATACQC              } from '../../modules/local/atacreads/atacqc'
 include { BEDTOOLS_GENOMECOV
     as BEDTOOLS_GENOMECOV_PER_SAMPLE } from '../../modules/nf-core/modules/bedtools/genomecov/main'
+include { BEDTOOLS_GENOMECOV
+    as BEDTOOLS_GENOMECOV_PER_GROUP  } from '../../modules/nf-core/modules/bedtools/genomecov/main'
 include { BEDFILES_SORT
     as BEDFILES_SORT_PER_GROUP       } from '../../modules/local/atacreads/bedsort'
 include { BEDFILES_SORT
@@ -29,12 +31,16 @@ workflow ATAC_PEAK {
     chromsizes // channel: [ path(size) ]
     macs_gsize // channel: value
     gtf        // channel: [ path(gtf) ]
+    method     // channel: value
+    peak_file  // channel: value
+    anchors    // channel: [ path(anchor_peaks) ]
 
     main:
     // extract ATAC reads, split the pairs into longRange_Trans pairs and short pairs
     ch_version = PAIRTOOLS_SELECT_SHORT(validpair).versions
-    // shift Tn5 insertion for longRange_Trans pairs
-    SHIFT_READS(PAIRTOOLS_SELECT_SHORT.out.unselected)
+    def doShift = method.toLowerCase() == "hicar"
+    // shift Tn5 insertion for longRange_Trans pairs for hicar R2 reads
+    SHIFT_READS(PAIRTOOLS_SELECT_SHORT.out.unselected, doShift)
     ch_version = ch_version.mix(SHIFT_READS.out.versions)
 
     // merge the read in same group
@@ -46,21 +52,31 @@ workflow ATAC_PEAK {
     MERGE_READS(read4merge)
     ch_version = ch_version.mix(MERGE_READS.out.versions)
 
-    // call ATAC narrow peaks for group
-    MACS2_CALLPEAK(MERGE_READS.out.bed.map{[it[0], it[1], []]}, macs_gsize)
-    ch_version = ch_version.mix(MACS2_CALLPEAK.out.versions)
+    if(peak_file){
+        // use user defined peaks, and create bedgraph file for merged reads
+        BEDTOOLS_GENOMECOV_PER_GROUP(MERGE_READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
+        ch_group_bdg = BEDTOOLS_GENOMECOV_PER_GROUP.out.genomecov
+        ch_group_peak = MERGE_READS.out.bed.map{[it[0], anchors]}
+        anchor_peaks = anchors
+    }else{
+        // call ATAC narrow peaks for group
+        MACS2_CALLPEAK(MERGE_READS.out.bed.map{[it[0], it[1], []]}, macs_gsize)
+        ch_version = ch_version.mix(MACS2_CALLPEAK.out.versions)
+        ch_group_bdg = MACS2_CALLPEAK.out.bdg.map{[it[0], it[1].findAll{it.toString().contains('pileup')}]}
+        ch_group_peak= MACS2_CALLPEAK.out.peak
+        anchor_peaks = MACS2_CALLPEAK.out.peak.map{it[1]}.collect()
+    }
 
     // merge peaks
-    atac_peaks = MACS2_CALLPEAK.out.peak.map{it[1]}.collect()
-    MERGE_PEAK(atac_peaks)
+    MERGE_PEAK(anchor_peaks)
 
     // stats
-    ATACQC(atac_peaks, MERGE_READS.out.bed.map{it[1]}.collect(), gtf)
+    ATACQC(anchor_peaks, MERGE_READS.out.bed.map{it[1]}.collect(), gtf)
     ch_version = ch_version.mix(ATACQC.out.versions)
 
     // dump ATAC reads for each group for maps
     DUMP_READS(MERGE_READS.out.bed)
-    BEDFILES_SORT_PER_GROUP(MACS2_CALLPEAK.out.bdg.map{[it[0], it[1].findAll{it.toString().contains('pileup')}]}, "bedgraph")
+    BEDFILES_SORT_PER_GROUP(ch_group_bdg, "bedgraph")
     UCSC_BEDCLIP(BEDFILES_SORT_PER_GROUP.out.sorted, chromsizes)
     UCSC_BEDGRAPHTOBIGWIG_PER_GROUP(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
@@ -74,8 +90,7 @@ workflow ATAC_PEAK {
     ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_PER_SAMPLE.out.versions)
 
     emit:
-    peak       = MACS2_CALLPEAK.out.peak              // channel: [ val(meta), path(peak) ]
-    xls        = MACS2_CALLPEAK.out.xls               // channel: [ val(meta), path(xls) ]
+    peak       = ch_group_peak                        // channel: [ val(meta), path(peak) ]
     mergedpeak = MERGE_PEAK.out.peak                  // channel: [ path(bed) ]
     stats      = ATACQC.out.stats                     // channel: [ path(csv) ]
     reads      = DUMP_READS.out.peak                  // channel: [ val(meta), path(bedgraph) ]
