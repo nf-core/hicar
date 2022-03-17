@@ -204,9 +204,11 @@ process ASSIGN_TYPE {
 
     outf_name = paste(GROUP_ID, '.',FDR,'.peaks',sep='')
     dir.create(OUTPUT, recursive=TRUE)
+    peaks <- unique(peaks)
     write.table(peaks, file.path(OUTPUT, outf_name),
                 row.names = FALSE, col.names = TRUE, quote=FALSE)
     peaks1 <- cbind(peaks[, c("chr1", "start1", "end1", "chr2", "start2", "end2")], "*", peaks[, "NegLog10P", drop=FALSE])
+    peaks1 <- unique(peaks1)
     write.table(peaks1,
                 file.path(OUTPUT, paste0(GROUP_ID, '.', FDR, '.bedpe')),
                 row.names = FALSE, col.names = FALSE, quote=FALSE, sep="\t")
