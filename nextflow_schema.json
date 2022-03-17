@@ -31,6 +31,13 @@
                     "description": "The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.",
                     "fa_icon": "fas fa-folder-open"
                 },
+                "publish_dir_mode": {
+                    "type": "string",
+                    "description": "The file publishing method. Possible options are: symlink, relink, link, copy, copyNoFollow, move.",
+                    "default": "copy",
+                    "help_text": "See details at [nextflow website docs](https://www.nextflow.io/docs/latest/process.html#publishdir)",
+                    "fa_icon": "fa-solid fa-upload"
+                },
                 "email": {
                     "type": "string",
                     "description": "Email address for completion summary.",
@@ -80,6 +87,332 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                },
+                "bwa_index": {
+                    "type": "string",
+                    "fa_icon": "fab fa-wpexplorer",
+                    "description": "Path to bwa index file.",
+                    "help_text": "If you have no genome reference available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
+                },
+                "gtf": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "fa_icon": "fas fa-map-marked-alt",
+                    "description": "Path to annotation gtf file.",
+                    "help_text": "Annotation gtf or gff file is required for annotation and quality control. This parameter is *mandatory* if `--genome` is not specified."
+                },
+                "gff": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "fa_icon": "fas fa-map-marked-alt",
+                    "description": "Path to annotation gff file.",
+                    "help_text": "Annotation gff or gff file is required for annotation and quality control. This parameter is *mandatory* if `--genome` is not specified."
+                },
+                "gene_bed": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "fa_icon": "fas fa-file-medical-alt",
+                    "description": "Path to annotation gene bed file.",
+                    "help_text": "Path to BED file containing gene intervals. This will be created from the GTF file if not specified."
+                },
+                "mappability": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "fa_icon": "fas fa-file-contract",
+                    "description": "Path to genome mappability file.",
+                    "help_text": "If you have no genome mappability available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
+                },
+                "macs_gsize": {
+                    "type": "string",
+                    "description": "Effective genome size parameter required by MACS2.",
+                    "help_text": "[Effective genome size](https://github.com/taoliu/MACS#-g--gsize) parameter required by MACS2. If using an iGenomes reference these have been provided when `--genome` is set as *GRCh37*, *GRCh38*, *GRCm38*, *WBcel235*, *BDGP6*, *R64-1-1*, *EF2*, *hg38*, *hg19* and *mm10*. For other genomes, if this parameter is not specified then the MACS2 peak-calling and differential analysis will be skipped.",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                },
+                "ucscname": {
+                    "type": "string",
+                    "description": "UCSC assembly annotation name.",
+                    "help_text": "[UCSC assembly annotation name](https://genome.ucsc.edu/FAQ/FAQgenes.html)",
+                    "fa_icon": "fas fa-water"
+                },
+                "blacklist": {
+                    "type": "string",
+                    "format": "file-path",
+                    "mimetype": "text/plain",
+                    "description": "Path to blacklist regions in BED format, used for filtering alignments.",
+                    "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
+                    "fa_icon": "fas fa-book-dead"
+                }
+            }
+        },
+        "experiment_config_options": {
+            "title": "Experiment design options",
+            "type": "object",
+            "fa_icon": "fas fa-vials",
+            "description": "Parameters used to describe the experiment designs.",
+            "properties": {
+                "enzyme": {
+                    "type": "string",
+                    "description": "Specifies that the cutting position has to be using.",
+                    "fa_icon": "fas fa-vial",
+                    "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, and CviQI.",
+                    "default": "CviQI"
+                },
+                "restriction_sites": {
+                    "type": "string",
+                    "description": "Specifies that the cutting sequence has to be using.",
+                    "fa_icon": "fas fa-cut",
+                    "help_text": "It will be automatically assigned by the enzyme inputed.",
+                    "hidden": true,
+                    "default": "^TAC"
+                },
+                "restriction_sites_cut_off": {
+                    "type": "number",
+                    "description": "Specifies that the cutoff value used for mappability filter.",
+                    "fa_icon": "fas fa-ruler-horizontal",
+                    "help_text": "Default is 0.5. It is the average over just covered bases.",
+                    "hidden": false,
+                    "default": 0.5
+                }
+            }
+        },
+        "MACS2_peak_calling_options": {
+            "title": "MACS2 peak calling options",
+            "type": "object",
+            "fa_icon": "fas fa-mountains",
+            "descripton": "Options for MACS2 peak calling options for ATAC-seq reads (R2).",
+            "properties": {
+                "shiftsize": {
+                    "type": "integer",
+                    "description": "shift size for MACS2",
+                    "fa_icon": "fas fa-arrows-alt-h",
+                    "hidden": false,
+                    "help_text": "How reads will be shift to increase the peak/noise ratios. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
+                    "default": -75
+                },
+                "smooth_window": {
+                    "type": "integer",
+                    "description": "extsize for MACS2",
+                    "fa_icon": "fas fa-compress",
+                    "hidden": false,
+                    "help_text": "How reads will be extend in 5'->3' direction to increase the fragment size. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
+                    "default": 150
+                },
+                "qval_thresh": {
+                    "type": "number",
+                    "description": "cutoff qvalue",
+                    "fa_icon": "fas fa-filter",
+                    "hidden": false,
+                    "help_text": "The minimum FDR cutoff to call significant peak for R2 reads. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
+                    "default": 0.01
+                },
+                "high_resolution_R1": {
+                    "type": "boolean",
+                    "description": "read peak calling for fragment (R1) reads by MACS2",
+                    "fa_icon": "fas fa-mountain",
+                    "hidden": false
+                },
+                "r1_pval_thresh": {
+                    "type": "number",
+                    "description": "cutoff pvalue for fragment (R1)",
+                    "fa_icon": "fas fa-filter",
+                    "hidden": false,
+                    "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noisy compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
+                    "default": 0.1
+                }
+            }
+        },
+        "MAPS_peak_calling_options": {
+            "title": "MAPS peak calling options",
+            "type": "object",
+            "fa_icon": "fab fa-connectdevelop",
+            "descripton": "Options for MAPS peak calling options for ATAC-seq reads (R2).",
+            "properties": {
+                "cool_bin": {
+                    "type": "string",
+                    "description": "resolution bin size",
+                    "fa_icon": "fas fa-layer-group",
+                    "hidden": false,
+                    "help_text": "Bin size for singal resampling.",
+                    "default": "5000_10000"
+                },
+                "maps_digest_file": {
+                    "type": "string",
+                    "description": "output of restriction_cut_multipleenzyme.py.",
+                    "help_text": "See https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/restriction_cut_multipleenzyme.py.",
+                    "default": "None",
+                    "hidden": false,
+                    "fa_icon": "fas fa-stream"
+                },
+                "maps_cutoff_counts": {
+                    "type": "integer",
+                    "description": "MAPS regression cutoff value",
+                    "fa_icon": "fas fa-filter",
+                    "hidden": false,
+                    "help_text": "Minimal cutoff value for coverage in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 12.",
+                    "default": 12
+                },
+                "maps_cutoff_fold_change": {
+                    "type": "number",
+                    "description": "MAPS regression fold change cutoff value",
+                    "fa_icon": "fas fa-check-double",
+                    "hidden": false,
+                    "help_text": "Miniaml cutoff value for fold change from signal to expected values. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2.",
+                    "default": 2
+                },
+                "maps_cutoff_fdr": {
+                    "type": "number",
+                    "description": "MAPS regression -log10(fdr) cutoff value",
+                    "fa_icon": "fas fa-percent",
+                    "hidden": false,
+                    "help_text": "Minimal cutoff -log10(FDR) value in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2 (=fdr 0.05).",
+                    "default": 2
+                },
+                "maps_filter": {
+                    "type": "string",
+                    "description": "MAPS regression filter file name",
+                    "fa_icon": "fas fa-clipboard",
+                    "hidden": false,
+                    "help_text": "file containing bins that need to be filtered out. Format: two columns 'chrom', 'bin'. 'chrom' contains 'chr1','chr2',.. 'bin' is bin label",
+                    "default": "None"
+                },
+                "maps_model": {
+                    "type": "string",
+                    "description": "MAPS regression type",
+                    "fa_icon": "fas fa-cogs",
+                    "hidden": false,
+                    "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson.",
+                    "default": "pospoisson",
+                    "enum": [
+                        "pospoisson",
+                        "negbinom"
+                    ]
+                },
+                "merge_map_py_source": {
+                    "type": "string",
+                    "description": "source code path for merge_map.py",
+                    "fa_icon": "fab fa-github",
+                    "hidden": true,
+                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/merge_map.py",
+                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/91c9c360092b25a217d91b9ea07eba5dd2ac72f4/bin/utils/genomic_features_generator/scripts/merge_map.py"
+                },
+                "feature_frag2bin_source": {
+                    "type": "string",
+                    "description": "feature_frag2bin source path",
+                    "fa_icon": "fab fa-github",
+                    "hidden": true,
+                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py",
+                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/91c9c360092b25a217d91b9ea07eba5dd2ac72f4/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py"
+                },
+                "make_maps_runfile_source": {
+                    "type": "string",
+                    "description": "make_maps_runfile source path",
+                    "fa_icon": "fab fa-github",
+                    "hidden": true,
+                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/MAPS/make_maps_runfile.py",
+                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/18c1a337f222130d7c5735d051614e2a253d5319/bin/MAPS/make_maps_runfile.py"
+                },
+                "remove_dup": {
+                    "type": "boolean",
+                    "description": "remove duplicates for high resolution peaks or not",
+                    "fa_icon": "fas fa-mountain",
+                    "hidden": true,
+                    "default": false
+                },
+                "snow_type": {
+                    "type": "string",
+                    "description": "Type of snow cluster to use",
+                    "help_text": "Possible values are 'SOCK' (default), 'MPI' and 'FORK'. This will be used by snow package for HiPeak calling",
+                    "fa_icon": "fas fa-network-wired",
+                    "hidden": false,
+                    "default": "SOCK"
+                },
+                "peak_pair_block": {
+                    "type": "number",
+                    "description": "The block number of peak pair",
+                    "help_text": "The block number of peak pair in each thread to count the reads. Smaller number will decrease the memory cost and increase the computation time for parepare the counts in hipeak calling.",
+                    "fa_icon": "fas fa-th",
+                    "hidden": true,
+                    "default": 1000000000
+                }
+            }
+        },
+        "Visualization_options": {
+            "title": "Options related to tracks, juicer_tools, and circos",
+            "type": "object",
+            "fa_icon": "fab fa-wpforms",
+            "description": "Options for tracks viewed by igv, ucsc genome browser and virtual 4c plot tools",
+            "properties": {
+                "virtual_4c": {
+                    "type": "boolean",
+                    "description": "create track files for virtual 4c or not",
+                    "fa_icon": "fas fa-align-left",
+                    "hidden": false
+                },
+                "v4c_max_events": {
+                    "type": "integer",
+                    "description": "max events to plot for virtual 4c",
+                    "fa_icon": "fas fa-water",
+                    "hidden": false,
+                    "default": 25
+                },
+                "juicer_jvm_params": {
+                    "type": "string",
+                    "description": "JVM heap parameters for juicer",
+                    "default": "-Xms512m -Xmx4096m",
+                    "fa_icon": "far fa-clock",
+                    "hidden": false,
+                    "help_text": "For 64bit system, you may want to set the Xmx > 4g, eg. '-Xms1024m -Xmx32g'"
+                },
+                "juicer_tools_jar": {
+                    "type": "string",
+                    "description": "The juicer_tools path",
+                    "default": "https://s3.amazonaws.com/hicfiles.tc4ga.com/public/juicer/juicer_tools_1.22.01.jar",
+                    "fa_icon": "far fa-java",
+                    "hidden": false,
+                    "help_text": "The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/juicer/wiki/Download)"
+                }
+            }
+        },
+        "Other_options_not_expose_yet": {
+            "title": "Other options not expose",
+            "type": "object",
+            "fa_icon": "fas fa-ban",
+            "hidden": true,
+            "descripton": "Options under development.",
+            "properties": {
+                "skip_peak_qc": {
+                    "type": "boolean",
+                    "description": "skip peak QC or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "skip_plot_profile": {
+                    "type": "boolean",
+                    "description": "skip plot profile or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "skip_igv": {
+                    "type": "boolean",
+                    "description": "skip creat IGV files or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "skip_trackhub": {
+                    "type": "boolean",
+                    "description": "skip create trackhub files or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
+                },
+                "enrichment_fdr": {
+                    "type": "number",
+                    "description": "cutoff value for false discovery rate of enrichment analysis",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": true
                 }
             }
         },
@@ -257,6 +590,52 @@
                     "fa_icon": "fas fa-bacon"
                 }
             }
+        },
+        "pipeline_controls": {
+            "title": "Pipeline controler",
+            "type": "object",
+            "fa_icon": "fas fa-file-import",
+            "description": "To skip some processes or workflows.",
+            "help_text": "These options allow you to customise some of the pipeline steps for how the pipeline runs.",
+            "properties": {
+                "skip_cutadapt": {
+                    "type": "boolean",
+                    "description": "skip trim 5'end TAC",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false
+                },
+                "skip_fastqc": {
+                    "type": "boolean",
+                    "description": "skip fastqc or not",
+                    "fa_icon": "fab fa-creative-commons-pd",
+                    "hidden": false
+                },
+                "skip_peak_annotation": {
+                    "type": "boolean",
+                    "description": "skip peak annotation or not",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": false
+                },
+                "skip_enrichment": {
+                    "type": "boolean",
+                    "description": "skip enrichment or not",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": false,
+                    "default": true
+                },
+                "skip_diff_analysis": {
+                    "type": "boolean",
+                    "description": "skip differential analysis or not",
+                    "fa_icon": "fas fa-ban",
+                    "hidden": false
+                },
+                "skip_multiqc": {
+                    "type": "boolean",
+                    "description": "skip multiqc or not",
+                    "fa_icon": "far fa-calendar-times",
+                    "hidden": false
+                }
+            }
         }
     },
     "allOf": [
@@ -267,6 +646,21 @@
             "$ref": "#/definitions/reference_genome_options"
         },
         {
+            "$ref": "#/definitions/experiment_config_options"
+        },
+        {
+            "$ref": "#/definitions/MACS2_peak_calling_options"
+        },
+        {
+            "$ref": "#/definitions/MAPS_peak_calling_options"
+        },
+        {
+            "$ref": "#/definitions/Visualization_options"
+        },
+        {
+            "$ref": "#/definitions/Other_options_not_expose_yet"
+        },
+        {
             "$ref": "#/definitions/institutional_config_options"
         },
         {
@@ -274,6 +668,9 @@
         },
         {
             "$ref": "#/definitions/generic_options"
+        },
+        {
+            "$ref": "#/definitions/pipeline_controls"
         }
     ]
 }

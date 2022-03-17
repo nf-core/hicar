@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 """Provide a command line tool to validate and transform tabular samplesheets."""
 
 
@@ -32,10 +31,14 @@ class RowChecker:
 
     def __init__(
         self,
-        sample_col="sample",
+        id_col="id",
+        sample_col="group",
+        replicate_col="replicate",
         first_col="fastq_1",
         second_col="fastq_2",
         single_col="single_end",
+        md5_1_col="md5_1",
+        md5_2_col="md5_2",
         **kwargs,
     ):
         """
@@ -44,6 +47,8 @@ class RowChecker:
         Args:
             sample_col (str): The name of the column that contains the sample name
                 (default "sample").
+            replicate_col (str): The name of the column that contains the replicate info.
+                (default, "replicate")
             first_col (str): The name of the column that contains the first (or only)
                 FASTQ file path (default "fastq_1").
             second_col (str): The name of the column that contains the second (if any)
@@ -51,13 +56,19 @@ class RowChecker:
             single_col (str): The name of the new column that will be inserted and
                 records whether the sample contains single- or paired-end sequencing
                 reads (default "single_end").
+            md5_1 (str): The name of the column that contain the md5 checksums for fastq_1.
+            md5_2 (str): The name of the column that contain the md5 checksums for fastq_2.
 
         """
         super().__init__(**kwargs)
+        self._id_col = id_col
         self._sample_col = sample_col
+        self._replicate_col = replicate_col
         self._first_col = first_col
         self._second_col = second_col
         self._single_col = single_col
+        self._md5_1_col = md5_1_col
+        self._md5_2_col = md5_2_col
         self._seen = set()
         self.modified = []
 
@@ -123,10 +134,9 @@ class RowChecker:
             counts = Counter(pair[0] for pair in self._seen)
             seen = Counter()
             for row in self.modified:
-                sample = row[self._sample_col]
+                sample = row[self._sample_col]+'_REP'+row[self._replicate_col]
                 seen[sample] += 1
-                if counts[sample] > 1:
-                    row[self._sample_col] = f"{sample}_T{seen[sample]}"
+                row[self._id_col] = f"{sample}_T{seen[sample]}"
 
 
 def sniff_format(handle):
@@ -180,7 +190,7 @@ def check_samplesheet(file_in, file_out):
         https://raw.githubusercontent.com/nf-core/test-datasets/viralrecon/samplesheet/samplesheet_test_illumina_amplicon.csv
 
     """
-    required_columns = {"sample", "fastq_1", "fastq_2"}
+    required_columns = {"group", "replicate", "fastq_1", "fastq_2"}
     # See https://docs.python.org/3.9/library/csv.html#id3 to read up on `newline=""`.
     with file_in.open(newline="") as in_handle:
         reader = csv.DictReader(in_handle, dialect=sniff_format(in_handle))
@@ -199,13 +209,13 @@ def check_samplesheet(file_in, file_out):
         checker.validate_unique_samples()
     header = list(reader.fieldnames)
     header.insert(1, "single_end")
+    header.insert(0, "id")
     # See https://docs.python.org/3.9/library/csv.html#id3 to read up on `newline=""`.
     with file_out.open(mode="w", newline="") as out_handle:
         writer = csv.DictWriter(out_handle, header, delimiter=",")
         writer.writeheader()
         for row in checker.modified:
             writer.writerow(row)
-
 
 def parse_args(argv=None):
     """Define and immediately parse command line arguments."""

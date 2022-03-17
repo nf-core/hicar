@@ -1,0 +1,9 @@
+group,replicate,fastq_1,fastq_2,md5_1,md5_2
+WT,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep1_R2.fastq.gz,,
+WT,2,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep2_R2.fastq.gz,,
+KD,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/KD_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/KD_rep1_R2.fastq.gz,,
+KD,2,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/KD_rep2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/KD_rep2_R2.fastq.gz,,
+WT,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/WT_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/WT_rep1_R2.fastq.gz,,
+WT,2,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/WT_rep2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/WT_rep2_R2.fastq.gz,,
+KD,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/KD_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/KD_rep1_R2.fastq.gz,,
+KD,2,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/KD_rep2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/KD_rep2_R2.fastq.gz,,

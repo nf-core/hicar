@@ -7,10 +7,14 @@
     "items": {
         "type": "object",
         "properties": {
-            "sample": {
+            "group": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Sample name must be provided and cannot contain spaces"
+                "errorMessage": "Sample group must be provided and cannot contain spaces"
+            },
+            "replicate": {
+                "type": "integer",
+                "errorMessage": "Replicate must start from 1"
             },
             "fastq_1": {
                 "type": "string",
@@ -29,11 +33,19 @@
                         "maxLength": 0
                     }
                 ]
+            },
+            "md5_1" {
+                "type": "string"
+            },
+            "md5_2" {
+                "type": "string"
             }
         },
         "required": [
-            "sample",
-            "fastq_1"
+            "group",
+            "replicate",
+            "fastq_1",
+            "fastq_2"
         ]
     }
 }

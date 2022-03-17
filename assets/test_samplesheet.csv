@@ -1,0 +1,2 @@
+group,replicate,fastq_1,fastq_2,md5_1,md5_2
+WT,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep1_R2.fastq.gz,7c3b1b941e635c91c4a1196a91163e12,932d350fcf7fbd6e5ae1f4fabced6c0a

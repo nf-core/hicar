@@ -17,7 +17,18 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-params.fasta = WorkflowMain.getGenomeAttribute(params, 'fasta')
+params.fasta      = WorkflowMain.getGenomeAttribute(params, 'fasta')
+params.bwa_index  = WorkflowMain.getGenomeAttribute(params, 'bwa')
+params.gtf        = WorkflowMain.getGenomeAttribute(params, 'gtf')
+params.gff        = WorkflowMain.getGenomeAttribute(params, 'gff')
+params.gene_bed   = WorkflowMain.getGenomeAttribute(params, 'bed12')
+params.macs_gsize = WorkflowMain.getGenomeAttribute(params, 'macs_gsize')
+anno_readme       = WorkflowMain.getGenomeAttribute(params, 'readme')
+// Save AWS IGenomes file containing annotation version
+if (anno_readme && file(anno_readme).exists()) {
+    file("${params.outdir}/genome/").mkdirs()
+    file(anno_readme).copyTo("${params.outdir}/genome/")
+}
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

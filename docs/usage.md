@@ -6,11 +6,15 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+HiC on Accessible Regulatory DNA (HiCAR) is a feasible tool to study the long-range interactions
+of the cis- and trans-regulatory elements (cREs/TREs) especially for the low input
+samples and the samples with no available antibodies. To facilitate the analysis of HiCAR
+data, the Nextflow platform based nf-core/hicar pipeline can detect the chromatin interaction
+in single nucleotide resolution within and among chromosomes.
 
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+You will need to create a samplesheet with information about the samples you would like to analzse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 4 columns, and a header row as shown in the examples below.
 
 ```console
 --input '[path to samplesheet file]'
@@ -21,34 +25,39 @@ You will need to create a samplesheet with information about the samples you wou
 The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
 
 ```console
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
+group,replicate,fastq_1,fastq_2
+CONTROL,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+CONTROL,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
+CONTROL,1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
 ```
 
 ### Full samplesheet
 
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
+HiCAR requires paired-end sequencing. Both fastq_1 and fastq_2 must be provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 4 columns to match those defined in the table below.
 
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+If md5_1/2 is provided, the pipeline will check the checksums.
+
+A final samplesheet file consisting of two groups of paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
 
 ```console
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
+group,replicate,fastq_1,fastq_2,md5_1,md5_2
+CONTROL,1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,,
+CONTROL,2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz,,
+CONTROL,3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz,,
+TREATMENT,1,AEG588A4_S4_L003_R1_001.fastq.gz,AEG588A4_S4_L003_R2_001.fastq.gz,,
+TREATMENT,2,AEG588A5_S5_L003_R1_001.fastq.gz,AEG588A5_S5_L003_R2_001.fastq.gz,,
+TREATMENT,3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L003_R2_001.fastq.gz,,
+TREATMENT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,,
 ```
 
 | Column         | Description                                                                                                                                                                            |
 |----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `sample`       | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
+| `group`       | Custom group name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
+| `replicate`   | Biological replicates of the samples.  |
 | `fastq_1`      | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 | `fastq_2`      | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+| `md5_1`        | Checksum for fastq_1. The checksums of the files will be check to make sure the file is not truncated if provided.  |
+| `md5_2`        | Checksum for fastq_2. The checksums of the files will be check to make sure the file is not truncated if provided.  |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
@@ -83,7 +92,7 @@ nextflow pull nf-core/hicar
 
 It is a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [nf-core/hicar releases page](https://github.com/nf-core/hicar/releases) and find the latest version number - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`.
+First, go to the [nf-core/hicar releases page](https://github.com/nf-core/hicar/releases) and find the latest version number - numeric only (eg. `1.0.0`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.0.0`.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
@@ -138,48 +147,36 @@ Specify the path to a specific config file (this is a core Nextflow command). Se
 
 Whilst the default requirements set within the pipeline will hopefully work for most people and with most input data, you may find that you want to customise the compute resources that the pipeline requests. Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits with any of the error codes specified [here](https://github.com/nf-core/rnaseq/blob/4c27ef5610c87db00c3c5a3eed10b1d161abf575/conf/base.config#L18) it will automatically be resubmitted with higher requests (2 x original, then 3 x original). If it still fails after the third attempt then the pipeline execution is stopped.
 
-For example, if the nf-core/rnaseq pipeline is failing after multiple re-submissions of the `STAR_ALIGN` process due to an exit code of `137` this would indicate that there is an out of memory issue:
+For example, if the nf-core/hicar pipeline is failing after multiple re-submissions of the `MAPS_CUT` process due to an exit code of `137` this would indicate that there is an out of memory issue:
 
 ```console
-[62/149eb0] NOTE: Process `NFCORE_RNASEQ:RNASEQ:ALIGN_STAR:STAR_ALIGN (WT_REP1)` terminated with an error exit status (137) -- Execution is retried (1)
-Error executing process > 'NFCORE_RNASEQ:RNASEQ:ALIGN_STAR:STAR_ALIGN (WT_REP1)'
+[9d/172ca5] NOTE: Process `NFCORE_HICAR:HICAR:MAPS_MULTIENZYME:MAPS_CUT` terminated with an error exit status (137) -- Execution is retried (1)
+Error executing process > 'NFCORE_HICAR:HICAR:MAPS_MULTIENZYME:MAPS_CUT (10000)'
 
 Caused by:
-    Process `NFCORE_RNASEQ:RNASEQ:ALIGN_STAR:STAR_ALIGN (WT_REP1)` terminated with an error exit status (137)
+    Process `NFCORE_HICAR:HICAR:MAPS_MULTIENZYME:MAPS_CUT (10000)` terminated with an error exit status (137)
 
 Command executed:
-    STAR \
-        --genomeDir star \
-        --readFilesIn WT_REP1_trimmed.fq.gz  \
-        --runThreadN 2 \
-        --outFileNamePrefix WT_REP1. \
-        <TRUNCATED>
+    restriction_cut_multipleenzyme.py \
+        -f chr22.fa \
+        -s GTAC \
+        -p 1 \
+        -b 10000 \
+        -o 10000_CviQI.cut \
+        -c 2
 
 Command exit status:
     137
 
 Command output:
     (empty)
-
-Command error:
-    .command.sh: line 9:  30 Killed    STAR --genomeDir star --readFilesIn WT_REP1_trimmed.fq.gz --runThreadN 2 --outFileNamePrefix WT_REP1. <TRUNCATED>
-Work dir:
-    /home/pipelinetest/work/9d/172ca5881234073e8d76f2a19c88fb
-
-Tip: you can replicate the issue by changing to the process work dir and entering the command `bash .command.run`
 ```
 
-To bypass this error you would need to find exactly which resources are set by the `STAR_ALIGN` process. The quickest way is to search for `process STAR_ALIGN` in the [nf-core/rnaseq Github repo](https://github.com/nf-core/rnaseq/search?q=process+STAR_ALIGN).
-We have standardised the structure of Nextflow DSL2 pipelines such that all module files will be present in the `modules/` directory and so, based on the search results, the file we want is `modules/nf-core/software/star/align/main.nf`.
-If you click on the link to that file you will notice that there is a `label` directive at the top of the module that is set to [`label process_high`](https://github.com/nf-core/rnaseq/blob/4c27ef5610c87db00c3c5a3eed10b1d161abf575/modules/nf-core/software/star/align/main.nf#L9).
-The [Nextflow `label`](https://www.nextflow.io/docs/latest/process.html#label) directive allows us to organise workflow processes in separate groups which can be referenced in a configuration file to select and configure subset of processes having similar computing requirements.
-The default values for the `process_high` label are set in the pipeline's [`base.config`](https://github.com/nf-core/rnaseq/blob/4c27ef5610c87db00c3c5a3eed10b1d161abf575/conf/base.config#L33-L37) which in this case is defined as 72GB.
-Providing you haven't set any other standard nf-core parameters to **cap** the [maximum resources](https://nf-co.re/usage/configuration#max-resources) used by the pipeline then we can try and bypass the `STAR_ALIGN` process failure by creating a custom config file that sets at least 72GB of memory, in this case increased to 100GB.
-The custom config below can then be provided to the pipeline via the [`-c`](#-c) parameter as highlighted in previous sections.
+To bypass this error you would need to find exactly which resources are set by the `MAPS_CUT` process. The quickest way is to search for `process MAPS_CUT` in the [nf-core/hicar Github repo](https://github.com/nf-core/hicar/search?q=process+MAPS_CUT). We have standardised the structure of Nextflow DSL2 pipelines such that all module files will be present in the `modules/` directory and so based on the search results the file we want is `modules/local/maps/cut.nf`. If you click on the link to that file you will notice that there is a `label` directive at the top of the module that is set to [`label process_high`](https://github.com/nf-core/hicar/blob/master/modules/local/maps/cut.nf#L8). The [Nextflow `label`](https://www.nextflow.io/docs/latest/process.html#label) directive allows us to organise workflow processes in separate groups which can be referenced in a configuration file to select and configure subset of processes having similar computing requirements. The default values for the `process_high` label are set in the pipeline's [`base.config`](https://github.com/nf-core/hicar/blob/master/conf/base.config#L36-L40) which in this case is defined as 72GB. Providing you haven't set any other standard nf-core parameters to **cap** the [maximum resources](https://nf-co.re/usage/configuration#max-resources) used by the pipeline then we can try and bypass the `MAPS_CUT` process failure by creating a custom config file that sets at least 72GB of memory, in this case increased to 100GB. The custom config below can then be provided to the pipeline via the [`-c`](#-c) parameter as highlighted in previous sections.
 
 ```nextflow
 process {
-    withName: 'NFCORE_RNASEQ:RNASEQ:ALIGN_STAR:STAR_ALIGN' {
+    withName: MAPS_CUT {
         memory = 100.GB
     }
 }
@@ -253,3 +250,43 @@ We recommend adding the following line to your environment to limit this (typica
 ```console
 NXF_OPTS='-Xms1g -Xmx4g'
 ```
+
+## Troubleshooting
+
+* Error: `The exit status of the task that caused the workflow execution to fail was: null.`
+
+Check the files are readable for the workflow.
+
+* Error:  `Session aborted -- Cause: Unable to execute HTTP request: ngi-igenomes.s3.amazonaws.com`
+
+The internet connection reached the limitation. Try to resume the analysis one hour later.
+
+* Error: `PaddingError: Placeholder of length '80' too short in package`
+
+There is no easy answer here. The new `conda` packages should having a longer prefix (255 characters).
+The possible solution now is that try to run the pipeline in a shorter folder path, if at all possible.
+
+* Error: `Not a conda environment` or `command not found`
+
+There is something going wrong with the conda environment building.
+Just try to remove the conda environment folder and resume the run.
+
+* Error: `unable to load shared object 'work/conda/env-xxxxxx/lib/R/library/rtracklayer/libs/rtracklayer.dylib', dlopen(rtracklayer.dylib, 6) Library not loaded: @rpath/libssl.1.1.dylib`
+
+The openssl installation have issues for `conda`. Try to reinstall it by
+`conda activate work/conda/env-xxxxxx && conda install --force-reinstall -y openssl`
+
+* Error: `error Can't locate Statistics/Basic.pm`
+
+The perl-statistics-basic installed in wrong location. Try to reinstall it by
+`conda activate work/conda/env-xxxxx && perl -MCPAN -e 'CPAN::install(Statistics::Basic)'`
+
+* `Error in result[[njob]] <- value :
+    attempt to select less than one element in OneIndex`
+
+The error may caused by out of memory (although the error message seems to be unrelated to memory). Try to set `--peak_pair_block` to a smaller number less than 1e9.
+
+### Known issue with Juicer_tools
+
+If you are using [Juicer_tools](https://github.com/aidenlab/juicer/wiki/) with GPU supported, it is not supported by the containers. We are using [Juicer Tools Pre](https://github.com/aidenlab/juicer/wiki/Pre) to create the [hic files](https://doi.org/10.1016/j.cels.2016.07.002) from aligned HiCAR reads.
+We recommend having at least 4GB free RAM to generate the hic files.

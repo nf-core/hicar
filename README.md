@@ -3,7 +3,7 @@
 [![GitHub Actions CI Status](https://github.com/nf-core/hicar/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/hicar/actions?query=workflow%3A%22nf-core+CI%22)
 [![GitHub Actions Linting Status](https://github.com/nf-core/hicar/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/hicar/actions?query=workflow%3A%22nf-core+linting%22)
 [![AWS CI](https://img.shields.io/badge/CI%20tests-full%20size-FF9900?labelColor=000000&logo=Amazon%20AWS)](https://nf-co.re/hicar/results)
-[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.XXXXXXX-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.XXXXXXX)
+[![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.5618247-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.5618247)
 
 [![Nextflow](https://img.shields.io/badge/nextflow%20DSL2-%E2%89%A521.10.3-23aa62.svg?labelColor=000000)](https://www.nextflow.io/)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
@@ -16,20 +16,27 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Write a 1-2 sentence summary of what data the pipeline is for and what it does -->
-**nf-core/hicar** is a bioinformatics best-practice analysis pipeline for This pipeline analyses data for HiCAR data, a robust and sensitive multi-omic co-assay for simultaneous measurement of transcriptome, chromatin accessibility and cis-regulatory chromatin contacts..
+**nf-core/hicar** is a bioinformatics best-practice analysis pipeline for [HiC on Accessible Regulatory DNA (HiCAR)](https://doi.org/10.1016/j.molcel.2022.01.023) data, a robust and sensitive assay for simultaneous measurement of chromatin accessibility and cis-regulatory chromatin contacts. Unlike the immunoprecipitation-based methods such as HiChIP, PlAC-seq and ChIA-PET, HiCAR does not require antibodies. HiCAR utilizes a Transposase-Accessible Chromatin assay to anchor the chromatin interactions. HiCAR is a tool to study chromatin interactions for low input samples and samples with no available antibodies.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
-<!-- TODO nf-core: Add full-sized test dataset and amend the paragraph below if applicable -->
 On release, automated continuous integration tests run the pipeline on a full-sized dataset on the AWS cloud infrastructure. This ensures that the pipeline runs on AWS, has sensible resource allocation defaults set to run on real-world datasets, and permits the persistent storage of results to benchmark between pipeline releases and other analysis sources. The results obtained from the full-sized test can be viewed on the [nf-core website](https://nf-co.re/hicar/results).
 
 ## Pipeline summary
 
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
-
 1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+2. Trim reads ([`cutadapt`](https://cutadapt.readthedocs.io/en/stable/))
+3. Map reads ([`bwa mem`](http://bio-bwa.sourceforge.net/bwa.shtml))
+4. Filter reads ([`pairtools`](https://pairtools.readthedocs.io/en/latest/))
+5. Quality analysis ([`pairsqc`](https://github.com/4dn-dcic/pairsqc))
+6. Call peaks for ATAC reads (R2 reads) ([`MACS2`](https://macs3-project.github.io/MACS/)) and/or call peaks for R1 reads.
+7. Find TADs and loops ([`MAPS`](https://github.com/ijuric/MAPS))
+8. Differential analysis ([`edgeR`](https://bioconductor.org/packages/edgeR/))
+9. Annotation TADs and loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
+10. Create cooler files ([`cooler`](https://cooler.readthedocs.io/en/latest/index.html), .hic files [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), and circos files [`circos`](http://circos.ca/)) for visualization.
+11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+
+![work flow of the pipeline](docs/images/workflow.svg)
 
 ## Quick Start
 
@@ -52,7 +59,18 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 4. Start running your own analysis!
 
-    <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
+    ```console
+    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> \
+        --input samples.csv \   # Input data
+        --qval_thresh 0.01 \    # Cut-off q-value for MACS2
+        --genome GRCh38 \       # Genome Reference
+        --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
+    ```
+
+    Run it on cluster.
+
+    First prepare a profile config file named as [profile.config](https://nf-co.re/hicar/usage) and a [samplesheet](https://nf-co.re/hicar/usage).
+    Then run:
 
     ```console
     nextflow run nf-core/hicar --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
@@ -64,11 +82,9 @@ The nf-core/hicar pipeline comes with documentation about the pipeline [usage](h
 
 ## Credits
 
-nf-core/hicar was originally written by Jianhong Ou, Yu Xiang, Yarui Diao.
+nf-core/hicar was originally written by Jianhong Ou, [Yu Xiang](https://github.com/yuxuth), and Yarui Diao.
 
-We thank the following people for their extensive assistance in the development of this pipeline:
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+We thank the following people for their extensive assistance in the development of this pipeline: Phil Ewels, Mahesh Binzer-Panchal and Friederike Hanssen.
 
 ## Contributions and Support
 
@@ -78,10 +94,8 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use  nf-core/hicar for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
+If you use  nf-core/hicar for your analysis, please cite it using the following doi: [10.5281/zenodo.5618247](https://doi.org/10.5281/zenodo.5618247)
 
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
 You can cite the `nf-core` publication as follows:
