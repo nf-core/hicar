@@ -10,6 +10,7 @@ process SHIFT_READS {
 
     input:
     tuple val(meta), path(pair)
+    val do_shift
 
     output:
     tuple val(meta), path("*.bed.gz"), emit: bed
@@ -17,9 +18,12 @@ process SHIFT_READS {
 
     script:
     def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
+    def command  = do_shift ?
+        'BEGIN {OFS="\t"};  /^[^#]/ { if (\$7 == "+") {\$5 = \$5 + 4} else if (\$7 == "-") {\$5 = \$5 - 5};  print \$4, \$5, \$5+1, "*", "0", \$7}' :
+        'BEGIN {OFS="\t"};  /^[^#]/ { print \$4, \$5, \$5+1, "*", "0", \$7 }'
     """
     gunzip -c $pair | \\
-        awk 'BEGIN {OFS="\t"};  /^[^#]/ { if (\$7 == "+") {\$5 = \$5 + 4} else if (\$7 == "-") {\$5 = \$5 - 5};  print \$4, \$5, \$5+1, "*", "0", \$7}' | \\
+        awk '$command' | \\
         sort -k1,1 -k2,2n | \\
         uniq | \\
         gzip -nc > ${prefix}.R2.ATAC.bed.gz

@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         # Nextflow versions
-        profile: ['test', 'test_full', 'test_hipeak']
+        profile: ['test', 'test_full', 'test_hipeak', 'test_hichip']
         include:
           # Test pipeline minimum Nextflow version
           - NXF_VER: '21.10.3'
