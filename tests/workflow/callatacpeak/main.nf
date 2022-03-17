@@ -96,6 +96,6 @@ workflow test_call_atac_peak {
     gtf             = file(params.test_data.gtf, checkIfExists: true)
     validpair       = CREATE_PAIRS(chromsizes, gtf).pairs.map{[[id:'test', group:'gp1'], it]}
 
-    ATAC_PEAK ( validpair, chromsizes, macs_gsize, gtf )
+    ATAC_PEAK ( validpair, chromsizes, macs_gsize, gtf, "HiCAR", null, Channel.empty() )
     CHECK_PEAKS (ATAC_PEAK.out.mergedpeak, gtf)
 }

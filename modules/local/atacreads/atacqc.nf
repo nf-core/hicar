@@ -64,7 +64,14 @@ process ATACQC {
     names(peaksFiles) <- sub("_peaks.*Peak", "", peaksFiles)
 
     N <- intersect(names(readsFiles), names(peaksFiles))
-    stopifnot("no peak and signal pairs"=length(N)>0)
+    if(length(N)==0){
+        if(length(peaksFiles)==1){ # for user defined peaks.
+            peaksFiles <- rep(peaksFiles, length(readsFiles))
+            names(peaksFiles) <- names(readsFiles)
+            N <- intersect(names(readsFiles), names(peaksFiles))
+        }
+        stopifnot("no peak and signal pairs"=length(N)>0)
+    }
 
     peaksFiles <- peaksFiles[N]
     readsFiles <- readsFiles[N]
