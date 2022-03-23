@@ -25,7 +25,7 @@ jobs:
             {
               "outdir": "s3://${{ secrets.AWS_S3_BUCKET }}/hicar/results-${{ github.sha }}"
             }
-          profiles: test_full_aws,aws_tower
+          profiles: test_full,aws_tower
           nextflow_config: |
             process.errorStrategy = 'retry'
             process.maxRetries = 3
