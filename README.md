@@ -1,4 +1,4 @@
-# ![nf-core/hicar](docs/images/nf-core-hicar_logo_light.png#gh-light-mode-only) ![nf-core/hicar](docs/images/nf-core-hicar_logo_dark.png#gh-dark-mode-only)
+# ![nf-core/hicar](docs/images/nf-core/hicar_logo_light.png#gh-light-mode-only) ![nf-core/hicar](docs/images/nf-core/hicar_logo_dark.png#gh-dark-mode-only)
 
 [![GitHub Actions CI Status](https://github.com/nf-core/hicar/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/hicar/actions?query=workflow%3A%22nf-core+CI%22)
 [![GitHub Actions Linting Status](https://github.com/nf-core/hicar/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/hicar/actions?query=workflow%3A%22nf-core+linting%22)
@@ -44,39 +44,39 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 1. Install [`Nextflow`](https://www.nextflow.io/docs/latest/getstarted.html#installation) (`>=21.10.3`)
 
-2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(please only use [`Conda`](https://conda.io/miniconda.html) as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_
+2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/) (you can follow [this tutorial](https://singularity-tutorial.github.io/01-installation/)), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(you can use [`Conda`](https://conda.io/miniconda.html) both to install Nextflow itself and also to manage software within pipelines. Please only use it within pipelines as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_.
 
 3. Download the pipeline and test it on a minimal dataset with a single command:
 
-    ```console
-    nextflow run nf-core/hicar -profile test,YOURPROFILE --outdir <OUTDIR>
-    ```
+   ```console
+   nextflow run nf-core/hicar -profile test,YOURPROFILE --outdir <OUTDIR>
+   ```
 
-    Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. This is usually done in the form of a config profile (`YOURPROFILE` in the example command above). You can chain multiple config profiles in a comma-separated string.
+   Note that some form of configuration will be needed so that Nextflow knows how to fetch the required software. This is usually done in the form of a config profile (`YOURPROFILE` in the example command above). You can chain multiple config profiles in a comma-separated string.
 
-    > * The pipeline comes with config profiles called `docker`, `singularity`, `podman`, `shifter`, `charliecloud` and `conda` which instruct the pipeline to use the named tool for software management. For example, `-profile test,docker`.
-    > * Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
-    > * If you are using `singularity`, please use the [`nf-core download`](https://nf-co.re/tools/#downloading-pipelines-for-offline-use) command to download images first, before running the pipeline. Setting the [`NXF_SINGULARITY_CACHEDIR` or `singularity.cacheDir`](https://www.nextflow.io/docs/latest/singularity.html?#singularity-docker-hub) Nextflow options enables you to store and re-use the images from a central location for future pipeline runs.
-    > * If you are using `conda`, it is highly recommended to use the [`NXF_CONDA_CACHEDIR` or `conda.cacheDir`](https://www.nextflow.io/docs/latest/conda.html) settings to store the environments in a central location for future pipeline runs.
+   > - The pipeline comes with config profiles called `docker`, `singularity`, `podman`, `shifter`, `charliecloud` and `conda` which instruct the pipeline to use the named tool for software management. For example, `-profile test,docker`.
+   > - Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
+   > - If you are using `singularity`, please use the [`nf-core download`](https://nf-co.re/tools/#downloading-pipelines-for-offline-use) command to download images first, before running the pipeline. Setting the [`NXF_SINGULARITY_CACHEDIR` or `singularity.cacheDir`](https://www.nextflow.io/docs/latest/singularity.html?#singularity-docker-hub) Nextflow options enables you to store and re-use the images from a central location for future pipeline runs.
+   > - If you are using `conda`, it is highly recommended to use the [`NXF_CONDA_CACHEDIR` or `conda.cacheDir`](https://www.nextflow.io/docs/latest/conda.html) settings to store the environments in a central location for future pipeline runs.
 
 4. Start running your own analysis!
 
-    ```console
-    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> \
-        --input samples.csv \   # Input data
-        --qval_thresh 0.01 \    # Cut-off q-value for MACS2
-        --genome GRCh38 \       # Genome Reference
-        --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
-    ```
+   ```console
+   nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> \
+       --input samples.csv \   # Input data
+       --qval_thresh 0.01 \    # Cut-off q-value for MACS2
+       --genome GRCh38 \       # Genome Reference
+       --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
+   ```
 
-    Run it on cluster.
+   Run it on cluster.
 
-    First prepare a profile config file named as [profile.config](https://nf-co.re/hicar/usage) and a [samplesheet](https://nf-co.re/hicar/usage).
-    Then run:
+   First prepare a profile config file named as [profile.config](https://nf-co.re/hicar/usage) and a [samplesheet](https://nf-co.re/hicar/usage).
+   Then run:
 
-    ```console
-    nextflow run nf-core/hicar --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
-    ```
+   ```console
+   nextflow run nf-core/hicar --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
+   ```
 
 ## Documentation
 
@@ -96,7 +96,7 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-If you use  nf-core/hicar for your analysis, please cite it using the following doi: [10.5281/zenodo.5618247](https://doi.org/10.5281/zenodo.5618247)
+If you use nf-core/hicar for your analysis, please cite it using the following doi: [10.5281/zenodo.5618247](https://doi.org/10.5281/zenodo.5618247)
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
