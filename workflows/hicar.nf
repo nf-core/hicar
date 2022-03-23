@@ -44,13 +44,9 @@ if(params.anchor_peaks){
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml",
-                                checkIfExists: true)
-ch_multiqc_custom_config = params.multiqc_config ?
-                                Channel.fromPath(params.multiqc_config) :
-                                Channel.empty()
-ch_circos_config         = file("$projectDir/assets/circos.conf",
-                                checkIfExists: true)
+ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists: true)
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
