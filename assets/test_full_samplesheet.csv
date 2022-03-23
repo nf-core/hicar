@@ -1,9 +1,5 @@
 group,replicate,fastq_1,fastq_2,md5_1,md5_2
-WT,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep1_R2.fastq.gz,,
-WT,2,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/WT_rep2_R2.fastq.gz,,
-KD,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/KD_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/KD_rep1_R2.fastq.gz,,
-KD,2,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/KD_rep2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T1/KD_rep2_R2.fastq.gz,,
-WT,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/WT_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/WT_rep1_R2.fastq.gz,,
-WT,2,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/WT_rep2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/WT_rep2_R2.fastq.gz,,
-KD,1,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/KD_rep1_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/KD_rep1_R2.fastq.gz,,
-KD,2,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/KD_rep2_R1.fastq.gz,https://raw.githubusercontent.com/nf-core/test-datasets/hicar/data/genomics/homo_sapiens/T2/KD_rep2_R2.fastq.gz,,
+WT,1,s3://nf-core-awsmegatests/hicar/input_data/WT_rep1_R1.fastq.gz,s3://nf-core-awsmegatests/hicar/input_data/WT_rep1_R2.fastq.gz,82314987c8576698bd81ea9ff60c5920,f4002d59af7fe0d9bc7bf83d20d6c8b8
+WT,2,s3://nf-core-awsmegatests/hicar/input_data/WT_rep2_R1.fastq.gz,s3://nf-core-awsmegatests/hicar/input_data/WT_rep2_R2.fastq.gz,23f159ab88a028ee73672ad3bea2be7b,2757df620aed0e1003e3d18c951b9ef7
+KD,1,s3://nf-core-awsmegatests/hicar/input_data/KD_rep1_R1.fastq.gz,s3://nf-core-awsmegatests/hicar/input_data/KD_rep1_R2.fastq.gz,cec77add4ab56e2acdb64aa02f4e0fe6,2c109d4493862e177872c42b5fd12508
+KD,2,s3://nf-core-awsmegatests/hicar/input_data/KD_rep2_R1.fastq.gz,s3://nf-core-awsmegatests/hicar/input_data/KD_rep2_R2.fastq.gz,226198081c40f3e35790a05979d494dd,4a7c59d3dc4b5d3f01d1aaf83f8d433a
