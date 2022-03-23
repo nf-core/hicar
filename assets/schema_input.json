@@ -41,11 +41,6 @@
                 "type": "string"
             }
         },
-        "required": [
-            "group",
-            "replicate",
-            "fastq_1",
-            "fastq_2"
-        ]
+        "required": ["group", "replicate", "fastq_1", "fastq_2"]
     }
 }

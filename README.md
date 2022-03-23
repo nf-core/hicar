@@ -61,18 +61,18 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 4. Start running your own analysis!
 
-    ```console
-    nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> \
-        --input samples.csv \   # Input data
-        --qval_thresh 0.01 \    # Cut-off q-value for MACS2
-        --genome GRCh38 \       # Genome Reference
-        --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
-    ```
+   ```console
+   nextflow run nf-core/hicar -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> \
+       --input samples.csv \   # Input data
+       --qval_thresh 0.01 \    # Cut-off q-value for MACS2
+       --genome GRCh38 \       # Genome Reference
+       --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
+   ```
 
-    Run it on cluster.
+   Run it on cluster.
 
-    First prepare a profile config file named as [profile.config](https://nf-co.re/hicar/usage) and a [samplesheet](https://nf-co.re/hicar/usage).
-    Then run:
+   First prepare a profile config file named as [profile.config](https://nf-co.re/hicar/usage) and a [samplesheet](https://nf-co.re/hicar/usage).
+   Then run:
 
    ```console
    nextflow run nf-core/hicar --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
@@ -96,7 +96,7 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-If you use  nf-core/hicar for your analysis, please cite it using the following doi: [10.5281/zenodo.5618247](https://doi.org/10.5281/zenodo.5618247)
+If you use nf-core/hicar for your analysis, please cite it using the following doi: [10.5281/zenodo.5618247](https://doi.org/10.5281/zenodo.5618247)
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 

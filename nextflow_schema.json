@@ -291,10 +291,7 @@
                     "hidden": false,
                     "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson.",
                     "default": "pospoisson",
-                    "enum": [
-                        "pospoisson",
-                        "negbinom"
-                    ]
+                    "enum": ["pospoisson", "negbinom"]
                 },
                 "merge_map_py_source": {
                     "type": "string",
