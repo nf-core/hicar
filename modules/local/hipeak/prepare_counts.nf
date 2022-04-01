@@ -1,6 +1,7 @@
 process PREPARE_COUNTS {
     tag "$meta.id"
     label 'process_high'
+    label 'process_long'
 
     conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
     container "${ workflow.containerEngine == 'singularity' &&
