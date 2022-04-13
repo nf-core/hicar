@@ -25,7 +25,7 @@ process SHIFT_READS {
     """
     gunzip -c $pair | \\
         awk '$command' | \\
-        sort -k1,1 -k2,2n --parallel $task.cpus -S ${sort_mem.toString().replaceAll(/ |B/, "")} | \\
+        sort -k1,1 -k2,2n -S ${sort_mem.toString().replaceAll(/ |B/, "")} | \\
         uniq | \\
         gzip -nc > ${prefix}.R2.ATAC.bed.gz
 
