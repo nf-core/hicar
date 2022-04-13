@@ -17,9 +17,10 @@ process MERGE_READS {
 
     script:
     def prefix   = task.ext.prefix ?: "${meta.id}"
+    def sort_mem = task.memory * 0.8
     """
     gunzip -c ${bed} | \\
-        sort -k1,1 -k2,2n | \\
+        sort -k1,1 -k2,2n -S ${sort_mem.toString().replaceAll(/ |B/, "")} | \\
         gzip -nc > ${prefix}.bed.gz
 
     cat <<-END_VERSIONS > versions.yml

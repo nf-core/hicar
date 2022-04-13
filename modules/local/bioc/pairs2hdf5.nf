@@ -16,6 +16,9 @@ process BIOC_PAIRS2HDF5 {
     tuple val(meta), path("*.h5") , emit: hdf5
     path "versions.yml"           , emit: versions
 
+    when:
+    task.ext.when == null || task.ext.when
+
     script:
     def args = task.ext.args ?: 'keep-dup'
     """

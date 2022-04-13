@@ -1,6 +1,6 @@
 process MAPS_CUT {
     tag "$bin_size"
-    label 'process_high'
+    label 'process_high_cpus'
     label 'process_long'
     label 'error_retry'
 
