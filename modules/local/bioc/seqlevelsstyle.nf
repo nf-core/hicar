@@ -1,6 +1,5 @@
 process SEQLEVELS_STYLE {
     tag "$bed"
-    label 'process_low'
 
     conda (params.enable_conda ? "bioconda::bioconductor-genomeinfodb=1.26.4" : null)
     container "${ workflow.containerEngine == 'singularity' &&

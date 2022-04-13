@@ -24,9 +24,6 @@ process JUICER {
     def args = task.ext.args ?: ''
     """
     ## thanks https://www.biostars.org/p/360254/
-    tail -n +2 $gi | sort -k2,2d -k6,6d > ${gi}.sorted
-    # count available chromsomes in the file
-    skip_do_norm=\$(awk '{ a[\$2]++; a[\$6]++ } END { if(length(a)==1) print("-n") }' ${gi}.sorted)
     resolutions=(500 1000 2000 5000 10000 20000 50000 100000 250000 500000 1000000 2000000 5000000)
     ## clean the chromosomes, otherwise, the patch chromosomes size may be very small
     ## skip this line if it does not fit your model system
@@ -34,13 +31,13 @@ process JUICER {
     grep -v EBV ${chromsize}tmp > ${chromsize}_fil.txt
     rm ${chromsize}tmp
     nl=\$(wc -l < ${chromsize}_fil.txt)
-    if [ \$nl eq 0 ]; then
+    if [ \$nl -eq 0 ]; then
         cp $chromsize ${chromsize}_fil.txt
     fi
     available_size=(\$(awk '{print \$NF}' ${chromsize}_fil.txt))
     max_res=5000000
     for i in \${available_size[@]}; do
-        if [[ \$i -lt \${max_res} ]]; then
+        if [ \$i -lt \${max_res} ]; then
             max_res=\$i
         fi
     done
@@ -54,10 +51,22 @@ process JUICER {
     done
 
     res=\$(join_by , \${res[@]})
+
+    ## sort and filter the input pairs
+    seqlev=(\$(awk '{print \$1}' ${chromsize}_fil.txt))
+    seqlev=\$(join_by '|' \${seqlev[@]})
+    tail -n +2 $gi | \\
+        awk -v seqlev=\$seqlev 'match(\$2, seqlev) && match(\$6, seqlev) {print}' | \\
+        sort -k2,2d -k6,6d > ${gi}.sorted
+    # count available chromsomes in the file
+    skip_do_norm=\$(awk '{ a[\$2]++; a[\$6]++ } END { if(length(a)==1) print("-n") }' ${gi}.sorted)
+
     java ${juicer_jvm_params} -jar ${juicer_tools_jar} pre \\
         -r \$res \\
         \${skip_do_norm} \\
-        $args --threads $task.cpus ${gi}.sorted ${prefix}.${meta.bin}.hic ${chromsize}_fil.txt
+        $args \\
+        --threads $task.cpus \\
+        ${gi}.sorted ${prefix}.${meta.bin}.hic ${chromsize}_fil.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
