@@ -77,8 +77,9 @@ process POST_COUNTS {
     ### load counts
     gis_rds <- dir(".", pattern="counts.${meta.id}.*.rds")
     gis <- lapply(gis_rds, readRDS)
-
+    gis <- gis[lengths(gis)>0]
     gis <- do.call(c, gis)
+    stopifnot(is(gis, "GInteractions"))
     ### load gc content
     fa_idx <- indexFa(file=FASTA)
     fa <- FaFile(file=FASTA, index=fa_idx)
