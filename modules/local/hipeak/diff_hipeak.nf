@@ -145,6 +145,7 @@ process DIFF_HIPEAK {
     }
     h5closeAll()
     rm(peaks.s)
+    saveRDS(cnts, "cnts.rds")
     samples <- sub("(_REP\\\\d+)\\\\.(.*?)h5\$", "\\\\1", pc)
     sizeFactor <- vapply(cnts, FUN=function(.ele) .ele\$total,
                         FUN.VALUE = numeric(1))

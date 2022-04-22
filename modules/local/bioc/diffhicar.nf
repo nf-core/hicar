@@ -184,6 +184,7 @@ process DIFFHICAR {
             write.csv(res.s, fname(name, "csv", "edgeR.DEtable", name, "padj0.05.lfc1"), row.names = FALSE)
             ## Volcano plot
             res\$qvalue <- -10*log10(res\$PValue)
+            res.s\$qvalue <- -10*log10(res.s\$PValue)
             pdf(fname(name, "pdf", "Volcano-plot", name))
             plot(x=res\$logFC, y=res\$qvalue,
                 main = paste("Volcano plot for", name),

@@ -17,6 +17,7 @@ process CIRCOS_PREPARE {
     path "versions.yml"                             , emit: versions
 
     script:
+    def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
 
@@ -43,6 +44,28 @@ process CIRCOS_PREPARE {
     gtf <- "$gtf"
     ucscname <- "$ucscname"
     outfolder <- "${meta.id}"
+    totalLinks <- 1e4
+
+    args <- strsplit("${args}", "\\\\s+")[[1]]
+    parse_args <- function(options, args){
+        out <- lapply(options, function(.ele){
+            if(any(.ele[-3] %in% args)){
+                if(.ele[3]=="logical"){
+                    TRUE
+                }else{
+                    id <- which(args %in% .ele[-3])[1]
+                    x <- args[id+1]
+                    mode(x) <- .ele[3]
+                    x
+                }
+            }
+        })
+    }
+    option_list <- list("pattern"=c("--totalLinks", "-n", "numeric"))
+    opt <- parse_args(option_list, args)
+    if(!is.null(opt[["totalLinks"]])){
+        totalLinks <- opt[["totalLinks"]]
+    }
 
     dir.create(outfolder, showWarnings = FALSE)
 
@@ -57,17 +80,18 @@ process CIRCOS_PREPARE {
         pe <- import(interaction, format="BEDPE")
     }
     seqlevelsStyle(first(pe)) <- seqlevelsStyle(second(pe)) <- "UCSC"
-    pes <- pe[order(mcols(pe)\$score, decreasing=TRUE)]
+    pes <- unique(pe[order(mcols(pe)\$score, decreasing=TRUE)])
     pes_cis <- pes[seqnames(first(pe))==seqnames(second(pe))]
     pes_trans <- pes[seqnames(first(pe))!=seqnames(second(pe))]
-    if(length(pes_cis)>0){ # keep top 10K events for plot
-        pes <- pes_cis[seq.int(min(1e4, length(pes_cis)))]
+    if(length(pes_cis)>0){ # keep top events for plot, default 24K
+        pes <- pes_cis[seq.int(min(totalLinks, length(pes_cis)))]
     }else{
         stop("No data available for plot")
     }
     if(length(pes_trans)>0){
-        pes <- sort(c(pes,
-                    pes_trans[seq.int(min(1e4, length(pes_trans)))])) ## keep top 10K links only. otherwise hard to plot.
+        ## keep top 24K links only. otherwise hard to plot.
+        pes <- sort(c(pes[seq.int(min(floor(totalLinks/2), length(pes_trans)))],
+                    pes_trans[seq.int(min(floor(totalLinks/2), length(pes_trans)))]))
     }
     out <- as.data.frame(pes)
     scores <- sqrt(range(mcols(pe)\$score)/10)

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.0dev - [01/25/2022]
 
+- add `totalLinks` parameter for prepare_circos.
 - add filters to chromosome names for `hipeak`.
 - add parameter `anchor_peaks`.
 - Update `MAPS` for new version of `VGAM`.
