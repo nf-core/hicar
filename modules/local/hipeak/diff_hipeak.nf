@@ -140,7 +140,9 @@ process DIFF_HIPEAK {
     peaks\$ID <- seq_along(peaks)
     peaks.s <- split(peaks, paste(seqnames(first(peaks)), seqnames(second(peaks)), sep="___"))
     try_res <- try({cnts <- bplapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s, sep="___", BPPARAM = param)})
-    if(inherits(try_res, "try-error")){
+    sizeFactor <- vapply(cnts, FUN=function(.ele) .ele\$total,
+                        FUN.VALUE = numeric(1))
+    if(inherits(try_res, "try-error") || all(sizeFactor==0)){ # check sizeFactor to make sure bplapply work
         cnts <- lapply(file.path("pairs", pc), countByOverlaps, peaks=peaks.s, sep="___")
     }
     h5closeAll()
