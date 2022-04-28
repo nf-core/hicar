@@ -11,9 +11,11 @@ jobs:
     steps:
       # PRs to the nf-core repo master branch are only ok if coming from the nf-core repo `dev` or any `patch` branches
       - name: Print Base
-        run: echo $GITHUB_BASE_REF
+        run: |
+          echo $GITHUB_BASE_REF
       - name: Print Head
-        run: echo $GITHUB_HEAD_REF
+        run: |
+          echo $GITHUB_HEAD_REF
       - name: Check PRs
         if: github.repository == 'nf-core/hicar'
         run: |
