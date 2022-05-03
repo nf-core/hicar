@@ -32,9 +32,9 @@ On release, automated continuous integration tests run the pipeline on a full-si
 4. Filter reads ([`pairtools`](https://pairtools.readthedocs.io/en/latest/))
 5. Quality analysis ([`pairsqc`](https://github.com/4dn-dcic/pairsqc))
 6. Call peaks for ATAC reads (R2 reads) ([`MACS2`](https://macs3-project.github.io/MACS/)) and/or call peaks for R1 reads.
-7. Find TADs and loops ([`MAPS`](https://github.com/ijuric/MAPS))
+7. Find genomic interaction loops ([`MAPS`](https://github.com/ijuric/MAPS))
 8. Differential analysis ([`edgeR`](https://bioconductor.org/packages/edgeR/))
-9. Annotation TADs and loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
+9. Annotate genomic interaction loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
 10. Create cooler files ([`cooler`](https://cooler.readthedocs.io/en/latest/index.html), .hic files [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), and circos files [`circos`](http://circos.ca/)) for visualization.
 11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
