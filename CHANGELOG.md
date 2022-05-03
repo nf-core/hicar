@@ -5,8 +5,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.1.0dev - [05/03/2022]
 
-- bump version for development.
-
 ## v1.0.0 - [05/03/2022]
 
 - bump version for release.
