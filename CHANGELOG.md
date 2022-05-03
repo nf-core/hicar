@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - bump version for release.
 - update the README.md.
+- update Zendo DOI.
 
 ## v1.0dev - [04/25/2022]
 
