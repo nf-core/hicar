@@ -3,12 +3,14 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.0.0 - [02/24/2022]
+## v1.0.0 - [05/03/2022]
 
-- bump version and ready for release.
+- bump version for release.
+- update the README.md.
 
-## v1.0dev - [01/25/2022]
+## v1.0dev - [04/25/2022]
 
+- add `totalLinks` parameter for prepare_circos.
 - add filters to chromosome names for `hipeak`.
 - add parameter `anchor_peaks`.
 - Update `MAPS` for new version of `VGAM`.
@@ -48,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - change version number output from txt to yml file.
 - update citation.md
 - change the juicer_tools download on fly
-- merge the reviewer comments from [#2](https://github.com/nf-core/hicar/pull/2/)
+- resolve questions about installation of R packages
 - remove juicer_tools bin file
 - remove install_packages.r file
 - rename the parepare_circos to circos_prepare
@@ -58,11 +60,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### change on [11/02/2021]
 
-- merge the reviewer comments from [#1](https://github.com/nf-core/hicar/pull/1/)
+- add module to covert pair file to bam for visualization
+- decrease the memory cost for differential analysis
+- add module to create `circos` plot
+- add module `igv`
+- add module `juicer`
+- update QC documentation
+- update the memory cost and add ignore `errorStrategy` for `bedtools` sort
+- improve memory cost for modules `trackviewer`, `juicer` and `prepare_counts`
+- handle multiple errors for `MAPS`
+- update the module to prepare the `macs_gsize`
+- fix multiple typos in documentation
 - change the filename from design.csv to test_samplesheet.csv
 - change the filename from samplesheet.csv to test_full_samplesheet.csv
 - use nf-core repository URL
-- update the documentation of README.md
 - update the multiqc_config.yaml file format
 - remove the regrexp check for replicate in schema_input.json
 - update output.md
