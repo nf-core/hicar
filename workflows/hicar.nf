@@ -27,7 +27,8 @@ def RE_cutsite = [
     "dpnii": "^GATC",
     "bglii": "^GATCT",
     "hindiii": "^AGCTT",
-    "cviqi": "^TAC"]
+    "cviqi": "^TAC",
+    "msei":"^TAA"]
 if (!params.enzyme.toLowerCase() in RE_cutsite){
     exit 1, "Not supported yet!"
 }

@@ -163,7 +163,7 @@
                     "type": "string",
                     "description": "Specifies that the cutting position has to be using.",
                     "fa_icon": "fas fa-vial",
-                    "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, and CviQI.",
+                    "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, MseI, and CviQI.",
                     "default": "CviQI"
                 },
                 "restriction_sites": {
