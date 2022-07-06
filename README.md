@@ -76,7 +76,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
    Then run:
 
    ```console
-   nextflow run nf-core/hicar --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
+   nextflow run nf-core/hicar --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> -c profile.config
    ```
 
 ## Documentation
