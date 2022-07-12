@@ -2,6 +2,7 @@
  * pair the proper mapped pairs
  */
 
+include { COOLER_BALANCE } from '../../modules/local/cooler/balance/main'
 include { COOLER_CLOAD   } from '../../modules/local/cooler/cload/main'
 include { COOLER_MERGE   } from '../../modules/local/cooler/merge/main'
 include { COOLER_ZOOMIFY } from '../../modules/local/cooler/zoomify/main'
@@ -35,6 +36,8 @@ workflow COOLER {
                 .map{group, bin, cool -> [[id:group, bin:bin], cool]}
                 .set{ch_cooler}
     COOLER_MERGE(ch_cooler)
+    // create a balanced matrix for compartment and tad calls
+    COOLER_BALANCE(COOLER_MERGE.out.cool)
     // create mcooler file for visualization
     COOLER_ZOOMIFY(COOLER_MERGE.out.cool)
     // dump long.intra.bedpe for each group for MAPS to call peaks
@@ -50,6 +53,7 @@ workflow COOLER {
     ch_version = ch_version.mix(DUMPINTRAREADS_PER_GROUP.out.versions)
 
     emit:
+    cool        = COOLER_BALANCE.out.cool                   // channel: [ val(meta), [cool] ]
     mcool       = COOLER_ZOOMIFY.out.mcool                  // channel: [ val(meta), [mcool] ]
     groupbedpe  = COOLER_DUMP_PER_GROUP.out.bedpe           // channel: [ val(meta), [bedpe] ]
     bedpe       = DUMPINTRAREADS_PER_GROUP.out.bedpe        // channel: [ val(meta), [bedpe] ]

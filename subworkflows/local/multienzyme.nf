@@ -2,6 +2,7 @@
  * Createing Genomic Features Files
  */
 
+include { BIOC_ENZYMECUT               } from '../../modules/local/bioc/enzyme_cut'
 include { MAPS_CUT                     } from '../../modules/local/maps/cut'
 include { MAPS_FEND                    } from '../../modules/local/maps/fend'
 include { GENMAP_INDEX                 } from '../../modules/nf-core/modules/genmap/index/main'
@@ -21,6 +22,8 @@ workflow MAPS_MULTIENZYME {
     chromsizes                 // channel: [ path(chromsizes) ]
     merge_map_py_source        // channel: [ file(merge_map_py_source) ]
     feature_frag2bin_source    // channel: [ file(feature_frag2bin_source) ]
+    enzyme                     // values
+    site                       // values
 
     main:
     if(params.maps_digest_file && params.enzyme.toLowerCase() != "mnase"){
@@ -28,8 +31,13 @@ workflow MAPS_MULTIENZYME {
         ch_digest = cool_bin.combine(Channel.fromPath(params.maps_digest_file))
         MAPS_FEND(ch_digest, chromsizes)
     }else{
-        ch_version = MAPS_CUT(fasta, cool_bin).versions
-        ch_digest = MAPS_CUT.out.cut
+        if(params.enzyme.toLowerCase() != "mnase"){
+            ch_version = BIOC_ENZYMECUT(fasta, cool_bin, site, enzyme).versions
+            ch_digest = BIOC_ENZYMECUT.out.cut
+        }else{
+            ch_version = MAPS_CUT(fasta, cool_bin, site, enzyme).versions
+            ch_digest = MAPS_CUT.out.cut
+        }
         MAPS_FEND(ch_digest, chromsizes)
     }
     if(!params.mappability){

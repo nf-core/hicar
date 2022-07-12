@@ -61,6 +61,13 @@ TREATMENT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,,
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
+### Call A/B compartments and TADs
+
+On a large scale, the arrangement of chromosoes are organised into two compartments labelled A ("active") and B ("inactive").
+A/B compartment-associated regions are on the multi-Mb scale and correlate with eigher open and experssion-active chromatin ("A" compartments) or closed and expression inactive chromatin ("B" compartments). A compartments tend to be gene-rich, have high GC-content, contain histone markers for active transcription, and usually displace the interior of the nucleus. The regions in compartment A tend to interact preferentially with A compartment-associated regions than B compartment-associated ones. B compartments, on the other hand, tend to be gene-poor, compact, contain histone markers for gene silencing, and lie on the nuclear periphery.
+
+A topologically associating domain (TAD) is a smaller size genomic region compare to A/B compartments. It is a self-interacting genomic region. Most of the studies indicate TADs regulate gene expression by limiting the enhancer-promoter interaction to each TAD. A number of proteins are known to be associated with TAD formation. The most studied proteins are the protein CTCF and the protein complex cohesin. It has been shown that the TAD bundaries have high levels of CTCF binding and cohesin/lamina shifting edges.
+
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:

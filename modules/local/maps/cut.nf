@@ -13,30 +13,22 @@ process MAPS_CUT {
     input:
     path fasta
     val bin_size
+    val site
+    val enzyme
 
     output:
     tuple val(bin_size), path('*.cut')        , emit: cut
     path "versions.yml"                       , emit: versions
 
     script:
-    def RE_cutsite = [
-        "mboi": [site:"GATC", pos:"0"],
-        "ncoi": [site:"CCATGG", pos:"1"],
-        "dpnii": [site:"GATC", pos:"0"],
-        "bglii": [site:"AGATCT", pos:"1"],
-        "hindiii": [site:"AAGCTT", pos:'1'],
-        "cviqi": [site:"GTAC", pos:"1"],
-        "arima": [site:"GATC,GA.TC", pos:"0,1"],
-        "msei": [site:"TTAA", pos:"1"],
-        "mnase": [site:"mnase", pos:"none"]]
-    def enzyme = RE_cutsite[params.enzyme.toLowerCase()]?:[site:params.enzyme.replaceAll("^", ""), pos:params.enzyme.indexOf('^')]
     """
+    cut=($site)
     restriction_cut_multipleenzyme.py \\
         -f ${fasta} \\
-        -s ${enzyme.site} \\
-        -p ${enzyme.pos} \\
+        -s \${cut[0]} \\
+        -p \${cut[1]} \\
         -b ${bin_size} \\
-        -o ${bin_size}_${params.enzyme}.cut \\
+        -o ${bin_size}_${enzyme}.cut \\
         -c $task.cpus
 
     cat <<-END_VERSIONS > versions.yml

@@ -35,6 +35,10 @@
 
   > Abdennur N, Mirny LA. Cooler: scalable storage for Hi-C data and other genomically labeled arrays. Bioinformatics. 2020 Jan 1;36(1):311-316. doi: 10.1093/bioinformatics/btz540. PMID: 31290943.
 
+* [HiCExploer](https://pubmed.ncbi.nlm.nih.gov/29335486/)
+
+  >Ramírez F, Bhardwaj V, Arrigoni L, Lam KC, Grüning BA, Villaveces J, Habermann B, Akhtar A, Manke T. High-resolution TADs reveal DNA sequences underlying genome organization in flies. Nat Commun. 2018 Jan 15;9(1):189. doi: 10.1038/s41467-017-02525-w. PMID: 29335486; PMCID: PMC5768762.
+
 * [MACS2](https://www.ncbi.nlm.nih.gov/pubmed/18798982/)
 
   > Zhang Y, Liu T, Meyer CA, Eeckhoute J, Johnson DS, Bernstein BE, Nusbaum C, Myers RM, Brown M, Li W, Liu XS. Model-based analysis of ChIP-Seq (MACS). Genome Biol. 2008;9(9):R137. doi: 10.1186/gb-2008-9-9-r137. Epub 2008 Sep 17. PubMed PMID: 18798982; PubMed Central PMCID: PMC2592715.
@@ -78,6 +82,8 @@
 * [pairsqc](https://github.com/4dn-dcic/pairsqc)
 
 * [pairtools](https://github.com/open2c/pairtools)
+
+* [cooltools](https://doi.org/10.5281/zenodo.5214125)
 
 ## Software packaging/containerisation tools
 

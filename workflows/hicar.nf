@@ -73,6 +73,9 @@ ch_make_maps_runfile_source  = file(params.make_maps_runfile_source,
 // MODULE: Local to the pipeline
 //
 include { CHECKSUMS } from '../modules/local/checksums'
+include { COOLTOOLS_COMPARTMENTS } from '../modules/local/cooltools/eigs-cis'
+include { COOLTOOLS_INSULATION } from '../modules/local/cooltools/insulation'
+include { HICEXPLORER_HICAGGREGATECONTACTS } from '../modules/local/hicexplorer/hicaggregatecontacts'
 include { DIFFHICAR } from '../modules/local/bioc/diffhicar'
 include { BIOC_CHIPPEAKANNO } from '../modules/local/bioc/chippeakanno'
 include { BIOC_CHIPPEAKANNO as BIOC_CHIPPEAKANNO_MAPS } from '../modules/local/bioc/chippeakanno'
@@ -88,6 +91,7 @@ include { PREPARE_GENOME } from '../subworkflows/local/preparegenome'
 include { BAM_STAT } from '../subworkflows/local/bam_stats'
 include { PAIRTOOLS_PAIRE } from '../subworkflows/local/pairtools'
 include { COOLER } from '../subworkflows/local/cooler'
+include { HICEXPLORER_CALLTADS } from '../subworkflows/local/hicexplorer'
 include { ATAC_PEAK } from '../subworkflows/local/callatacpeak'
 include { R1_PEAK } from '../subworkflows/local/calldistalpeak'
 include { HI_PEAK } from '../subworkflows/local/hipeak'
@@ -238,6 +242,40 @@ workflow HICAR {
     ch_versions = ch_versions.mix(COOLER.out.versions.ifEmpty(null))
 
     //
+    // calling compartments within chromosome by cooltools
+    //
+    if(!params.skip_compartments){
+        COOLTOOLS_COMPARTMENTS(
+            COOLER.out.cool,
+            params.res_compartments,
+            PREPARE_GENOME.out.fasta,
+            PREPARE_GENOME.out.chrom_sizes
+        )
+        ch_versions = ch_versions.mix(COOLTOOLS_COMPARTMENTS.out.versions.ifEmpty(null))
+    }
+
+    //
+    // calling insulation by cooltools
+    //
+    if(!params.skip_tads){
+        if(params.tad_tool == 'insulation'){
+            COOLTOOLS_INSULATION(
+                COOLER.out.cool,
+                params.res_tads
+            )
+            ch_versions = ch_versions.mix(COOLTOOLS_COMPARTMENTS.out.versions.ifEmpty(null))
+        }
+        if(params.tad_tool == 'hicfindtads'){
+            HICEXPLORER_CALLTADS(
+                COOLER.out.cool,
+                params.res_tads,
+                PREPARE_GENOME.out.chrom_sizes
+            )
+            ch_versions = ch_versions.mix(HICEXPLORER_CALLTADS.out.versions.ifEmpty(null))
+        }
+    }
+
+    //
     // calling ATAC peaks, output ATAC narrowPeak and reads in peak
     // or user user predefined peaks
     //
@@ -254,13 +292,24 @@ workflow HICAR {
     ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
 
     //
+    // hicAggregateContacts
+    //
+    HICEXPLORER_HICAGGREGATECONTACTS(
+        COOLER.out.cool,
+        ATAC_PEAK.out.mergedpeak
+    )
+    ch_versions = ch_versions.mix(HICEXPLORER_HICAGGREGATECONTACTS.out.versions.ifEmpty(null))
+
+    //
     // calling distal peaks: [ meta, bin_size, path(macs2), path(long_bedpe), path(short_bed), path(background) ]
     //
     background = MAPS_MULTIENZYME(PREPARE_GENOME.out.fasta,
                                     cool_bin,
                                     PREPARE_GENOME.out.chrom_sizes,
                                     ch_merge_map_py_source,
-                                    ch_feature_frag2bin_source).bin_feature
+                                    ch_feature_frag2bin_source,
+                                    params.enzyme,
+                                    PREPARE_GENOME.out.site).bin_feature
     ch_versions = ch_versions.mix(MAPS_MULTIENZYME.out.versions.ifEmpty(null))
     reads_peak   = ATAC_PEAK.out.reads
                             .map{ meta, reads ->

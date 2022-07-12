@@ -341,6 +341,34 @@
                 }
             }
         },
+        "compartment_tads_options": {
+            "title": "Options related to compartment, TADs calling",
+            "type": "object",
+            "fa_icon": "fab fa-wpforms",
+            "descripton": "Options for compartment and TADs calling",
+            "properties": {
+                "res_compartments": {
+                    "type": "number",
+                    "description": "The resolution for compartments calling",
+                    "fa_icon": "fas fa-th",
+                    "default": 100000
+                },
+                "res_tads": {
+                    "type": "number",
+                    "description": "The resolution for TADs calling",
+                    "help_text": "If tad_tool is set to resolution, the windows will be calculated by 3X, 5X, 10X and 15X resolution. If tad_tool is set to hicfindtads, this will determine the step parameter.",
+                    "fa_icon": "fas fa-th",
+                    "default": 10000
+                },
+                "tad_tool": {
+                    "type": "string",
+                    "description": "The caller for TADs",
+                    "help_text": "Possible tools are hicfindtads and insulation.",
+                    "fa_icon": "fas fa-th",
+                    "default": "hicfindtads"
+                }
+            }
+        },
         "Visualization_options": {
             "title": "Options related to tracks, juicer_tools, and circos",
             "type": "object",
@@ -628,6 +656,18 @@
                     "description": "skip multiqc or not",
                     "fa_icon": "far fa-calendar-times",
                     "hidden": false
+                },
+                "skip_compartments": {
+                    "type": "boolean",
+                    "description": "skip call compartment or not",
+                    "fa_icon": "far fa-comment-slash",
+                    "hidden": false
+                },
+                "skip_tads": {
+                    "type": "boolean",
+                    "description": "skip call TADs or not",
+                    "fa_icon": "far fa-comment-slash",
+                    "hidden": false
                 }
             }
         }
@@ -647,6 +687,9 @@
         },
         {
             "$ref": "#/definitions/MAPS_peak_calling_options"
+        },
+        {
+            "$ref": "#/definitions/compartment_tads_options"
         },
         {
             "$ref": "#/definitions/Visualization_options"

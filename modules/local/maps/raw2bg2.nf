@@ -25,6 +25,7 @@ process MAPS_RAW2BG2 {
     #########################################
     # Author: jianhong ou
     # create single files from reg_raw to bedgraph for cool load and juicerbox
+    # the signal is the ratio2 (matrix count / matrix fit model expected2)
     #########################################
     versions <- c("${task.process}:", "    MAPS: 1.1.0")
     writeLines(versions, "versions.yml") # write versions.yml

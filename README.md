@@ -37,7 +37,10 @@ On release, automated continuous integration tests run the pipeline on a full-si
 8. Differential analysis ([`edgeR`](https://bioconductor.org/packages/edgeR/))
 9. Annotate genomic interaction loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
 10. Create cooler files ([`cooler`](https://cooler.readthedocs.io/en/latest/index.html), .hic files [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), and circos files [`circos`](http://circos.ca/)) for visualization.
-11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+11. Call A/B compartments ([`cooltools`](https://cooltools.readthedocs.io/en/latest/index.html))
+12. Call TADs ([`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/index.html))
+13. Aggregate peak analysis (['HiCExploer'](https://hicexplorer.readthedocs.io/en/latest/index.html))
+14. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 ![work flow of the pipeline](docs/images/workflow.svg)
 
