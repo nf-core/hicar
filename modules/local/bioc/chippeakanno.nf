@@ -12,6 +12,7 @@ process BIOC_CHIPPEAKANNO {
     input:
     tuple val(bin_size), path(diff)
     path gtf
+    val maps_3d_ext
 
     output:
     tuple val(bin_size), path("${prefix}/anno/*"), emit: anno
@@ -45,7 +46,7 @@ process BIOC_CHIPPEAKANNO {
     pf <- file.path("${prefix}", "anno")
     bin_size <- "${prefix}"
 
-    detbl <- dir(".", "DEtable.*.csv|sig3Dinteractions.bedpe|peaks",
+    detbl <- dir(".", "DEtable.*.csv|${maps_3d_ext}|peaks",
                 recursive = TRUE, full.names = TRUE)
     detbl <- detbl[!grepl("anno.csv", detbl)] ## in case of re-run
 
@@ -97,7 +98,7 @@ process BIOC_CHIPPEAKANNO {
                                         FeatureLocForDistance = "TSS",
                                         ignore.strand = TRUE)
         if(length(id2symbol)>0) DB.anno2\$symbol[!is.na(DB.anno2\$feature)] <- id2symbol[DB.anno2\$feature[!is.na(DB.anno2\$feature)]]
-        groupName <- sub(".sig3Dinteractions.bedpe|csv", "", basename(det))
+        groupName <- sub("${maps_3d_ext}|csv", "", basename(det))
         if(grepl("padj", det)){
             resList[[groupName]] <- c(DB.anno1, DB.anno2)
         }else{

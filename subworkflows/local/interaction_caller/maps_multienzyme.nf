@@ -1,25 +1,23 @@
 /*
- * Createing Genomic Features Files
+ * Createing Genomic Features Files for MAPS
  */
 
-include { BIOC_ENZYMECUT               } from '../../modules/local/bioc/enzyme_cut'
-include { MAPS_CUT                     } from '../../modules/local/maps/cut'
-include { MAPS_FEND                    } from '../../modules/local/maps/fend'
-include { GENMAP_INDEX                 } from '../../modules/nf-core/modules/genmap/index/main'
-include { GENMAP_MAPPABILITY           } from '../../modules/nf-core/modules/genmap/mappability/main'
-include { SEQLEVELS_STYLE              } from '../../modules/local/bioc/seqlevelsstyle'
+include { BIOC_ENZYMECUT               } from '../../../modules/local/bioc/enzyme_cut'
+include { MAPS_CUT                     } from '../../../modules/local/maps/cut'
+include { MAPS_FEND                    } from '../../../modules/local/maps/fend'
+include { SEQLEVELS_STYLE              } from '../../../modules/local/bioc/seqlevelsstyle'
 include { ENSEMBL_UCSC_CONVERT
-    ENSEMBL_UCSC_CONVERT as ENSEMBL_UCSC_CONVERT2       } from '../../modules/local/bioc/ensembl_ucsc_convert'
-include { UCSC_WIGTOBIGWIG             } from '../../modules/nf-core/modules/ucsc/wigtobigwig/main'
-include { UCSC_BIGWIGAVERAGEOVERBED    } from '../../modules/nf-core/modules/ucsc/bigwigaverageoverbed/main'
-include { MAPS_MERGE                   } from '../../modules/local/maps/merge'
-include { MAPS_FEATURE                 } from '../../modules/local/maps/feature'
+    ENSEMBL_UCSC_CONVERT as ENSEMBL_UCSC_CONVERT2       } from '../../../modules/local/bioc/ensembl_ucsc_convert'
+include { UCSC_BIGWIGAVERAGEOVERBED    } from '../../../modules/nf-core/modules/ucsc/bigwigaverageoverbed/main'
+include { MAPS_MERGE                   } from '../../../modules/local/maps/merge'
+include { MAPS_FEATURE                 } from '../../../modules/local/maps/feature'
 
 workflow MAPS_MULTIENZYME {
     take:
     fasta                      // channel: [ path(fasta) ]
     cool_bin                   // channel: [ val(bin) ]
     chromsizes                 // channel: [ path(chromsizes) ]
+    mappability                // channel: [ path(bw) ]
     merge_map_py_source        // channel: [ file(merge_map_py_source) ]
     feature_frag2bin_source    // channel: [ file(feature_frag2bin_source) ]
     enzyme                     // values
@@ -40,14 +38,6 @@ workflow MAPS_MULTIENZYME {
         }
         MAPS_FEND(ch_digest, chromsizes)
     }
-    if(!params.mappability){
-        GENMAP_INDEX(fasta).index | GENMAP_MAPPABILITY
-        ch_version = ch_version.mix(GENMAP_MAPPABILITY.out.versions)
-        mappability = UCSC_WIGTOBIGWIG(GENMAP_MAPPABILITY.out.wig.map{[[id:'mappability'], it]}, chromsizes).bw.map{it[1]}
-        ch_version = ch_version.mix(UCSC_WIGTOBIGWIG.out.versions)
-    }else{
-        mappability = Channel.fromPath(params.mappability, checkIfExists: true)
-    }
     seqlevelsstyle = SEQLEVELS_STYLE(MAPS_FEND.out.bed.map{it[1]}.collect().map{it[0]}).seqlevels_style
     if("$seqlevelsstyle" != "UCSC"){
         ENSEMBL_UCSC_CONVERT(MAPS_FEND.out.bed)
@@ -65,7 +55,6 @@ workflow MAPS_MULTIENZYME {
     MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes, feature_frag2bin_source)
 
     emit:
-    mappability              = mappability                       // channel: [ path(bw) ]
     bin_feature              = MAPS_FEATURE.out.bin_feature      // channel: [ val(bin_size), path(bin_feature) ]
     versions                 = ch_version                        // channel: [ path(version) ]
 }

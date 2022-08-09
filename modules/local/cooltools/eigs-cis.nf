@@ -9,13 +9,14 @@ process COOLTOOLS_COMPARTMENTS {
         'quay.io/biocontainers/mulled-v2-c81d8d6b6acf4714ffaae1a274527a41958443f6:cc7ea58b8cefc76bed985dcfe261cb276ed9e0cf-0' }"
 
     input:
-    tuple val(meta), path(cool)
+    tuple val(meta), path(mcool)
     val resolution
     path fasta
     path chromsizes
 
     output:
     tuple val(meta), path("*compartments*")         , emit: results
+    tuple val(meta), path('*.bw')                   , emit: compartments
     path("versions.yml")                            , emit: versions
 
     script:
@@ -24,7 +25,11 @@ process COOLTOOLS_COMPARTMENTS {
     """
     cooltools genome binnify --all-names ${chromsizes} ${resolution} > genome_bins.txt
     cooltools genome gc genome_bins.txt ${fasta} > genome_gc.txt
-    cooltools eigs-cis $args -o ${prefix}_compartments $cool
+    cooltools eigs-cis \\
+        $args \\
+        --phasing-track genome_gc.txt \\
+        -o ${prefix}_compartments \\
+        ${mcool}::resolutions/${resolution}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

@@ -34,6 +34,7 @@ workflow ATAC_PEAK {
     method     // channel: value
     peak_file  // channel: value
     anchors    // channel: [ path(anchor_peaks) ]
+    short_bed_postfix
 
     main:
     // extract ATAC reads, split the pairs into longRange_Trans pairs and short pairs
@@ -75,13 +76,13 @@ workflow ATAC_PEAK {
     ch_version = ch_version.mix(ATACQC.out.versions)
 
     // dump ATAC reads for each group for maps
-    DUMP_READS(MERGE_READS.out.bed)
+    DUMP_READS(MERGE_READS.out.bed, short_bed_postfix)
     BEDFILES_SORT_PER_GROUP(ch_group_bdg, "bedgraph")
     UCSC_BEDCLIP(BEDFILES_SORT_PER_GROUP.out.sorted, chromsizes)
     UCSC_BEDGRAPHTOBIGWIG_PER_GROUP(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
-    DUMP_READS_PER_SAMPLE(SHIFT_READS.out.bed)
+    DUMP_READS_PER_SAMPLE(SHIFT_READS.out.bed, short_bed_postfix)
     ch_version = ch_version.mix(DUMP_READS.out.versions)
     BEDTOOLS_GENOMECOV_PER_SAMPLE(SHIFT_READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
     BEDFILES_SORT_PER_SAMPLE(BEDTOOLS_GENOMECOV_PER_SAMPLE.out.genomecov, "bedgraph")

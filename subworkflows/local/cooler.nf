@@ -10,10 +10,10 @@ include { COOLER_DUMP
     as COOLER_DUMP_PER_GROUP    } from '../../modules/nf-core/modules/cooler/dump/main'
 include { COOLER_DUMP
     as COOLER_DUMP_PER_SAMPLE   } from '../../modules/nf-core/modules/cooler/dump/main'
-include { DUMPINTRAREADS
-    as DUMPINTRAREADS_PER_GROUP } from '../../modules/local/cooler/dumpintrareads'
-include { DUMPINTRAREADS
-    as DUMPINTRAREADS_PER_SAMPLE} from '../../modules/local/cooler/dumpintrareads'
+include { DUMPREADS
+    as DUMPREADS_PER_GROUP } from '../../modules/local/cooler/dumpreads'
+include { DUMPREADS
+    as DUMPREADS_PER_SAMPLE} from '../../modules/local/cooler/dumpreads'
 include { JUICER         } from '../../modules/local/cooler/juicer'
 
 workflow COOLER {
@@ -22,6 +22,7 @@ workflow COOLER {
     chromsizes                // channel: [ path(chromsizes) ]
     juicer_jvm_params         // values
     juicer_tools_jar          // channel: [ path(juicer_tool jar) ]
+    long_bedpe_postfix
 
     main:
     // HiC-like contact matrix
@@ -39,24 +40,26 @@ workflow COOLER {
     // create a balanced matrix for compartment and tad calls
     COOLER_BALANCE(COOLER_MERGE.out.cool)
     // create mcooler file for visualization
-    COOLER_ZOOMIFY(COOLER_MERGE.out.cool)
-    // dump long.intra.bedpe for each group for MAPS to call peaks
-    COOLER_DUMP_PER_GROUP(COOLER_MERGE.out.cool, []).bedpe | DUMPINTRAREADS_PER_GROUP
+    COOLER_ZOOMIFY(COOLER_BALANCE.out.cool)
+    // dump interaction bedpe for each group
+    COOLER_DUMP_PER_GROUP(COOLER_MERGE.out.cool, [])
+    // dump long interaction bedpe for each group for MAPS to call peaks
+    DUMPREADS_PER_GROUP(COOLER_DUMP_PER_GROUP.out.bedpe, long_bedpe_postfix)
     if(juicer_tools_jar){
-        JUICER(DUMPINTRAREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
+        JUICER(DUMPREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
         ch_version = ch_version.mix(JUICER.out.versions)
     }
 
-    // dump long.intra.bedpe for each sample
+    // dump long interaction bedpe for each sample
     COOLER_DUMP_PER_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool]}, [])
-    DUMPINTRAREADS_PER_SAMPLE(COOLER_DUMP_PER_SAMPLE.out.bedpe)
-    ch_version = ch_version.mix(DUMPINTRAREADS_PER_GROUP.out.versions)
+    DUMPREADS_PER_SAMPLE(COOLER_DUMP_PER_SAMPLE.out.bedpe, long_bedpe_postfix)
+    ch_version = ch_version.mix(DUMPREADS_PER_GROUP.out.versions)
 
     emit:
     cool        = COOLER_BALANCE.out.cool                   // channel: [ val(meta), [cool] ]
     mcool       = COOLER_ZOOMIFY.out.mcool                  // channel: [ val(meta), [mcool] ]
     groupbedpe  = COOLER_DUMP_PER_GROUP.out.bedpe           // channel: [ val(meta), [bedpe] ]
-    bedpe       = DUMPINTRAREADS_PER_GROUP.out.bedpe        // channel: [ val(meta), [bedpe] ]
-    samplebedpe = DUMPINTRAREADS_PER_SAMPLE.out.bedpe       // channel: [ val(meta), [bedpe] ]
+    bedpe       = DUMPREADS_PER_GROUP.out.bedpe             // channel: [ val(meta), [bedpe] ]
+    samplebedpe = DUMPREADS_PER_SAMPLE.out.bedpe            // channel: [ val(meta), [bedpe] ]
     versions    = ch_version                                // channel: [ path(version) ]
 }

@@ -42,6 +42,9 @@
             "gunzip": {
                 "git_sha": "e745e167c1020928ef20ea1397b6b4d230681b4d"
             },
+            "homer/maketagdirectory": {
+                "git_sha": "233fa70811a03a4cecb2ece483b5c8396e2cee1d"
+            },
             "macs2/callpeak": {
                 "git_sha": "f0800157544a82ae222931764483331a81812012"
             },

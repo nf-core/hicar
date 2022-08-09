@@ -1,27 +1,27 @@
 /*
  * call peak by fragment reads
  */
-include { R1READS             } from '../../modules/local/fragmentreads/r1reads'
+include { R1READS             } from '../../../modules/local/fragmentreads/r1reads'
 include { MERGE_READS
-    as MERGE_R1READS          } from '../../modules/local/atacreads/mergereads'
-include { CALL_R1PEAK         } from '../../modules/local/fragmentreads/call_peak'
+    as MERGE_R1READS          } from '../../../modules/local/atacreads/mergereads'
+include { CALL_R1PEAK         } from '../../../modules/local/fragmentreads/call_peak'
 include { DUMP_READS
-    as DUMP_R1_READS_PER_GROUP     } from '../../modules/local/atacreads/dumpreads'
+    as DUMP_R1_READS_PER_GROUP     } from '../../../modules/local/atacreads/dumpreads'
 include { DUMP_READS
-    as DUMP_R1_READS_PER_SAMPLE    } from '../../modules/local/atacreads/dumpreads'
+    as DUMP_R1_READS_PER_SAMPLE    } from '../../../modules/local/atacreads/dumpreads'
 include { MERGE_PEAK
-    as MERGE_R1PEAK           } from '../../modules/local/atacreads/mergepeak'
+    as MERGE_R1PEAK           } from '../../../modules/local/atacreads/mergepeak'
 include { BEDTOOLS_GENOMECOV
-    as BEDTOOLS_GENOMECOV_PER_R1SAMPLE } from '../../modules/nf-core/modules/bedtools/genomecov/main'
+    as BEDTOOLS_GENOMECOV_PER_R1SAMPLE } from '../../../modules/nf-core/modules/bedtools/genomecov/main'
 include { BEDFILES_SORT
-    as BEDFILES_SORT_PER_GROUP       } from '../../modules/local/atacreads/bedsort'
+    as BEDFILES_SORT_PER_GROUP       } from '../../../modules/local/atacreads/bedsort'
 include { BEDFILES_SORT
-    as BEDFILES_SORT_PER_SAMPLE      } from '../../modules/local/atacreads/bedsort'
-include { UCSC_BEDCLIP        } from '../../modules/nf-core/modules/ucsc/bedclip/main'
+    as BEDFILES_SORT_PER_SAMPLE      } from '../../../modules/local/atacreads/bedsort'
+include { UCSC_BEDCLIP        } from '../../../modules/nf-core/modules/ucsc/bedclip/main'
 include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP  } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
+    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP  } from '../../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
 include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE } from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
+    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE } from '../../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
 
 workflow R1_PEAK {
     take:
@@ -30,6 +30,7 @@ workflow R1_PEAK {
     cut        // channel: [ path(cut) ]
     gtf        // channel: [ path(gtf) ]
     pval       // val
+    short_bed_postfix
 
     main:
     // extract and sort R1 reads
@@ -57,13 +58,13 @@ workflow R1_PEAK {
     //ch_version = ch_version.mix(R1QC.out.versions)
 
     // dump R1 reads for each group for maps
-    DUMP_R1_READS_PER_GROUP(MERGE_R1READS.out.bed)
+    DUMP_R1_READS_PER_GROUP(MERGE_R1READS.out.bed, short_bed_postfix)
     BEDFILES_SORT_PER_GROUP(CALL_R1PEAK.out.bdg, "bedgraph")
     UCSC_BEDCLIP(BEDFILES_SORT_PER_GROUP.out.sorted, chromsizes)
     UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
-    DUMP_R1_READS_PER_SAMPLE(R1READS.out.bed)
+    DUMP_R1_READS_PER_SAMPLE(R1READS.out.bed, short_bed_postfix)
     ch_version = ch_version.mix(DUMP_R1_READS_PER_SAMPLE.out.versions)
     BEDTOOLS_GENOMECOV_PER_R1SAMPLE(R1READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
     BEDFILES_SORT_PER_SAMPLE(BEDTOOLS_GENOMECOV_PER_R1SAMPLE.out.genomecov, "bedgraph")

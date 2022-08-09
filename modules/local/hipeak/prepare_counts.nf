@@ -89,6 +89,7 @@ process PREPARE_COUNTS {
     chromosomes <- intersect(names(R1PEAK), names(R2PEAK))
     chromosomes <- chromosomes[!grepl("_", chromosomes)]
     chromosomes <- chromosomes[!grepl("M", chromosomes)] ## remove chrM/chrMT
+    chromosomes <- chromosomes[!grepl("EBV", chromosomes)]
     if(length(chromosomes)==0){
         stop("no valid data in same chromosome.")
     }

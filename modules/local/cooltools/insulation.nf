@@ -14,6 +14,7 @@ process COOLTOOLS_INSULATION {
 
     output:
     tuple val(meta), path("*tsv")             , emit:results
+    tuple val(meta), path("*.bed")            , emit:tads
     path("versions.yml")                      , emit:versions
 
     script:

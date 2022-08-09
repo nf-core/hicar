@@ -11,11 +11,13 @@ process DIFFHICAR {
 
     input:
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")
+    val long_bedpe_postfix
 
     output:
-    tuple val(bin_size), path("${prefix}/*") , emit: diff
-    path "${prefix}/*.qc.json"               , emit: stats
-    path "versions.yml"                      , emit: versions
+    tuple val(bin_size), path("${prefix}/*")               , emit: diff
+    tuple val("diffhic_${bin_size}"), path("${prefix}/edgeR.DEtable*"), optional: true, emit: anno
+    path "${prefix}/*.qc.json"                             , emit: stats
+    path "versions.yml"                                    , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
@@ -45,7 +47,7 @@ process DIFFHICAR {
     ## get counts
     pc <- dir("long", "bedpe", full.names = FALSE)
     cnts <- lapply(file.path("long", pc), read.table)
-    samples <- sub("(_REP\\\\d+)\\\\.(.*?)\\\\.long.intra.bedpe", "\\\\1", pc)
+    samples <- sub("(_REP\\\\d+)\\\\.(.*?)\\\\.${long_bedpe_postfix}", "\\\\1", pc)
     cnts <- lapply(split(cnts, samples), do.call, what=rbind)
     sizeFactor <- vapply(cnts, FUN=function(.ele) sum(.ele[, 7], na.rm = TRUE),
                         FUN.VALUE = numeric(1))

@@ -1,4 +1,4 @@
-process DUMPINTRAREADS {
+process DUMP4HOMER {
     tag "${meta.id}"
     label 'process_medium'
 
@@ -9,22 +9,22 @@ process DUMPINTRAREADS {
         'quay.io/biocontainers/gawk:5.1.0' }"
 
     input:
-    tuple val(meta), path(bedpe)
+    tuple val(meta), path(pair)
 
     output:
-    tuple val(meta), path("*.long.intra.bedpe")            , emit: bedpe
-    tuple val(meta), path("*.ginteractions")               , emit: gi
+    tuple val(meta), path("*.HiCsummary.txt.gz")           , emit: hicsummary
     path  "versions.yml"                                   , emit: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def prefix   = task.ext.prefix ?: "${meta.id}"
     """
-    awk -F "\t" \\
-        '{if(\$1 == \$4) {print > "${prefix}."\$1".long.intra.bedpe"} }' \\
-        $bedpe
-
-    awk -F "\t" '{print 0, \$1, \$2, 0, 0, \$4, \$5, 1, \$7}' $bedpe > \\
-        ${prefix}.${meta.bin}.ginteractions
+    gunzip -c $pair | \\
+        awk -v F='\\t' -v OFS='\\t' \\
+        '!/^[[:space:]]*#/ {print \$1,\$2,\$3,\$6,\$4,\$5,\$7}' | \\
+        gzip -nc > ${prefix}.HiCsummary.txt.gz
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

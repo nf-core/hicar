@@ -12,7 +12,6 @@ process CHECKSUMS {
     tuple val(meta), path(reads)
 
     output:
-    path "*.md5"                  , emit: md5
     path "versions.yml"           , emit: versions
 
     script:
@@ -20,11 +19,7 @@ process CHECKSUMS {
     """
     [ ! -f  ${prefix}_1.fastq.gz ] && ln -s ${reads[0]} ${prefix}_1.fastq.gz
     [ ! -f  ${prefix}_2.fastq.gz ] && ln -s ${reads[1]} ${prefix}_2.fastq.gz
-    gunzip -c ${prefix}_1.fastq.gz > ${prefix}_1.fastq
-    gunzip -c ${prefix}_2.fastq.gz > ${prefix}_2.fastq
-    md5sum ${prefix}_1.fastq ${prefix}_2.fastq > ${prefix}.md5
-    rm ${prefix}_1.fastq
-    rm ${prefix}_2.fastq
+
     if [ ! -z "${meta.md5_1 ?: ''}" ] && [ ! -z "${meta.md5_2 ?: ''}" ]; then
         cat <<-END_CHECKSUM | md5sum -c
     ${meta.md5_1}  ${prefix}_1.fastq.gz

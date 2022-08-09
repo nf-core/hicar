@@ -13,6 +13,7 @@ process HICEXPLORER_HICAGGREGATECONTACTS {
 
     output:
     tuple val(meta), path("*apa*")              , emit:results
+    tuple val(meta), path("*.png")              , emit:png
     path("versions.yml")                        , emit:versions
 
     script:

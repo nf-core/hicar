@@ -14,6 +14,9 @@ include { GENOME_FILTER               } from '../../modules/local/genome/filter'
 include { COOLER_DIGEST               } from '../../modules/nf-core/modules/cooler/digest/main'
 include { RE_CUTSITE                  } from '../../modules/local/re_cut'
 include { GFFREAD                     } from '../../modules/nf-core/modules/gffread/main'
+include { GENMAP_INDEX                } from '../../modules/nf-core/modules/genmap/index/main'
+include { GENMAP_MAPPABILITY          } from '../../modules/nf-core/modules/genmap/mappability/main'
+include { UCSC_WIGTOBIGWIG            } from '../../modules/nf-core/modules/ucsc/wigtobigwig/main'
 include { BWA_INDEX                   } from '../../modules/nf-core/modules/bwa/index/main'
 
 workflow PREPARE_GENOME {
@@ -140,6 +143,20 @@ workflow PREPARE_GENOME {
     ch_version = ch_version.mix(RE_CUTSITE.out.versions.ifEmpty(null))
 
     /*
+     * mappability
+     */
+    if(!params.mappability){
+        GENMAP_INDEX(ch_fasta).index | GENMAP_MAPPABILITY
+        ch_version = ch_version.mix(GENMAP_MAPPABILITY.out.versions)
+        ch_mappability = UCSC_WIGTOBIGWIG(
+            GENMAP_MAPPABILITY.out.wig.map{[[id:'mappability'], it]},
+            ch_chrom_sizes).bw.map{it[1]}
+        ch_version = ch_version.mix(UCSC_WIGTOBIGWIG.out.versions)
+    }else{
+        ch_mappability = Channel.fromPath(params.mappability, checkIfExists: true)
+    }
+
+    /*
      * Uncompress bwa index or generate from scratch if required
      */
     ch_bwa_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX ( ch_fasta ).index
@@ -153,6 +170,7 @@ workflow PREPARE_GENOME {
     bed               = filtered_bed                   // path: *.bed,
     digest_genome     = digest_genome_bed              // path: bed
     site              = RE_CUTSITE.out.site            // value: site 5position
+    mappability       = ch_mappability                 // path: bw
     bwa_index         = ch_bwa_index                   // path: bwt,amb,sa,ann,pac
     gsize             = genome_size                    // value: macs2 genome size
     ucscname          = ucscname                       // value: ucsc annotation name

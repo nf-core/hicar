@@ -10,17 +10,19 @@ process DUMP_READS {
 
     input:
     tuple val(meta), path(bed)
+    val short_bed_postfix
 
     output:
-    tuple val(meta), path("*.shrt.vip.bed") , emit: peak
-    path "versions.yml"                     , emit: versions
+    tuple val(meta), path("*.${short_bed_postfix}") , emit: peak
+    path "versions.yml"                             , emit: versions
 
     script:
     def software = "awk"
     def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
     """
     gunzip -c $bed | \\
-        awk -F "\t" 'BEGIN { OFS=FS } {print \$1,\$2,\$3 > "${prefix}."\$1".shrt.vip.bed"}'
+        awk -F "\t" 'BEGIN { OFS=FS } {print \$1,\$2,\$3 \\
+        > "${prefix}."\$1".${short_bed_postfix}"}'
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

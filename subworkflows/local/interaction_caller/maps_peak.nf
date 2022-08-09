@@ -2,18 +2,18 @@
  * Call interaction peaks by MAPS
  */
 
-include { MAPS_MAPS             } from '../../modules/local/maps/maps'
-include { MAPS_CALLPEAK         } from '../../modules/local/maps/callpeak'
+include { MAPS_MAPS             } from '../../../modules/local/maps/maps'
+include { MAPS_CALLPEAK         } from '../../../modules/local/maps/callpeak'
 include { READS_SUMMARY
-    as MAPS_STATS               } from '../../modules/local/reads_summary'
-include { MAPS_REFORMAT         } from '../../modules/local/maps/reformat'
-include { MAPS_RAW2BG2          } from '../../modules/local/maps/raw2bg2'
-include { COOLER_LOAD           } from '../../modules/local/cooler/load/main'
-include { COOLER_MERGE          } from '../../modules/local/cooler/merge/main'
+    as MAPS_STATS               } from '../../../modules/local/reads_summary'
+include { MAPS_REFORMAT         } from '../../../modules/local/maps/reformat'
+include { MAPS_RAW2BG2          } from '../../../modules/local/maps/raw2bg2'
+include { COOLER_LOAD           } from '../../../modules/local/cooler/load/main'
+include { COOLER_MERGE          } from '../../../modules/local/cooler/merge/main'
 include { COOLER_ZOOMIFY
-    as COOLER_ZOOMIFY_MAPS      } from '../../modules/local/cooler/zoomify/main'
+    as COOLER_ZOOMIFY_MAPS      } from '../../../modules/local/cooler/zoomify/main'
 include { JUICER
-    as JUICER_MAPS              } from '../../modules/local/cooler/juicer'
+    as JUICER_MAPS              } from '../../../modules/local/cooler/juicer'
 
 workflow MAPS_PEAK {
     take:
@@ -22,12 +22,15 @@ workflow MAPS_PEAK {
     chromsizes                // channel: [ path(chromsizes) ]
     juicer_jvm_params         // values
     juicer_tools_jar          // channel: [ path(juicer_tool jar) ]
+    long_bedpe_postfix        // values
+    short_bed_postfix         // values
+    maps_3d_ext               // values
 
     main:
     //create parameter table
     //input=val(meta), val(bin_size), path(macs2), path(long_bedpe), path(short_bed), path(background)
     //maps from bedpe
-    ch_version = MAPS_MAPS(reads, make_maps_runfile_source).versions
+    ch_version = MAPS_MAPS(reads, make_maps_runfile_source, long_bedpe_postfix, short_bed_postfix).versions
     //regression and peak calling
     peak = MAPS_CALLPEAK(MAPS_MAPS.out.maps).peak
     ch_version = ch_version.mix(MAPS_CALLPEAK.out.versions)
@@ -53,7 +56,7 @@ workflow MAPS_PEAK {
     }
 
     //peak formatting
-    MAPS_REFORMAT(peak)
+    MAPS_REFORMAT(peak, maps_3d_ext)
     ch_version = ch_version.mix(MAPS_REFORMAT.out.versions)
     //merge stats
     MAPS_STATS(MAPS_CALLPEAK.out.summary.map{it[2]}.collect())

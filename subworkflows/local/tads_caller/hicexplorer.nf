@@ -2,8 +2,8 @@
  * call TADs by HiCExploer
  */
 
-include { HICEXPLORER_HICFINDTADS } from '../../modules/local/hicexplorer/hicfindtads'
-include { HICEXPLORER_HICPLOTTADS } from '../../modules/local/hicexplorer/hicplottads'
+include { HICEXPLORER_HICFINDTADS } from '../../../modules/local/hicexplorer/hicfindtads'
+include { HICEXPLORER_HICPLOTTADS } from '../../../modules/local/hicexplorer/hicplottads'
 
 workflow HICEXPLORER_CALLTADS {
     take:
@@ -26,7 +26,7 @@ workflow HICEXPLORER_CALLTADS {
 
     emit:
     results   = HICEXPLORER_HICFINDTADS.out.results  // channel: [ val(meta), path(results)]
-    domains   = HICEXPLORER_HICFINDTADS.out.domains  // channel: [ val(meta), path(domains.bed)]
+    tads      = HICEXPLORER_HICFINDTADS.out.domains  // channel: [ val(meta), path(domains.bed)]
     pngs      = HICEXPLORER_HICPLOTTADS.out.pngs     // channel: [ val(meta), path(pngs)]
     ini       = HICEXPLORER_HICPLOTTADS.out.ini      // channel: [ val(meta), path(ini)]
     versions  = ch_version                           // channel: [ path(version) ]
