@@ -32,15 +32,17 @@ On release, automated continuous integration tests run the pipeline on a full-si
 3. Map reads ([`bwa mem`](http://bio-bwa.sourceforge.net/bwa.shtml))
 4. Filter reads ([`pairtools`](https://pairtools.readthedocs.io/en/latest/))
 5. Quality analysis ([`pairsqc`](https://github.com/4dn-dcic/pairsqc))
-6. Call peaks for ATAC reads (R2 reads) ([`MACS2`](https://macs3-project.github.io/MACS/)) and/or call peaks for R1 reads.
-7. Find genomic interaction loops ([`MAPS`](https://github.com/ijuric/MAPS))
-8. Differential analysis ([`edgeR`](https://bioconductor.org/packages/edgeR/))
-9. Annotate genomic interaction loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
-10. Create cooler files ([`cooler`](https://cooler.readthedocs.io/en/latest/index.html), .hic files [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), and circos files [`circos`](http://circos.ca/)) for visualization.
-11. Call A/B compartments ([`cooltools`](https://cooltools.readthedocs.io/en/latest/index.html))
-12. Call TADs ([`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/index.html))
-13. Aggregate peak analysis (['HiCExploer'](https://hicexplorer.readthedocs.io/en/latest/index.html))
-14. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+6. Create cooler files ([`cooler`](https://cooler.readthedocs.io/en/latest/index.html))
+7. Call peaks for ATAC reads (R2 reads) ([`MACS2`](https://macs3-project.github.io/MACS/)).
+8. Call A/B compartments ([`cooltools`](https://cooltools.readthedocs.io/en/latest/index.html), [`homer`](http://homer.ucsd.edu/homer/), or ...)
+9. Call TADs ([`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/index.html), [`homer`](http://homer.ucsd.edu/homer/), or ...)
+10. Find genomic interaction loops ([`MAPS`](https://github.com/ijuric/MAPS), [`homer`](http://homer.ucsd.edu/homer/), or ...)
+11. Aggregate peak analysis ([`HiCExploer`](https://hicexplorer.readthedocs.io/en/latest/index.html), [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), or ...)
+12. Call HiPeak (high resolution analysis, time consuming, motif analysis)
+13. Differential analysis ([`edgeR`](https://bioconductor.org/packages/edgeR/), or ...)
+14. Annotate genomic interaction loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/), or ...)
+15. Visualization (.mcools files [`cooler`](https://cooler.readthedocs.io/en/latest/index.html), .hic files [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), and circos files [`circos`](http://circos.ca/))
+14. Pipeline reporting ([`MultiQC`](http://multiqc.info/))
 
 ![work flow of the pipeline](docs/images/workflow.svg)
 
