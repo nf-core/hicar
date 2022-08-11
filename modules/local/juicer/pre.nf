@@ -1,4 +1,4 @@
-process JUICER {
+process JUICER_PRE {
     tag "${meta.id}"
     label 'process_medium'
     label 'error_ignore'

@@ -3,10 +3,12 @@
 //
 
 include { HICEXPLORER_HICAGGREGATECONTACTS } from '../../modules/local/hicexplorer/hicaggregatecontacts'
+include { JUICER_APA                       } from '../../modules/local/juicer/apa'
 
 workflow APA {
     take:
     matrix                                       // tuple val(meta), path(cool)
+    hic                                          // tuple val(meta), path(hic)
     peaks
 
     main:
@@ -18,6 +20,14 @@ workflow APA {
         case "hicaggregatecontacts":
             HICEXPLORER_HICAGGREGATECONTACTS(
                 matrix,
+                peaks
+            )
+            ch_apa = HICEXPLORER_HICAGGREGATECONTACTS.out.png
+            ch_versions = HICEXPLORER_HICAGGREGATECONTACTS.out.versions
+            break
+        case "juicebox":
+            JUICER_APA(
+                hic,
                 peaks
             )
             ch_apa = HICEXPLORER_HICAGGREGATECONTACTS.out.png

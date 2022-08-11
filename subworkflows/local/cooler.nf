@@ -14,7 +14,7 @@ include { DUMPREADS
     as DUMPREADS_PER_GROUP } from '../../modules/local/cooler/dumpreads'
 include { DUMPREADS
     as DUMPREADS_PER_SAMPLE} from '../../modules/local/cooler/dumpreads'
-include { JUICER         } from '../../modules/local/cooler/juicer'
+include { JUICER_PRE       } from '../../modules/local/juicer/pre'
 
 workflow COOLER {
     take:
@@ -46,8 +46,8 @@ workflow COOLER {
     // dump long interaction bedpe for each group for MAPS to call peaks
     DUMPREADS_PER_GROUP(COOLER_DUMP_PER_GROUP.out.bedpe, long_bedpe_postfix)
     if(juicer_tools_jar){
-        JUICER(DUMPREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
-        ch_version = ch_version.mix(JUICER.out.versions)
+        JUICER_PRE(DUMPREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
+        ch_version = ch_version.mix(JUICER_PRE.out.versions)
     }
 
     // dump long interaction bedpe for each sample
@@ -58,6 +58,7 @@ workflow COOLER {
     emit:
     cool        = COOLER_BALANCE.out.cool                   // channel: [ val(meta), [cool] ]
     mcool       = COOLER_ZOOMIFY.out.mcool                  // channel: [ val(meta), [mcool] ]
+    hic         = JUICER_PRE.out.hic                        // channel: [ val(meta), [hic] ]
     groupbedpe  = COOLER_DUMP_PER_GROUP.out.bedpe           // channel: [ val(meta), [bedpe] ]
     bedpe       = DUMPREADS_PER_GROUP.out.bedpe             // channel: [ val(meta), [bedpe] ]
     samplebedpe = DUMPREADS_PER_SAMPLE.out.bedpe            // channel: [ val(meta), [bedpe] ]

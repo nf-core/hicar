@@ -131,10 +131,12 @@ cool_bin = Channel.fromList(params.cool_bin.tokenize('_'))
 
 workflow HICAR {
 
-    ch_versions = Channel.empty()
-    ch_circos_files = Channel.empty()
-    ch_annotation_files = Channel.empty()
-    ch_multiqc_files = Channel.empty()
+    ch_versions         = Channel.empty() // pipeline versions
+    ch_circos_files     = Channel.empty() // circos plots
+    ch_de_files         = Channel.empty() // Differential analysis
+    ch_annotation_files = Channel.empty() // files to be annotated
+    ch_multiqc_files    = Channel.empty() // multiQC reports
+
     ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
     ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
 
@@ -267,7 +269,7 @@ workflow HICAR {
     // calling ATAC peaks, output ATAC narrowPeak and reads in peak
     // or user user predefined peaks
     //
-    ATAC_PEAK(// TODO, add TSS heatmap plot
+    ATAC_PEAK(// TODO, add TSS heatmap plot, add QC report
         PAIRTOOLS_PAIRE.out.validpair,
         PREPARE_GENOME.out.chrom_sizes,
         PREPARE_GENOME.out.gsize,
@@ -327,7 +329,6 @@ workflow HICAR {
             ch_merge_map_py_source,
             ch_feature_frag2bin_source,
             ch_make_maps_runfile_source,
-            ch_juicer_tools,
             params.long_bedpe_postfix,
             params.short_bed_postfix,
             params.maps_3d_ext
@@ -344,6 +345,7 @@ workflow HICAR {
     if(!params.skip_apa){
         APA(
             COOLER.out.cool,
+            COOLER.out.hic,
             ATAC_PEAK.out.mergedpeak
         )
         ch_versions = ch_versions.mix(APA.out.versions.ifEmpty(null))

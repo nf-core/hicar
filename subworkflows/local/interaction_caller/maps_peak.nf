@@ -12,8 +12,6 @@ include { COOLER_LOAD           } from '../../../modules/local/cooler/load/main'
 include { COOLER_MERGE          } from '../../../modules/local/cooler/merge/main'
 include { COOLER_ZOOMIFY
     as COOLER_ZOOMIFY_MAPS      } from '../../../modules/local/cooler/zoomify/main'
-include { JUICER
-    as JUICER_MAPS              } from '../../../modules/local/cooler/juicer'
 
 workflow MAPS_PEAK {
     take:
@@ -21,7 +19,6 @@ workflow MAPS_PEAK {
     make_maps_runfile_source  // channel: [ file make_maps_runfile_source ]
     chromsizes                // channel: [ path(chromsizes) ]
     juicer_jvm_params         // values
-    juicer_tools_jar          // channel: [ path(juicer_tool jar) ]
     long_bedpe_postfix        // values
     short_bed_postfix         // values
     maps_3d_ext               // values
@@ -49,11 +46,6 @@ workflow MAPS_PEAK {
     COOLER_MERGE(ch_cooler)
     // create mcooler file for visualization
     COOLER_ZOOMIFY_MAPS(COOLER_MERGE.out.cool)
-    if(juicer_tools_jar){
-        JUICER_MAPS(MAPS_RAW2BG2.out.gi.map{meta,bin,gi -> [[id:meta.id,bin:bin], gi]},
-                    juicer_tools_jar, chromsizes, juicer_jvm_params)
-        ch_version = ch_version.mix(JUICER_MAPS.out.versions)
-    }
 
     //peak formatting
     MAPS_REFORMAT(peak, maps_3d_ext)
