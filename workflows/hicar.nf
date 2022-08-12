@@ -288,9 +288,11 @@ workflow HICAR {
     if(!params.skip_compartments){
         COMPARTMENTS(
             COOLER.out.mcool,
+            HOMER_MAKETAGDIRECTORY.out.tagdir,
             params.res_compartments,
             PREPARE_GENOME.out.fasta,
-            PREPARE_GENOME.out.chrom_sizes
+            PREPARE_GENOME.out.chrom_sizes,
+            PREPARE_GENOME.out.ucscname
         )
         ch_versions = ch_versions.mix(COMPARTMENTS.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect().ifEmpty(null))

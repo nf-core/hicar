@@ -18,7 +18,6 @@ workflow MAPS {
     merge_map_py_source             // scripts
     feature_frag2bin_source         // scripts
     make_maps_runfile_source        // scripts
-    juicer_tools                    // scripts
     long_bedpe_postfix              // values
     short_bed_postfix               // values
     maps_3d_ext                     // values
@@ -51,7 +50,6 @@ workflow MAPS {
         make_maps_runfile_source,
         chrom_sizes,
         params.juicer_jvm_params,
-        juicer_tools,
         long_bedpe_postfix,
         short_bed_postfix,
         maps_3d_ext)

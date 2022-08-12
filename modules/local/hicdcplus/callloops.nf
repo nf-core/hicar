@@ -15,7 +15,7 @@ process HICDCPLUS_CALLLOOPS {
     path features
 
     output:
-    tuple val(meta), path("*.interactions.txt")  , emit: interaction
+    tuple val(meta), path("*.interactions.txt")  , emit: interactions
     path "versions.yml"                          , emit: versions
 
     script:

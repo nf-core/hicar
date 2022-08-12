@@ -3,13 +3,16 @@
 //
 
 include { COOLTOOLS_COMPARTMENTS } from '../../modules/local/cooltools/eigs-cis'
+include { HOMCER_COMPARTMENTS    } from './compartments_caller/homer'
 
 workflow COMPARTMENTS {
     take:
     matrix                                       // tuple val(meta), path(cool)
+    tagdir                                       // tuple val(meta), path(tagdir)
     resolution
     fasta
     chromsizes
+    genome
 
     main:
     ch_versions             = Channel.empty()
@@ -31,6 +34,11 @@ workflow COMPARTMENTS {
             ch_versions = COOLTOOLS_COMPARTMENTS.out.versions
             ch_circos_files = COOLTOOLS_COMPARTMENTS.out.compartments
             break
+        case "homer":
+            HOMCER_COMPARTMENTS(
+                tagdir,
+                genome
+            )
         default:
             COOLTOOLS_COMPARTMENTS(
                 matrix,

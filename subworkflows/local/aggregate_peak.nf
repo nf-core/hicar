@@ -17,7 +17,7 @@ workflow APA {
     ch_apa                  = Channel.empty() // a png files channel
 
     switch(params.apa_tool){
-        case "hicaggregatecontacts":
+        case "hicexploer":
             HICEXPLORER_HICAGGREGATECONTACTS(
                 matrix,
                 peaks

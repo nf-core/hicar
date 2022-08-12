@@ -94,13 +94,12 @@ process HICDCPLUS_FEATURES {
     if(!is.null(opt\$wg_file)){
         wg_file <- opt\$wg_file
     }
+    genome.chromGR <- GRanges(chrs, IRanges(1, width=chrom_sizes))
     if (!(is.null(wg_file))) {
         wgdata <- import.bw(wg_file, which = genome.chromGR, as = "GRanges")
     }else{
         wgdata <- GRanges()
     }
-
-    genome.chromGR <- GRanges(chrs, IRanges(1, width=chrom_sizes))
     wgdata <- subsetByOverlaps(wgdata, genome.chromGR)
 
     genome <- readDNAStringSet(FASTA)
