@@ -17,8 +17,8 @@ process HICDCPLUS_FEATURES {
     val site
 
     output:
-    path "*_bintolen.txt.gz"            , emit: features
-    path "versions.yml"                 , emit: versions
+    tuple val(bin_size), path("*_bintolen.txt.gz")            , emit: features
+    path "versions.yml"                                       , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "hicdcplus_bin${bin_size}"
@@ -215,8 +215,10 @@ process HICDCPLUS_FEATURES {
             ol <- findOverlaps(ends, binsGR, type = "within", select = "all")
             LR <- GRanges(names(binsGR[subjectHits(ol)]), ranges(ends[queryHits(ol)]))
             LR <- reduce(LR)
-            map <- getMapScore(wgdata, LR)
-            map <- aggregate(map, list(id=as.character(seqnames(LR))), mean, simplify=TRUE)
+            idx <- as.character(seqnames(LR))
+            LR1 <- GRanges(sub("-.*\$", "", idx), ranges(LR), idx=idx)
+            map <- getMapScore(wgdata, LR1)
+            map <- aggregate(map, list(id=idx), mean, simplify=TRUE)
             binsGR[map[, 1]]\$map <- map[, 2]
             len <- coverage(LR)
             len <- sum(len)

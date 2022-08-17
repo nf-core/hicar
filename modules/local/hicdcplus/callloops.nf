@@ -1,5 +1,5 @@
 process HICDCPLUS_CALLLOOPS {
-    tag "$bin_size"
+    tag "$meta.id"
     label 'process_high'
     label 'process_long'
     label 'error_ignore'
@@ -11,15 +11,15 @@ process HICDCPLUS_CALLLOOPS {
         'quay.io/biocontainers/bioconductor-hicdcplus:1.2.1--r41h619a076_0' }"
 
     input:
-    tuple val(meta), path(cool)
-    path features
+    tuple val(meta), path(cool), val(bin_size), path(features)
+    path chromsize
 
     output:
     tuple val(meta), path("*.interactions.txt")  , emit: interactions
     path "versions.yml"                          , emit: versions
 
     script:
-    prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "$meta.id"
     def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
@@ -31,7 +31,7 @@ process HICDCPLUS_CALLLOOPS {
     #######################################################################
     #######################################################################
 
-    pkgs <- c("HiCDCPlus")
+    pkgs <- c("HiCDCPlus", "dplyr")
     versions <- c("${task.process}:")
     for(pkg in pkgs){
         # load library
@@ -43,5 +43,15 @@ process HICDCPLUS_CALLLOOPS {
     writeLines(versions, "versions.yml") # write versions.yml
 
     ## step 1, generate features
+    bintolen <- data.table::fread("$features")
+    bintolen <- bintolen %>%
+        tidyr::separate(.data$bins, c("chr", "start", "end"), "-") %>%
+            dplyr::mutate(start = floor(as.numeric(.data$start)/1000) *
+                1000, end = as.numeric(.data$end))
+    binsize <- $bin_size
+    seqlen <- read.delim("$chromsize")
+
+    gi_list <- generate_bintolen_gi_list(bintolen_path="$features")
+
     """
 }
