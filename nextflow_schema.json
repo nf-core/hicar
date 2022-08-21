@@ -338,6 +338,13 @@
                     "fa_icon": "fas fa-th",
                     "hidden": true,
                     "default": 1000000000
+                },
+                "min_counts_per_loop": {
+                    "type": "number",
+                    "description": "The minimal number reads count of peak pair",
+                    "fa_icon": "fas fa-th",
+                    "hidden": true,
+                    "default": 1
                 }
             }
         },
