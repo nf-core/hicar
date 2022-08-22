@@ -35,7 +35,7 @@ workflow COMPARTMENTS {
             ch_circos_files = COOLTOOLS_COMPARTMENTS.out.compartments
             break
         case "homer":
-            HOMCER_COMPARTMENTS(
+            HOMER_COMPARTMENTS(
                 tagdir,
                 genome
             )

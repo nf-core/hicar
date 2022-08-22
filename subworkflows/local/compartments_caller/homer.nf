@@ -5,7 +5,7 @@
 include { HOMER_RUNHICPCA } from '../../../modules/local/homer/run_hic_pca'
 include { HOMER_FINDHICCOMPARTMENTS } from '../../../modules/local/homer/find_hic_compartments'
 
-workflow HOMCER_COMPARTMENTS {
+workflow HOMER_COMPARTMENTS {
     take:
     tagdir       // channel: [ val(meta), [tagdir] ]
     genome       // value
