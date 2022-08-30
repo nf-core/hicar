@@ -4,7 +4,7 @@
     nf-core/hicar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Github : https://github.com/nf-core/hicar
-    Website: https://nf-co.re/hicar
+Website: https://nf-co.re/hicar
     Slack  : https://nfcore.slack.com/channels/hicar
 ----------------------------------------------------------------------------------------
 */
