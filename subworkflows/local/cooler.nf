@@ -45,8 +45,10 @@ workflow COOLER {
     COOLER_DUMP_PER_GROUP(COOLER_MERGE.out.cool, [])
     // dump long interaction bedpe for each group for MAPS to call peaks
     DUMPREADS_PER_GROUP(COOLER_DUMP_PER_GROUP.out.bedpe, long_bedpe_postfix)
+    ch_hic = Channel.empty()
     if(juicer_tools_jar){
         JUICER_PRE(DUMPREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
+        ch_hic = JUICER_PRE.out.hic
         ch_version = ch_version.mix(JUICER_PRE.out.versions)
     }
 
@@ -58,7 +60,7 @@ workflow COOLER {
     emit:
     cool        = COOLER_BALANCE.out.cool                   // channel: [ val(meta), [cool] ]
     mcool       = COOLER_ZOOMIFY.out.mcool                  // channel: [ val(meta), [mcool] ]
-    hic         = JUICER_PRE.out.hic                        // channel: [ val(meta), [hic] ]
+    hic         = ch_hic                                    // channel: [ val(meta), [hic] ]
     groupbedpe  = COOLER_DUMP_PER_GROUP.out.bedpe           // channel: [ val(meta), [bedpe] ]
     bedpe       = DUMPREADS_PER_GROUP.out.bedpe             // channel: [ val(meta), [bedpe] ]
     samplebedpe = DUMPREADS_PER_SAMPLE.out.bedpe            // channel: [ val(meta), [bedpe] ]
