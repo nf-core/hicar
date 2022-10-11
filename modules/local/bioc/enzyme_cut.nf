@@ -52,27 +52,27 @@ process BIOC_ENZYMECUT {
     #hits <- as(hits, "GRanges")
     #seqinfo(hits) <- seqinfo(fa)[seqlevels(hits)]
     gaps <- mapply(hits, seqlengths(fa)[names(hits)], FUN=function(.hits, .seql){
-      hits_l <- shift(.hits, shift=pos)
-      width(hits_l) <- 1
-      hits_r <- .hits
-      start(hits_r) <- end(hits_r) - pos
-      width(hits_r) <- 1
+        hits_l <- shift(.hits, shift=pos)
+        width(hits_l) <- 1
+        hits_r <- .hits
+        start(hits_r) <- end(hits_r) - pos
+        width(hits_r) <- 1
 
-      frag_l_pos <- start(hits_l)
-      frag_r_pos <- start(hits_r)
-      frag_l_ir <- IRanges(frag_l_pos, c(frag_l_pos[-1], .seql))
-      mcols(frag_l_ir)\$strand <- "+"
-      frag_r_ir <- IRanges(c(1, frag_r_pos[-length(frag_r_pos)]), frag_r_pos)
-      mcols(frag_r_ir)\$strand <- "-"
-      ir <- sort(c(frag_r_ir, frag_l_ir))
-      mcols(ir)\$idx <- seq_along(ir)
-      ir
+        frag_l_pos <- start(hits_l)
+        frag_r_pos <- start(hits_r)
+        frag_l_ir <- IRanges(frag_l_pos, c(frag_l_pos[-1], .seql))
+        mcols(frag_l_ir)\$strand <- "+"
+        frag_r_ir <- IRanges(c(1, frag_r_pos[-length(frag_r_pos)]), frag_r_pos)
+        mcols(frag_r_ir)\$strand <- "-"
+        ir <- sort(c(frag_r_ir, frag_l_ir))
+        mcols(ir)\$idx <- seq_along(ir)
+        ir
     }, SIMPLIFY = FALSE)
 
     gaps <- mapply(gaps, names(gaps), FUN=function(ir, seq){
-      strand <- mcols(ir)\$strand
-      mcols(ir)\$strand <- NULL
-      GRanges(rep(seq, length(ir)), ir, strand=strand)
+        strand <- mcols(ir)\$strand
+        mcols(ir)\$strand <- NULL
+        GRanges(rep(seq, length(ir)), ir, strand=strand)
     })
     gaps <- unlist(GRangesList(gaps))
     seqinfo(gaps) <- seqinfo(fa)[seqlevels(gaps)]
