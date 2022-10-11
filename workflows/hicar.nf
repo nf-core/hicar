@@ -223,7 +223,7 @@ workflow HICAR {
                 .map{[it[1][0], it[2].flatten()]}
                 .set{ mapped_bam }
     //mapped_bam.view()//no branch to multiple and single, need to rename the bam files
-    SAMTOOLS_MERGE(mapped_bam, [])
+    SAMTOOLS_MERGE(mapped_bam, [], [])
     ch_versions = ch_versions.mix(SAMTOOLS_MERGE.out.versions.ifEmpty(null))
 
     //

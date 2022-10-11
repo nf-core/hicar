@@ -136,7 +136,7 @@ class RowChecker:
             raise AssertionError("The pair of sample name and FASTQ must be unique.")
         seen = Counter()
         for row in self.modified:
-            sample = row[self._sample_col]+'_REP'+row[self._replicate_col]
+            sample = row[self._sample_col] + "_REP" + row[self._replicate_col]
             seen[sample] += 1
             row[self._id_col] = f"{sample}_T{seen[sample]}"
 
@@ -229,6 +229,7 @@ def check_samplesheet(file_in, file_out):
         writer.writeheader()
         for row in checker.modified:
             writer.writerow(row)
+
 
 def parse_args(argv=None):
     """Define and immediately parse command line arguments."""

@@ -10,7 +10,10 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": [
+                "input",
+                "outdir"
+            ],
             "properties": {
                 "input": {
                     "type": "string",
@@ -291,7 +294,10 @@
                     "hidden": false,
                     "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson.",
                     "default": "pospoisson",
-                    "enum": ["pospoisson", "negbinom"]
+                    "enum": [
+                        "pospoisson",
+                        "negbinom"
+                    ]
                 },
                 "merge_map_py_source": {
                     "type": "string",
@@ -554,7 +560,14 @@
                     "description": "Method used to save pipeline results to output directory.",
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
-                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
+                    "enum": [
+                        "symlink",
+                        "rellink",
+                        "link",
+                        "copy",
+                        "copyNoFollow",
+                        "move"
+                    ],
                     "hidden": true
                 },
                 "email_on_fail": {
@@ -682,6 +695,11 @@
                     "fa_icon": "far fa-calendar-times",
                     "hidden": false
                 },
+                "skip_apa": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "skip APA or not"
+                },
                 "skip_compartments": {
                     "type": "boolean",
                     "description": "skip call compartment or not",
@@ -693,6 +711,54 @@
                     "description": "skip call TADs or not",
                     "fa_icon": "far fa-comment-slash",
                     "hidden": false
+                },
+                "skip_interactions": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "skip call interactions/loops"
+                },
+                "apa_tool": {
+                    "type": "string",
+                    "default": "hicexploer",
+                    "description": "APA tool"
+                },
+                "compartments_tool": {
+                    "type": "string",
+                    "default": "cooltools",
+                    "description": "Call compartment tool"
+                },
+                "interactions_tool": {
+                    "type": "string",
+                    "default": "maps",
+                    "description": "Call loops tool"
+                },
+                "da_tool": {
+                    "type": "string",
+                    "default": "edger",
+                    "description": "Differential analysis tool"
+                },
+                "juicer_box_jar": {
+                    "type": "string",
+                    "default": "https://github.com/aidenlab/Juicebox/releases/download/v2.16.00/juicebox_2.16.00.jar",
+                    "description": "juicer_box jar file url"
+                },
+                "maps_3d_ext": {
+                    "type": "string",
+                    "default": "sig3Dinteractions.pe.txt",
+                    "hidden": true,
+                    "description": "extension file name for MAPS"
+                },
+                "long_bedpe_postfix": {
+                    "type": "string",
+                    "default": "long.bedpe",
+                    "hidden": true,
+                    "description": "extension file name for long pairs"
+                },
+                "short_bed_postfix": {
+                    "type": "string",
+                    "default": "shrt.vip.bed",
+                    "hidden": true,
+                    "description": "extension file name for short pairs"
                 }
             }
         }
