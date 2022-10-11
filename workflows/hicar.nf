@@ -45,10 +45,12 @@ if(params.anchor_peaks){
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
+ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config, checkIfExists: true ) : Channel.empty()
+ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
+ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+// custom config file
 ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists: true)
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -110,13 +112,13 @@ include { RUN_CIRCOS as MAPS_CIRCOS } from '../subworkflows/local/circos'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { BWA_MEM                     } from '../modules/nf-core/modules/bwa/mem/main'
-include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main'
-include { CUTADAPT                    } from '../modules/nf-core/modules/cutadapt/main'
-include { FASTQC                      } from '../modules/nf-core/modules/fastqc/main'
-include { HOMER_MAKETAGDIRECTORY      } from '../modules/nf-core/modules/homer/maketagdirectory/main'
-include { MULTIQC                     } from '../modules/nf-core/modules/multiqc/main'
-include { SAMTOOLS_MERGE              } from '../modules/nf-core/modules/samtools/merge/main'
+include { BWA_MEM                     } from '../modules/nf-core/bwa/mem/main'
+include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
+include { CUTADAPT                    } from '../modules/nf-core/cutadapt/main'
+include { FASTQC                      } from '../modules/nf-core/fastqc/main'
+include { HOMER_MAKETAGDIRECTORY      } from '../modules/nf-core/homer/maketagdirectory/main'
+include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
+include { SAMTOOLS_MERGE              } from '../modules/nf-core/samtools/merge/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,7 +139,7 @@ workflow HICAR {
     ch_annotation_files = Channel.empty() // files to be annotated
     ch_multiqc_files    = Channel.empty() // multiQC reports
 
-    ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_config)
     ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
 
     //
@@ -280,7 +282,7 @@ workflow HICAR {
         params.short_bed_postfix
     )
     ch_versions = ch_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
-    ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty(null))
+    ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
 
     //
     // calling compartments
@@ -295,7 +297,7 @@ workflow HICAR {
             PREPARE_GENOME.out.ucscname
         )
         ch_versions = ch_versions.mix(COMPARTMENTS.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect().ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect().ifEmpty([]))
         ch_circos_files = ch_circos_files.mix(COMPARTMENTS.out.circos)
     }
 
@@ -310,7 +312,7 @@ workflow HICAR {
             PREPARE_GENOME.out.chrom_sizes
         )
         ch_versions = ch_versions.mix(TADS.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(TADS.out.mqc.collect().ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(TADS.out.mqc.collect().ifEmpty([]))
         ch_circos_files = ch_circos_files.mix(TADS.out.circos)
     }
 
@@ -336,7 +338,7 @@ workflow HICAR {
             params.maps_3d_ext
         )
         ch_versions = ch_versions.mix(INTERACTIONS.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(INTERACTIONS.out.mqc.collect().ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(INTERACTIONS.out.mqc.collect().ifEmpty([]))
         ch_annotation_files = ch_annotation_files.mix(INTERACTIONS.out.anno)
         ch_circos_files = ch_circos_files.mix(INTERACTIONS.out.circos)
     }
@@ -351,7 +353,7 @@ workflow HICAR {
             ATAC_PEAK.out.mergedpeak
         )
         ch_versions = ch_versions.mix(APA.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(APA.out.mqc.collect().ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(APA.out.mqc.collect().ifEmpty([]))
     }
 
     //
@@ -374,7 +376,7 @@ workflow HICAR {
             params.maps_3d_ext
         )
         ch_versions = ch_versions.mix(HIPEAK.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(HIPEAK.out.mqc.ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(HIPEAK.out.mqc.collect().ifEmpty([]))
     }
 
     //
@@ -383,7 +385,7 @@ workflow HICAR {
     if(!params.skip_diff_analysis){
         DA(INTERACTIONS.out.loops, COOLER.out.samplebedpe, params.long_bedpe_postfix)
         ch_versions = ch_versions.mix(DA.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(DA.out.mqc.collect().ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(DA.out.mqc.collect().ifEmpty([]))
         ch_annotation_files = ch_annotation_files.mix(DA.out.anno)
 
       /*  if(ch_diffhicar){
@@ -540,6 +542,15 @@ workflow HICAR {
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect().ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.yml.collect().ifEmpty([]))
 
+    ch_multiqc_files
+        .flatten()
+        .map { it -> if (it) [ it.baseName, it ] }
+        .groupTuple()
+        .map { it[1][0] }
+        .flatten()
+        .collect()
+        .set { ch_multiqc_files }
+
     if(!params.skip_multiqc){
         //
         // MODULE: MultiQC
@@ -547,22 +558,21 @@ workflow HICAR {
         workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-        ch_multiqc_files
-            .flatten()
-            .map { it -> if (it) [ it.baseName, it ] }
-            .groupTuple()
-            .map { it[1][0] }
-            .flatten()
-            .collect()
-            .set { ch_multiqc_files }
-        MULTIQC (
-            ch_multiqc_files.collect()
-        )
-        multiqc_report       = MULTIQC.out.report.toList()
-        ch_versions = ch_versions.mix(MULTIQC.out.versions.ifEmpty(null))
-    }
+        methods_description    = WorkflowHicar.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
+        ch_methods_description = Channel.value(methods_description)
 
+        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
+
+        MULTIQC (
+            ch_multiqc_files.collect(),
+            ch_multiqc_config.collect().ifEmpty([]),
+            ch_multiqc_custom_config.collect().ifEmpty([]),
+            ch_multiqc_logo.collect().ifEmpty([])
+        )
+        multiqc_report = MULTIQC.out.report.toList()
+        ch_versions    = ch_versions.mix(MULTIQC.out.versions)
+    }
 }
 
 /*
@@ -576,6 +586,9 @@ workflow.onComplete {
         NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
     }
     NfcoreTemplate.summary(workflow, params, log)
+    if (params.hook_url) {
+        NfcoreTemplate.adaptivecard(workflow, params, summary_params, projectDir, log)
+    }
 }
 
 /*

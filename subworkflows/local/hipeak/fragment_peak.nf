@@ -12,16 +12,16 @@ include { DUMP_READS
 include { MERGE_PEAK
     as MERGE_R1PEAK           } from '../../../modules/local/atacreads/mergepeak'
 include { BEDTOOLS_GENOMECOV
-    as BEDTOOLS_GENOMECOV_PER_R1SAMPLE } from '../../../modules/nf-core/modules/bedtools/genomecov/main'
+    as BEDTOOLS_GENOMECOV_PER_R1SAMPLE } from '../../../modules/nf-core/bedtools/genomecov/main'
 include { BEDFILES_SORT
     as BEDFILES_SORT_PER_GROUP       } from '../../../modules/local/atacreads/bedsort'
 include { BEDFILES_SORT
     as BEDFILES_SORT_PER_SAMPLE      } from '../../../modules/local/atacreads/bedsort'
-include { UCSC_BEDCLIP        } from '../../../modules/nf-core/modules/ucsc/bedclip/main'
+include { UCSC_BEDCLIP        } from '../../../modules/nf-core/ucsc/bedclip/main'
 include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP  } from '../../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
+    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP  } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE } from '../../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
+    as UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 
 workflow R1_PEAK {
     take:

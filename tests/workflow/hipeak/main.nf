@@ -6,13 +6,13 @@ nextflow.enable.dsl = 2
 // run simulate: PROFILE=docker nextflow run path/to/nf-core-hicar/tests/workflow/hipeak/ -entry test_call_hi_peak -c path/to/nf-core-hicar/nextflow.config,path/to/nf-core-hicar/tests/config/nextflow.config --reads 1e6
 
 include { GUNZIP
-    } from '../../../modules/nf-core/modules/gunzip/main'
+    } from '../../../modules/nf-core/gunzip/main'
 include { GUNZIP as GUNZIP2
-    } from '../../../modules/nf-core/modules/gunzip/main'
+    } from '../../../modules/nf-core/gunzip/main'
 include { CHROMSIZES
     } from '../../../modules/local/genome/chromsizes'
 include { COOLER_DIGEST
-    } from '../../../modules/nf-core/modules/cooler/digest/main'
+    } from '../../../modules/nf-core/cooler/digest/main'
 include { BIOC_PAIRS2HDF5
     } from '../../../modules/local/bioc/pairs2hdf5'
 include { ATAC_PEAK

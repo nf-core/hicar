@@ -5,11 +5,11 @@ nextflow.enable.dsl = 2
 // run test: PROFILE=docker pytest --tag calldistalpeak --symlink --kwdof
 
 include { GUNZIP
-    } from '../../../modules/nf-core/modules/gunzip/main'
+    } from '../../../modules/nf-core/gunzip/main'
 include { CHROMSIZES
     } from '../../../modules/local/genome/chromsizes'
 include { COOLER_DIGEST
-    } from '../../../modules/nf-core/modules/cooler/digest/main'
+    } from '../../../modules/nf-core/cooler/digest/main'
 include { R1_PEAK
     } from '../../../subworkflows/local/calldistalpeak'
 

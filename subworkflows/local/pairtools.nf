@@ -2,15 +2,15 @@
  * pair the proper mapped pairs
  */
 
-include { PAIRTOOLS_DEDUP    } from '../../modules/nf-core/modules/pairtools/dedup/main'
-include { PAIRTOOLS_FLIP     } from '../../modules/nf-core/modules/pairtools/flip/main'
-include { PAIRTOOLS_PARSE    } from '../../modules/nf-core/modules/pairtools/parse/main'
-include { PAIRTOOLS_RESTRICT } from '../../modules/nf-core/modules/pairtools/restrict/main'
-include { PAIRTOOLS_SELECT   } from '../../modules/nf-core/modules/pairtools/select/main'
+include { PAIRTOOLS_DEDUP    } from '../../modules/nf-core/pairtools/dedup/main'
+include { PAIRTOOLS_FLIP     } from '../../modules/nf-core/pairtools/flip/main'
+include { PAIRTOOLS_PARSE    } from '../../modules/nf-core/pairtools/parse/main'
+include { PAIRTOOLS_RESTRICT } from '../../modules/nf-core/pairtools/restrict/main'
+include { PAIRTOOLS_SELECT   } from '../../modules/nf-core/pairtools/select/main'
 include { PAIRTOOLS_SELECT
-    as PAIRTOOLS_SELECT_LONG } from '../../modules/nf-core/modules/pairtools/select/main'
-include { PAIRTOOLS_SORT     } from '../../modules/nf-core/modules/pairtools/sort/main'
-include { PAIRIX             } from '../../modules/nf-core/modules/pairix/main'
+    as PAIRTOOLS_SELECT_LONG } from '../../modules/nf-core/pairtools/select/main'
+include { PAIRTOOLS_SORT     } from '../../modules/nf-core/pairtools/sort/main'
+include { PAIRIX             } from '../../modules/nf-core/pairix/main'
 include { READS_STAT         } from '../../modules/local/reads_stat'
 include { READS_SUMMARY      } from '../../modules/local/reads_summary'
 include { PAIRSQC            } from '../../modules/local/pairix/pairsqc'

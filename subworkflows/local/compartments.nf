@@ -3,7 +3,7 @@
 //
 
 include { COOLTOOLS_COMPARTMENTS } from '../../modules/local/cooltools/eigs-cis'
-include { HOMCER_COMPARTMENTS    } from './compartments_caller/homer'
+include { HOMER_COMPARTMENTS    } from './compartments_caller/homer'
 
 workflow COMPARTMENTS {
     take:

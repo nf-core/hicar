@@ -2,28 +2,28 @@
  * call peak by MACS2 for ATAC reads
  */
 include { PAIRTOOLS_SELECT
-    as  PAIRTOOLS_SELECT_SHORT} from '../../modules/nf-core/modules/pairtools/select/main'
+    as  PAIRTOOLS_SELECT_SHORT} from '../../modules/nf-core/pairtools/select/main'
 include { SHIFT_READS         } from '../../modules/local/atacreads/shiftreads'
 include { MERGE_READS         } from '../../modules/local/atacreads/mergereads'
-include { MACS2_CALLPEAK      } from '../../modules/nf-core/modules/macs2/callpeak/main'
+include { MACS2_CALLPEAK      } from '../../modules/nf-core/macs2/callpeak/main'
 include { DUMP_READS          } from '../../modules/local/atacreads/dumpreads'
 include { DUMP_READS
     as DUMP_READS_PER_SAMPLE  } from '../../modules/local/atacreads/dumpreads'
 include { MERGE_PEAK          } from '../../modules/local/atacreads/mergepeak'
 include { ATACQC              } from '../../modules/local/atacreads/atacqc'
 include { BEDTOOLS_GENOMECOV
-    as BEDTOOLS_GENOMECOV_PER_SAMPLE } from '../../modules/nf-core/modules/bedtools/genomecov/main'
+    as BEDTOOLS_GENOMECOV_PER_SAMPLE } from '../../modules/nf-core/bedtools/genomecov/main'
 include { BEDTOOLS_GENOMECOV
-    as BEDTOOLS_GENOMECOV_PER_GROUP  } from '../../modules/nf-core/modules/bedtools/genomecov/main'
+    as BEDTOOLS_GENOMECOV_PER_GROUP  } from '../../modules/nf-core/bedtools/genomecov/main'
 include { BEDFILES_SORT
     as BEDFILES_SORT_PER_GROUP       } from '../../modules/local/atacreads/bedsort'
 include { BEDFILES_SORT
     as BEDFILES_SORT_PER_SAMPLE      } from '../../modules/local/atacreads/bedsort'
-include { UCSC_BEDCLIP        } from '../../modules/nf-core/modules/ucsc/bedclip/main'
+include { UCSC_BEDCLIP        } from '../../modules/nf-core/ucsc/bedclip/main'
 include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_PER_GROUP} from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
+    as UCSC_BEDGRAPHTOBIGWIG_PER_GROUP} from '../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_PER_SAMPLE} from '../../modules/nf-core/modules/ucsc/bedgraphtobigwig/main'
+    as UCSC_BEDGRAPHTOBIGWIG_PER_SAMPLE} from '../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 
 workflow ATAC_PEAK {
     take:

@@ -7,9 +7,9 @@ include { COOLER_CLOAD   } from '../../modules/local/cooler/cload/main'
 include { COOLER_MERGE   } from '../../modules/local/cooler/merge/main'
 include { COOLER_ZOOMIFY } from '../../modules/local/cooler/zoomify/main'
 include { COOLER_DUMP
-    as COOLER_DUMP_PER_GROUP    } from '../../modules/nf-core/modules/cooler/dump/main'
+    as COOLER_DUMP_PER_GROUP    } from '../../modules/nf-core/cooler/dump/main'
 include { COOLER_DUMP
-    as COOLER_DUMP_PER_SAMPLE   } from '../../modules/nf-core/modules/cooler/dump/main'
+    as COOLER_DUMP_PER_SAMPLE   } from '../../modules/nf-core/cooler/dump/main'
 include { DUMPREADS
     as DUMPREADS_PER_GROUP } from '../../modules/local/cooler/dumpreads'
 include { DUMPREADS

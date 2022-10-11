@@ -7,17 +7,17 @@ include {
     GUNZIP as GUNZIP_GTF;
     GUNZIP as GUNZIP_GFF;
     GUNZIP as GUNZIP_GENE_BED;
-    GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../modules/nf-core/modules/gunzip/main'
+    GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../modules/nf-core/gunzip/main'
 include { GTF2BED                     } from '../../modules/local/gtf2bed'
 include { CHROMSIZES                  } from '../../modules/local/genome/chromsizes'
 include { GENOME_FILTER               } from '../../modules/local/genome/filter'
-include { COOLER_DIGEST               } from '../../modules/nf-core/modules/cooler/digest/main'
+include { COOLER_DIGEST               } from '../../modules/nf-core/cooler/digest/main'
 include { RE_CUTSITE                  } from '../../modules/local/re_cut'
-include { GFFREAD                     } from '../../modules/nf-core/modules/gffread/main'
-include { GENMAP_INDEX                } from '../../modules/nf-core/modules/genmap/index/main'
-include { GENMAP_MAPPABILITY          } from '../../modules/nf-core/modules/genmap/mappability/main'
-include { UCSC_WIGTOBIGWIG            } from '../../modules/nf-core/modules/ucsc/wigtobigwig/main'
-include { BWA_INDEX                   } from '../../modules/nf-core/modules/bwa/index/main'
+include { GFFREAD                     } from '../../modules/nf-core/gffread/main'
+include { GENMAP_INDEX                } from '../../modules/nf-core/genmap/index/main'
+include { GENMAP_MAPPABILITY          } from '../../modules/nf-core/genmap/mappability/main'
+include { UCSC_WIGTOBIGWIG            } from '../../modules/nf-core/ucsc/wigtobigwig/main'
+include { BWA_INDEX                   } from '../../modules/nf-core/bwa/index/main'
 
 workflow PREPARE_GENOME {
     main:
