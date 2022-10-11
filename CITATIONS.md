@@ -37,7 +37,7 @@
 
 * [HiCExploer](https://pubmed.ncbi.nlm.nih.gov/29335486/)
 
-  >Ramírez F, Bhardwaj V, Arrigoni L, Lam KC, Grüning BA, Villaveces J, Habermann B, Akhtar A, Manke T. High-resolution TADs reveal DNA sequences underlying genome organization in flies. Nat Commun. 2018 Jan 15;9(1):189. doi: 10.1038/s41467-017-02525-w. PMID: 29335486; PMCID: PMC5768762.
+  > Ramírez F, Bhardwaj V, Arrigoni L, Lam KC, Grüning BA, Villaveces J, Habermann B, Akhtar A, Manke T. High-resolution TADs reveal DNA sequences underlying genome organization in flies. Nat Commun. 2018 Jan 15;9(1):189. doi: 10.1038/s41467-017-02525-w. PMID: 29335486; PMCID: PMC5768762.
 
 * [MACS2](https://www.ncbi.nlm.nih.gov/pubmed/18798982/)
 
