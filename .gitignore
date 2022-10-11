@@ -2,10 +2,7 @@
 work/
 data/
 results/
-full_test_results/
 .DS_Store
 testing/
 testing*
 *.pyc
-output/
-null/
