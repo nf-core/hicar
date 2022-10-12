@@ -1,5 +1,5 @@
 /*
- * Call interaction peaks by HiC-CD+
+ * Call interaction peaks by Homer
  */
 
 include { HOMER_ANALYZEHIC             } from '../../../modules/local/homer/analyze_hic'

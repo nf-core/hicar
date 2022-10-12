@@ -153,6 +153,16 @@
                     "description": "Path to blacklist regions in BED format, used for filtering alignments.",
                     "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
                     "fa_icon": "fas fa-book-dead"
+                },
+                "publish_mappability": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "publish mappability"
+                },
+                "publish_genome": {
+                    "type": "boolean",
+                    "default": "false",
+                    "description": "publish genome"
                 }
             }
         },
@@ -697,7 +707,6 @@
                 },
                 "skip_apa": {
                     "type": "boolean",
-                    "default": "false",
                     "description": "skip APA or not"
                 },
                 "skip_compartments": {
@@ -714,7 +723,6 @@
                 },
                 "skip_interactions": {
                     "type": "boolean",
-                    "default": "false",
                     "description": "skip call interactions/loops"
                 },
                 "apa_tool": {

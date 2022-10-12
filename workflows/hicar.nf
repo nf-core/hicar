@@ -75,8 +75,6 @@ ch_make_maps_runfile_source  = file(params.make_maps_runfile_source,
 // MODULE: Local to the pipeline
 //
 include { CHECKSUMS } from '../modules/local/checksums'
-include { COOLTOOLS_COMPARTMENTS } from '../modules/local/cooltools/eigs-cis'
-
 include { BIOC_CHIPPEAKANNO } from '../modules/local/bioc/chippeakanno'
 include { BIOC_CHIPPEAKANNO as BIOC_CHIPPEAKANNO_MAPS } from '../modules/local/bioc/chippeakanno'
 include { BIOC_ENRICH } from '../modules/local/bioc/enrich'
@@ -96,7 +94,7 @@ include { COOLER } from '../subworkflows/local/cooler'
 include { ATAC_PEAK } from '../subworkflows/local/callatacpeak'
 include { TADS } from '../subworkflows/local/tads'
 include { COMPARTMENTS } from '../subworkflows/local/compartments'
-include { APA } from '../subworkflows/local/aggregate_peak'
+include { APA } from '../subworkflows/local/apa'
 include { INTERACTIONS } from '../subworkflows/local/interactions'
 include { HIPEAK } from '../subworkflows/local/hipeak'
 include { DA } from '../subworkflows/local/differential_analysis'
@@ -347,11 +345,18 @@ workflow HICAR {
     // aggregate peak analysis
     //
     if(!params.skip_apa){
-        APA(
-            COOLER.out.cool,
-            COOLER.out.hic,
-            ATAC_PEAK.out.mergedpeak
-        )
+        //conditional input
+        if(params.apa_tool == "juicebox"){
+            APA(
+                COOLER.out.hic,
+                INTERACTIONS.out.mergedpeak // JUICER ask loops for APA
+            )
+        }else{
+            APA(
+                COOLER.out.cool,
+                ATAC_PEAK.out.mergedpeak
+            )
+        }
         ch_versions = ch_versions.mix(APA.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(APA.out.mqc.collect().ifEmpty([]))
     }

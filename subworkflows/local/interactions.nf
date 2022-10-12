@@ -1,10 +1,14 @@
 //
 // Call interaction loops
+// Ask all the output of each module must contain channel:
+// versions: [path]; interactions: [ meta, bin_size, [bedpe] ]
+// optional output: mqc: [path];
 //
 
-include { HICDCPLUS       } from './interaction_caller/hicdcplus'
-include { MAPS            } from './interaction_caller/maps'
-include { HOMER           } from './interaction_caller/homer'
+include { HICDCPLUS          } from './interaction_caller/hicdcplus'
+include { MAPS               } from './interaction_caller/maps'
+include { HOMER              } from './interaction_caller/homer'
+include { MERGE_INTERACTIONS } from '../../modules/local/bioc/merge_interactions'
 
 workflow INTERACTIONS {
     take:
@@ -131,13 +135,19 @@ workflow INTERACTIONS {
             }
             break
     }
-
+    // merge loops
+    MERGE_INTERACTIONS(
+        ch_loops.map{
+            meta, bin_size, bedpe -> [binsize, interactions]
+        }.groupTuple()
+    )
 
     emit:
-    loops           = ch_loops             // channel: [ meta, bin_size, path(bedpe) ]
+    loops           = ch_loops                              // channel: [ meta, bin_size, path(bedpe) ]
+    mergedloops     = MERGE_INTERACTIONS.out.interactions   // channel: [ bin_siz, path(bedpe) ]
     circos          = ch_circos_files
     igv             = ch_track_files
     anno            = ch_annotation_files
-    versions        = ch_versions          // channel: [ versions.yml ]
+    versions        = ch_versions                           // channel: [ versions.yml ]
     mqc             = ch_multiqc_files
 }

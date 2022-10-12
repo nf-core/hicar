@@ -11,7 +11,6 @@ include { BIOC_CHIPPEAKANNO
     as BIOC_CHIPPEAKANNO_HIPEAK     } from '../../../modules/local/bioc/chippeakanno'
 include { BIOC_CHIPPEAKANNO
     as BIOC_CHIPPEAKANNO_DIFFHIPEAK } from '../../../modules/local/bioc/chippeakanno'
-include { PAIR2BAM                  } from '../../../modules/local/bioc/pair2bam'
 
 workflow HI_PEAK {
     take:
@@ -39,7 +38,6 @@ workflow HI_PEAK {
     //regression and peak calling
     CALL_HIPEAK(POST_COUNTS.out.counts)
     ch_version = ch_version.mix(CALL_HIPEAK.out.versions)
-    PAIR2BAM(CALL_HIPEAK.out.peak.join(peaks.map{[it[0], it[3]]}))
 
     //assign type for peak
     ASSIGN_TYPE(CALL_HIPEAK.out.peak)

@@ -13,7 +13,6 @@ process JUICER_APA {
     tuple val(meta), path(hic)
     path loops
     path juicer_box_jar
-    path chromsize
     val juicer_jvm_params
 
     output:

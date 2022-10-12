@@ -77,13 +77,13 @@ workflow ATAC_PEAK {
 
     // dump ATAC reads for each group for maps
     DUMP_READS(MERGE_READS.out.bed, short_bed_postfix)
+    ch_version = ch_version.mix(DUMP_READS.out.versions)
     BEDFILES_SORT_PER_GROUP(ch_group_bdg, "bedgraph")
     UCSC_BEDCLIP(BEDFILES_SORT_PER_GROUP.out.sorted, chromsizes)
     UCSC_BEDGRAPHTOBIGWIG_PER_GROUP(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
     // dump ATAC reads for each samples for differential analysis
     DUMP_READS_PER_SAMPLE(SHIFT_READS.out.bed, short_bed_postfix)
-    ch_version = ch_version.mix(DUMP_READS.out.versions)
     BEDTOOLS_GENOMECOV_PER_SAMPLE(SHIFT_READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
     BEDFILES_SORT_PER_SAMPLE(BEDTOOLS_GENOMECOV_PER_SAMPLE.out.genomecov, "bedgraph")
     ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_PER_SAMPLE.out.versions)

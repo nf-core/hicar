@@ -12,7 +12,7 @@ include { DUMP_READS
 include { MERGE_PEAK
     as MERGE_R1PEAK           } from '../../../modules/local/atacreads/mergepeak'
 include { BEDTOOLS_GENOMECOV
-    as BEDTOOLS_GENOMECOV_PER_R1SAMPLE } from '../../../modules/nf-core/bedtools/genomecov/main'
+    as BEDTOOLS_GENOMECOV_PER_R1_SAMPLE } from '../../../modules/nf-core/bedtools/genomecov/main'
 include { BEDFILES_SORT
     as BEDFILES_SORT_PER_GROUP       } from '../../../modules/local/atacreads/bedsort'
 include { BEDFILES_SORT
@@ -53,10 +53,6 @@ workflow R1_PEAK {
     r1_peaks = CALL_R1PEAK.out.peak.map{it[1]}.collect()
     MERGE_R1PEAK(r1_peaks)
 
-    // stats
-    //R1QC(atac_peaks, MERGE_R1READS.out.bed.map{it[1]}.collect(), gtf)
-    //ch_version = ch_version.mix(R1QC.out.versions)
-
     // dump R1 reads for each group for maps
     DUMP_R1_READS_PER_GROUP(MERGE_R1READS.out.bed, short_bed_postfix)
     BEDFILES_SORT_PER_GROUP(CALL_R1PEAK.out.bdg, "bedgraph")
@@ -66,9 +62,9 @@ workflow R1_PEAK {
     // dump ATAC reads for each samples for differential analysis
     DUMP_R1_READS_PER_SAMPLE(R1READS.out.bed, short_bed_postfix)
     ch_version = ch_version.mix(DUMP_R1_READS_PER_SAMPLE.out.versions)
-    BEDTOOLS_GENOMECOV_PER_R1SAMPLE(R1READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
-    BEDFILES_SORT_PER_SAMPLE(BEDTOOLS_GENOMECOV_PER_R1SAMPLE.out.genomecov, "bedgraph")
-    ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_PER_R1SAMPLE.out.versions)
+    BEDTOOLS_GENOMECOV_PER_R1_SAMPLE(R1READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
+    BEDFILES_SORT_PER_SAMPLE(BEDTOOLS_GENOMECOV_PER_R1_SAMPLE.out.genomecov, "bedgraph")
+    ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_PER_R1_SAMPLE.out.versions)
     UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE(BEDFILES_SORT_PER_SAMPLE.out.sorted, chromsizes)
     ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_PER_R1_SAMPLE.out.versions)
 
