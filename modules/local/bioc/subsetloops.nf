@@ -1,5 +1,5 @@
-process MERGE_INTERACTIONS {
-    tag "$fname"
+process BIOC_SUBSETLOOPS {
+    tag "$mergedloops"
     label 'process_single'
 
     conda (params.enable_conda ? "bioconda::bioconductor-rtracklayer=1.50.0" : null)
@@ -9,21 +9,22 @@ process MERGE_INTERACTIONS {
         'quay.io/biocontainers/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' }"
 
     input:
-    tuple val(bin_size), path(fname)
+    path peaks
+    tuple val(bin_size), path(mergedloops)
 
     output:
-    tuple val(bin_size), path("${prefix}.bedpe")        , emit: interactions
+    tuple val(bin_size), path("${prefix}*")             , emit: loops
     path "versions.yml"                                 , emit: versions
 
     script:
     def args = task.ext.args ?: ''
-    prefix   = task.ext.prefix ?: "merged_${bin_size}"
+    prefix = task.ext.prefix ?: 'subset_'
     """
     #!/usr/bin/env Rscript
     #######################################################################
     #######################################################################
-    ## Created on Oct. 12, 2022. Merge all the interaction files into one
-    ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## Created on Oct. 26, 2022. Subset the interaction files by 1D peaks
+    ## Copyright (c) 2022 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################
     pkgs <- c("rtracklayer")
@@ -37,14 +38,11 @@ process MERGE_INTERACTIONS {
     }
     writeLines(versions, "versions.yml") # write versions.yml
 
-    inf = strsplit("$fname", "\\\\s+")[[1]]
-    ext = "${prefix}.bedpe"
+    inf <- strsplit("$mergedloops", "\\\\s+")[[1]]
+    ext <- paste0("$prefix", inf)
+    peaks <- import("$peaks")
     data <- lapply(inf, import, format="BEDPE")
-    data <- do.call(c, data)
-    data <- unique(data)
-    data <- sort(data)
-    mcols(data)[, "name"] <- "*"
-    mcols(data)[, "score"] <- 0
-    export(data, ext)
+    data <- lapply(data, subsetByOverlaps, subject=peaks)
+    mapply(export, data, ext, format="BEDPE")
     """
 }

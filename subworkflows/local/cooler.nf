@@ -37,7 +37,7 @@ workflow COOLER {
                 .map{group, bin, cool -> [[id:group, bin:bin], cool]}
                 .set{ch_cooler}
     COOLER_MERGE(ch_cooler)
-    // create a balanced matrix for compartment and tad calls
+    // create a balanced matrix for compartment and tad calls, see https://github.com/open2c/cooler/issues/48
     COOLER_BALANCE(COOLER_MERGE.out.cool)
     // create mcooler file for visualization
     COOLER_ZOOMIFY(COOLER_BALANCE.out.cool)
@@ -59,6 +59,7 @@ workflow COOLER {
 
     emit:
     cool        = COOLER_BALANCE.out.cool                   // channel: [ val(meta), [cool] ]
+    raw         = COOLER_MERGE.out.cool                     // channel: [ val(meta), [cool] ]
     mcool       = COOLER_ZOOMIFY.out.mcool                  // channel: [ val(meta), [mcool] ]
     hic         = ch_hic                                    // channel: [ val(meta), [hic] ]
     groupbedpe  = COOLER_DUMP_PER_GROUP.out.bedpe           // channel: [ val(meta), [bedpe] ]

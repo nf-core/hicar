@@ -1,7 +1,6 @@
-process COOLTOOLS_INSULATION {
+process COOLTOOLS_PILEUP {
     tag "${meta.id}"
-    label 'process_high'
-    label 'process_single'
+    label 'process_medium'
 
     conda (params.enable_conda ? "bioconda::cooltools=0.5.1 bioconda::ucsc-bedgraphtobigwig=377" : null)
     container "${ workflow.containerEngine == 'singularity' &&
@@ -11,30 +10,26 @@ process COOLTOOLS_INSULATION {
 
     input:
     tuple val(meta), path(cool)
-    val resolution
+    path anchor
 
     output:
-    tuple val(meta), path("*tsv")             , emit:results
-    tuple val(meta), path("*.bed")            , emit:tads
-    path("versions.yml")                      , emit:versions
+    tuple val(meta), path("*.npz")              , emit:npz
+    path("versions.yml")                        , emit:versions
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    def res = [ 3*resolution,
-                5*resolution,
-                10*resolution,
-                25*resolution].join(' ').trim()
+    def prefix = task.ext.prefix ?: "${meta.id}_${meta.bin}"
     """
-    cooltools insulation \\
+    cooltools pileup \\
         $args \\
-        -o ${prefix}_insulation.tsv \\
+        -p ${task.cpus} \\
+        -o ${prefix}.npz \\
         $cool \\
-        $res
+        $anchor
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cooltools: \$(cooltools --version 2>&1 | sed 's/cooltools, version //')
+        cooltools: \$(cooltools --version 2>&1 | sed 's/cooletools, version //')
     END_VERSIONS
     """
 }

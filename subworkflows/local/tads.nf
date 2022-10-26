@@ -1,16 +1,19 @@
 //
 // Call TADs
+// Ask all the output of each module must contain channel:
+// versions: [path]; tads: [ meta, bin_size, [bedpe] ]
+// optional output: mqc: [path];
 //
 
-include { COOLTOOLS_INSULATION } from '../../modules/local/cooltools/insulation'
-include { HICEXPLORER_CALLTADS } from './tads_caller/hicexplorer'
+include { COOLTOOLS_TADS       } from './tads_caller/cooltools'
+include { HICEXPLORER_TADS     } from './tads_caller/hicexplorer'
+include { HOMER_TADS           } from './tads_caller/homer'
 
 workflow TADS {
     take:
-    matrix                                       // tuple val(meta), path(cool)
-    resolution
-    fasta
-    chromsizes
+    matrix                                       // tuple val(meta), path(cool/tagdir)
+    resolution                                   // resolution for TADs calling
+    additional_param                             // additional parameters
 
     main:
     ch_versions             = Channel.empty()
@@ -21,34 +24,44 @@ workflow TADS {
     ch_tads                 = Channel.empty() // a bed files channel
 
     switch(params.tad_tool){
-        case "insulation":
-            COOLTOOLS_INSULATION(
+        case "cooltools":
+            COOLTOOLS_TADS(
                 matrix,
                 resolution
             )
-            ch_tads = COOLTOOLS_INSULATION.out.tads
-            ch_versions = COOLTOOLS_INSULATION.out.versions
-            ch_circos_files = COOLTOOLS_INSULATION.out.tads
+            ch_tads = COOLTOOLS_TADS.out.tads
+            ch_versions = COOLTOOLS_TADS.out.versions
+            ch_circos_files = COOLTOOLS_TADS.out.tads
             break
         case "hicexploer":
-            HICEXPLORER_CALLTADS(
+            HICEXPLORER_TADS(
                 matrix,
                 resolution,
-                chromsizes
+                additional_param  //chromsizes
             )
-            ch_tads = HICEXPLORER_CALLTADS.out.tads
-            ch_versions = HICEXPLORER_CALLTADS.out.versions
-            ch_circos_files = HICEXPLORER_CALLTADS.out.tads
+            ch_tads = HICEXPLORER_TADS.out.tads
+            ch_versions = HICEXPLORER_TADS.out.versions
+            ch_circos_files = HICEXPLORER_TADS.out.tads
+            break
+        case "homer":
+            HOMER_TADS(
+                matrix,
+                resolution,
+                additional_param //genome, ucsc genome name
+            )
+            ch_tads = HOMER_TADS.out.tads
+            ch_versions = HOMER_TADS.out.versions
+            ch_circos_files = HOMER_TADS.out.tads
             break
         default:
             HICEXPLORER_CALLTADS(
                 matrix,
                 resolution,
-                chromsizes
+                additional_param //chromsizes
             )
             ch_tads = HICEXPLORER_CALLTADS.out.tads
             ch_versions = HICEXPLORER_CALLTADS.out.versions
-            ch_circos_files = COOLTOOLS_INSULATION.out.tads
+            ch_circos_files = HICEXPLORER_CALLTADS.out.tads
             break
     }
 

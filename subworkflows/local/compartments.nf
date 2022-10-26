@@ -2,17 +2,16 @@
 // Call A/B compartment
 //
 
-include { COOLTOOLS_COMPARTMENTS } from '../../modules/local/cooltools/eigs-cis'
-include { HOMER_COMPARTMENTS    } from './compartments_caller/homer'
+include { COOLTOOLS_COMPARTMENTS   } from './compartments_caller/cooltools'
+include { HOMER_COMPARTMENTS       } from './compartments_caller/homer'
+include { JUICER_COMPARTMENTS      } from './compartments_caller/juicer'
+include { HICEXPLORER_COMPARTMENTS } from './compartments_caller/hicexplorer'
 
 workflow COMPARTMENTS {
     take:
-    matrix                                       // tuple val(meta), path(cool)
-    tagdir                                       // tuple val(meta), path(tagdir)
+    matrix                                       // tuple val(meta), path(cool/tagdir)
     resolution
-    fasta
-    chromsizes
-    genome
+    additional_param
 
     main:
     ch_versions             = Channel.empty()
@@ -27,8 +26,7 @@ workflow COMPARTMENTS {
             COOLTOOLS_COMPARTMENTS(
                 matrix,
                 resolution,
-                fasta,
-                chromsizes
+                additional_param //fasta, chrom_size
             )
             ch_compartments = COOLTOOLS_COMPARTMENTS.out.compartments
             ch_versions = COOLTOOLS_COMPARTMENTS.out.versions
@@ -36,15 +34,39 @@ workflow COMPARTMENTS {
             break
         case "homer":
             HOMER_COMPARTMENTS(
-                tagdir,
-                genome
+                matrix,
+                resolution,
+                additional_param  //genome
             )
+            ch_compartments = HOMER_COMPARTMENTS.out.compartments
+            ch_versions = HOMER_COMPARTMENTS.out.versions
+            ch_circos_files = HOMER_COMPARTMENTS.out.compartments
+            break
+        case "juicebox":
+            JUICER_COMPARTMENTS(
+                matrix,
+                resolution,
+                additional_param
+            )
+            ch_compartments = JUICER_COMPARTMENTS.out.compartments
+            ch_versions = JUICER_COMPARTMENTS.out.versions
+            ch_circos_files = JUICER_COMPARTMENTS.out.compartments
+            break
+        case "hicexplorer":
+            HICEXPLORER_COMPARTMENTS(
+                matrix,
+                resolution,
+                additional_param // chromsizes
+            )
+            ch_tads = HICEXPLORER_COMPARTMENTS.out.compartments
+            ch_versions = HICEXPLORER_COMPARTMENTS.out.versions
+            ch_circos_files = HICEXPLORER_COMPARTMENTS.out.compartments
+            break
         default:
             COOLTOOLS_COMPARTMENTS(
                 matrix,
                 resolution,
-                fasta,
-                chromsizes
+                additional_param //fasta, chrom_size
             )
             ch_compartments = COOLTOOLS_COMPARTMENTS.out.compartments
             ch_versions = COOLTOOLS_COMPARTMENTS.out.versions

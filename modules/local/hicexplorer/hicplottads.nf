@@ -9,7 +9,7 @@ process HICEXPLORER_HICPLOTTADS {
         'quay.io/biocontainers/hicexplorer:3.7.2--pyhdfd78af_1' }"
 
     input:
-    tuple val(meta), path(cool), path(tads)
+    tuple val(meta), path(cool), val(bin), path(tads)
     val chrom_sizes
 
     output:

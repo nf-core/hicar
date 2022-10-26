@@ -7,12 +7,13 @@
 //
 
 include { HICEXPLORER_HICAGGREGATECONTACTS } from '../../modules/local/hicexplorer/hicaggregatecontacts'
-include { JUICER_APA                       } from '../../modules/local/juicer/apa'
-
+include { JUICER_APACALLER                 } from './apa/juicer'
+include { COOLTOOLS_APACALLER              } from './apa/cooltools'
 workflow APA {
     take:
     matrix            // tuple val(meta), path(cool/hic), signal file
     peaks             // path(1d/2d peaks) for APA analysis
+    additional_param
 
     main:
     ch_versions             = Channel.empty()
@@ -20,7 +21,7 @@ workflow APA {
     ch_apa                  = Channel.empty() // a png files channel
 
     switch(params.apa_tool){
-        case "hicexploer":
+        case "hicexplorer":
             HICEXPLORER_HICAGGREGATECONTACTS(
                 matrix,
                 peaks
@@ -29,12 +30,21 @@ workflow APA {
             ch_versions = HICEXPLORER_HICAGGREGATECONTACTS.out.versions
             break
         case "juicebox":
-            JUICER_APA(
+            JUICER_APACALLER(
+                matrix,
+                peaks,
+                additional_param
+            )
+            ch_apa = JUICER_APACALLER.out.png
+            ch_versions = JUICER_APACALLER.out.versions
+            break
+        case "cooltools":
+            COOLTOOLS_APACALLER(
                 matrix,
                 peaks
             )
-            ch_apa = JUICER_APA.out.png
-            ch_versions = JUICER_APA.out.versions
+            ch_apa = COOLTOOLS_APACALLER.out.png
+            ch_versions = COOLTOOLS_APACALLER.out.versions
             break
         default:
             HICEXPLORER_HICAGGREGATECONTACTS(

@@ -1,4 +1,4 @@
-process COOLTOOLS_COMPARTMENTS {
+process COOLTOOLS_EIGSCIS {
     tag "${meta.id}"
     label 'process_medium'
 
@@ -11,12 +11,11 @@ process COOLTOOLS_COMPARTMENTS {
     input:
     tuple val(meta), path(mcool)
     val resolution
-    path fasta
-    path chromsizes
+    tuple path(fasta), path(chromsizes)
 
     output:
     tuple val(meta), path("*compartments*")         , emit: results
-    tuple val(meta), path('*.bw')                   , emit: compartments
+    tuple val(meta), path('*.bw')                   , emit: compartments, optional: true
     path("versions.yml")                            , emit: versions
 
     script:

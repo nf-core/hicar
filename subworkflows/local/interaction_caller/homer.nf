@@ -1,19 +1,13 @@
 /*
- * Call interaction peaks by Homer
+ * Call interaction peaks by Homer, current not proper
  */
 
 include { HOMER_ANALYZEHIC             } from '../../../modules/local/homer/analyze_hic'
 
-workflow HOMER {
+workflow HOMER_INTERACTIONS {
     take:
-    fasta                           // [ genome fa ]
-    chrom_sizes                     // [ chromsizes ]
-    mappability                     // [ bigwig file ]
-    bin_size                        // values: bin size, 5000, 10000
-    site                            // values: eg. 'GATC 1'
     tagdir                          // [ meta, [tagdir] ] cooler dump ATAC reads for each group
-    mergedpeak                      // [ peaks ] merged bed file
-    bedpe                           // [ val(meta), [bedpe] ] merged intra_chromosome and tnter_chromosome reads for group
+    bin_size                        // values: bin size, 5000, 10000
 
     main:
     ch_multiqc_files = Channel.empty()
@@ -21,11 +15,10 @@ workflow HOMER {
     ch_versions = Channel.empty()
 
     // call interactions
-    tagdir.view()
     tag = tagdir.combine(bin_size).map{
         meta, tag, bin -> [ meta, bin, tag]
     }
-    ch_loop = HOMER_ANALYZEHIC(tag).interactions
+    ch_loop = HOMER_ANALYZEHIC(tag).bedpe
     ch_versions = HOMER_ANALYZEHIC.out.versions
 
 

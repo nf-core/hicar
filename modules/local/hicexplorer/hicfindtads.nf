@@ -12,23 +12,33 @@ process HICEXPLORER_HICFINDTADS {
     val resolution
 
     output:
-    tuple val(meta), path("*hicfindtads*")      , emit:results
-    tuple val(meta), path("*domains.bed")       , emit:domains
-    path("versions.yml")                        , emit:versions
+    tuple val(meta), val(resolution), path("*hicfindtads*")      , emit:results
+    tuple val(meta), val(resolution), path("*domains.bed")       , emit:tads
+    path("versions.yml")                                         , emit:versions
 
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}_${meta.bin}"
     def bin_size = meta.bin.toInteger()
-    def minDepth = bin_size * 3
-    def maxDepth = bin_size * 10
+    def mDepth = [bin_size * 3, bin_size * 10]
+    def mDepthArg = ['--minDepth', '--maxDepth']
+    args = args.tokenize()
+    for(i=0; i<2; i++){
+        idx = args.indexOf(mDepthArg[i])
+        if(idx>=0){
+            mDepth[i] = args[idx + 1]
+            args.remove(idx+1)
+            args.remove(idx)
+        }
+    }
+    args = args.join(' ')
     """
     hicFindTADs \\
         ${args} \\
         --matrix ${cool} \\
         --outPrefix ${prefix}_hicfindtads \\
-        --minDepth $minDepth \\
-        --maxDepth $maxDepth \\
+        --minDepth ${mDepth[0]} \\
+        --maxDepth ${mDepth[1]} \\
         --step $resolution \\
         --numberOfProcessors ${task.cpus}
 

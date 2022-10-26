@@ -227,7 +227,7 @@
                     "help_text": "The minimum FDR cutoff to call significant peak for R2 reads. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
                     "default": 0.01
                 },
-                "high_resolution_R1": {
+                "skip_high_peak": {
                     "type": "boolean",
                     "description": "read peak calling for fragment (R1) reads by MACS2",
                     "fa_icon": "fas fa-mountain",
@@ -361,14 +361,21 @@
                     "fa_icon": "fas fa-th",
                     "hidden": true,
                     "default": 1
+                },
+                "skip_maps_signal": {
+                    "type": "boolean",
+                    "description": "skip creat cooler files for maps or not",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": true,
+                    "default": true
                 }
             }
         },
-        "compartment_tads_options": {
-            "title": "Options related to compartment, TADs calling",
+        "compartment_tads_apa_options": {
+            "title": "Options related to compartment, TADs calling, and APA",
             "type": "object",
             "fa_icon": "fab fa-wpforms",
-            "descripton": "Options for compartment and TADs calling",
+            "descripton": "Options for compartment, TADs calling, and APA",
             "properties": {
                 "res_compartments": {
                     "type": "number",
@@ -386,9 +393,15 @@
                 "tad_tool": {
                     "type": "string",
                     "description": "The caller for TADs",
-                    "help_text": "Possible tools are hicfindtads and insulation.",
+                    "help_text": "Possible tools are hicfindtads and cooltools (by insulation function).",
                     "fa_icon": "fas fa-th",
                     "default": "hicfindtads"
+                },
+                "apa_peak": {
+                    "type": "string",
+                    "description": "The APA peak path",
+                    "default": "Anchor 1D peaks",
+                    "hidden": false
                 }
             }
         },
@@ -398,7 +411,7 @@
             "fa_icon": "fab fa-wpforms",
             "description": "Options for tracks viewed by igv, ucsc genome browser and virtual 4c plot tools",
             "properties": {
-                "virtual_4c": {
+                "skip_virtual_4c": {
                     "type": "boolean",
                     "description": "create track files for virtual 4c or not",
                     "fa_icon": "fas fa-align-left",
@@ -788,7 +801,7 @@
             "$ref": "#/definitions/MAPS_peak_calling_options"
         },
         {
-            "$ref": "#/definitions/compartment_tads_options"
+            "$ref": "#/definitions/compartment_tads_apa_options"
         },
         {
             "$ref": "#/definitions/Visualization_options"

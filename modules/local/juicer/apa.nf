@@ -10,10 +10,8 @@ process JUICER_APA {
         'quay.io/biocontainers/java-jdk:8.0.112--1' }"
 
     input:
-    tuple val(meta), path(hic)
-    path loops
-    path juicer_box_jar
-    val juicer_jvm_params
+    tuple val(meta), path(hic), path(loops)
+    tuple val(juicer_jvm_params), path(juicer_box_jar)
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: results

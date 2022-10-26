@@ -83,7 +83,17 @@ Chromatin loops (or significant interactions), represent two inter/intra chromos
 
 ### Aggregate peak analysis
 
-Aggregate peak analysis (APA) plots the pileup signals detected by high-resolution interaction data. It is a kind of 2 dimension meta-gene analysis. By providing a list of interested genomic coordinates, the pileup signal will present the enrichment between the interactions and the target interested region. Current available tools for APA are [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) and [`juicer_tools`](https://github.com/aidenlab/juicer)  
+Aggregate peak analysis (APA) plots the pileup signals detected by high-resolution interaction data. It is a kind of 2 dimension meta-gene analysis. By providing a list of interested genomic coordinates, the pileup signal will present the enrichment between the interactions and the target interested region. Current available tools for APA are [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) and [`juicer_tools`](https://github.com/aidenlab/juicer)
+
+### Available tools
+| Tools          | A/B compartments | TADs         | Interactions   | APA            |
+| :------------- | :------------- | :------------- | :------------- | :------------- |
+| cooltools      | &#9745;        | &#9745;        | &#9745;        | &#9744;        |
+| hic-DC+        | &#9745;        | &#9745;        | &#9745;        | &#9744;        |
+| hicExplorer    | &#9745;        | &#9745;        | &#9744;        | &#9744;        |
+| homer          | &#9745;        | &#9745;        | &#9744;        | &#9744;        |
+| MAPS           | &#9745;        | &#9745;        | &#9745;        | &#9744;        |
+| juicer_tools   | &#9745;        | &#9745;        | &#9745;        | &#9744;        |
 
 ## Running the pipeline
 
