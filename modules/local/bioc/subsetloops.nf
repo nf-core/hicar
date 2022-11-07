@@ -42,7 +42,17 @@ process BIOC_SUBSETLOOPS {
     ext <- paste0("$prefix", inf)
     peaks <- import("$peaks")
     data <- lapply(inf, import, format="BEDPE")
-    data <- lapply(data, subsetByOverlaps, subject=peaks)
+    seqstyle1 <- seqlevelsStyle(peaks)
+    seqstyle2 <- seqlevelsStyle(first(data[[1]]))
+    if(seqstyle1[1]!=seqstyle2[2]){
+        seqlevelsStyle(peaks) <- seqstyle2[1]
+    }
+    data <- lapply(data, function(.ele){
+        keep <- countOverlaps(first(.ele), subject=peaks, ignore.strand=TRUE) > 0 |
+            countOverlaps(second(.ele), subject=peaks, ignore.strand=TRUE)>0
+        .ele[keep]
+    })
+
     mapply(export, data, ext, format="BEDPE")
     """
 }

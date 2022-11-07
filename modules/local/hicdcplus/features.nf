@@ -10,11 +10,7 @@ process HICDCPLUS_FEATURES {
         'quay.io/biocontainers/bioconductor-hicdcplus:1.2.1--r41h619a076_0' }"
 
     input:
-    path fasta
-    path chrom_sizes
-    path mappability
-    val bin_size
-    val site
+    tuple val(bin_size), val(site), path(fasta), path(chrom_sizes), path(mappability)
 
     output:
     tuple val(bin_size), path("*_bintolen.txt.gz")            , emit: features
@@ -28,7 +24,7 @@ process HICDCPLUS_FEATURES {
 
     #######################################################################
     #######################################################################
-    ## Created on July 13, 2022 for HiC-DC+ to call signficant interactions
+    ## Created on July 13, 2022 for HiC-DC+ to prepare the features
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################

@@ -20,11 +20,11 @@ process DUMPREADS {
     script:
     def prefix   = task.ext.prefix ?: "${meta.id}"
     """
-    awk -F "\t" \\
-        '{if(\$1 != 'chrom1') {print > "${prefix}."\$1"_"\$4".${long_bedpe_postfix}"} }' \\
+    awk -F "\\t" \\
+        '! /^chrom1/ {print > "${prefix}."\$1"_"\$4".${long_bedpe_postfix}"}' \\
         $bedpe
 
-    awk -F "\t" '{print 0, \$1, \$2, 0, 0, \$4, \$5, 1, \$7}' $bedpe > \\
+    awk -F "\\t" '{print 0, \$1, \$2, 0, 0, \$4, \$5, 1, \$7}' $bedpe > \\
         ${prefix}.${meta.bin}.ginteractions
 
     cat <<-END_VERSIONS > versions.yml

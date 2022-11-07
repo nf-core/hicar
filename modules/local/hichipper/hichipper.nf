@@ -8,22 +8,20 @@ process HICHIPPER_HICHIPPER {
         'quay.io/biocontainers/hichipper:0.7.7--py_1' }"
 
     input:
-    tuple val(meta), path(cool)
+    tuple val(meta), path(hicpro), path(peak), path(yaml)
+    path resfrags
 
     output:
-    tuple val(meta), path("*${prefix}.h5")                    , emit:interactions
+    tuple val(meta), path("*${prefix}")                       , emit:interactions
     path("versions.yml")                                      , emit:versions
 
     script:
-    def args = task.ext.args ?: ''
     prefix = task.ext.prefix ?: "${meta.id}_${meta.bin}"
     """
-    ## step1 create yaml file1
     ## step2 run programs
     hichipper \\
-        -m $cool \\
-        $args \\
-        --out ${prefix}
+        --out ${prefix} \\
+        $yaml
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

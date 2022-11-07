@@ -22,14 +22,16 @@ workflow HICDCPLUS {
 
     // generate features
     ch_versions = HICDCPLUS_FEATURES(
-                    fasta,
-                    chrom_sizes,
-                    mappability,
-                    bin_size,
-                    site).versions
+                    bin_size.combine(site)
+                        .combine(fasta)
+                        .combine(chrom_sizes)
+                        .combine(mappability)
+                    ).versions
     // call loops
-    //reads.combine(HICDCPLUS_FEATURES.out.features).view()
-    ch_loop = HICDCPLUS_CALLLOOPS(reads.combine(HICDCPLUS_FEATURES.out.features), chrom_sizes).interactions
+    ch_reads = reads.combine(HICDCPLUS_FEATURES.out.features).map{[[id:it[0].id, bin:it[2]], it[1], it[3]]}
+        .combine(bedpe, by: 0)
+    ch_reads.view()
+    ch_loop = HICDCPLUS_CALLLOOPS(ch_reads, chrom_sizes).interactions
     ch_versions = ch_versions.mix(HICDCPLUS_CALLLOOPS.out.versions.ifEmpty([]))
 
     emit:

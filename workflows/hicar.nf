@@ -93,6 +93,7 @@ ch_make_maps_runfile_source  = file(params.make_maps_runfile_source,
 include { CHECKSUMS } from '../modules/local/checksums'
 include { HOMER_INSTALL } from '../modules/local/homer/install'
 // include { HICEXPLORER_HICCORRECTMATRIX } from '../modules/local/hicexplorer/hiccorrectmatrix' // NOT WORK, buggy
+include { JUICER_ADDNORM } from '../modules/local/juicer/addnorm'
 include { BIOC_CHIPPEAKANNO } from '../modules/local/bioc/chippeakanno'
 include { BIOC_CHIPPEAKANNO as BIOC_CHIPPEAKANNO_MAPS } from '../modules/local/bioc/chippeakanno'
 include { BIOC_ENRICH } from '../modules/local/bioc/enrich'
@@ -290,15 +291,15 @@ workflow HICAR {
     if(checkToolsUsedInDownstream('hicexplorer', params)){
         // HICEXPLORER_HICCORRECTMATRIX(COOLER.out.raw) // not work, buggy
         // ch_versions = ch_versions.mix(HICEXPLORER_HICCORRECTMATRIX.out.versions.ifEmpty(null))
-        if(params.compartments_tool == "hicexplorer"){
+        if(params.compartments_tool == 'hicexplorer'){
             ch_comp_matrix = COOLER.out.cool
             ch_comp_additional = PREPARE_GENOME.out.chrom_sizes
         }
-        if(params.tad_tool == "hicexplorer"){
+        if(params.tad_tool == 'hicexplorer'){
             ch_tad_matrix = COOLER.out.cool
             ch_tad_additional = PREPARE_GENOME.out.chrom_sizes
         }
-        if(params.apa_tool == "hicexplorer"){
+        if(params.apa_tool == 'hicexplorer'){
             ch_apa_matrix = COOLER.out.cool
         }
     }
@@ -307,14 +308,14 @@ workflow HICAR {
     // prepare for cooltools
     //
     if(checkToolsUsedInDownstream('cooltools', params)){
-        if(params.compartments_tool == "cooltools"){
+        if(params.compartments_tool == 'cooltools'){
             ch_comp_matrix = COOLER.out.mcool // colltools ask the resolution match the tiled genome
             ch_comp_additional = PREPARE_GENOME.out.fasta.combine(PREPARE_GENOME.out.chrom_sizes)
         }
-        if(params.tad_tool == "cooltools"){
+        if(params.tad_tool == 'cooltools'){
             ch_tad_matrix = COOLER.out.cool
         }
-        if(params.apa_tool == "cooltools"){
+        if(params.apa_tool == 'cooltools'){
             ch_apa_matrix = COOLER.out.cool
         }
     }
@@ -330,18 +331,18 @@ workflow HICAR {
             PAIRTOOLS_PAIRE.out.homerpair,
             PREPARE_GENOME.out.fasta.combine(HOMER_INSTALL.out.output).map{it[0]} // force wait Homer install done
         )
-        if(params.interactions_tool == "homer"){
+        if(params.interactions_tool == 'homer'){
             ch_loop_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
         }
-        if(params.tad_tool == "homer"){
+        if(params.tad_tool == 'homer'){
             ch_tad_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
             ch_tad_additional = PREPARE_GENOME.out.ucscname // values: eg. 'hg38'
         }
-        if(params.compartments_tool == "homer"){
+        if(params.compartments_tool == 'homer'){
             ch_comp_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
             ch_comp_additional = PREPARE_GENOME.out.ucscname
         }
-        if(params.apa_tool == "homer"){
+        if(params.apa_tool == 'homer'){
             ch_apa_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
         }
         ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
@@ -351,16 +352,17 @@ workflow HICAR {
     // prepare for JuicerBox
     //
     if(checkToolsUsedInDownstream('juicebox', params)){
-        juicebox_additional = Channel.of([params.juicer_jvm_params, ch_juicer_tools]).combine(PREPARE_GENOME.out.chrom_sizes)
-        if(params.compartments_tool == "juicebox"){
-            ch_comp_matrix = COOLER.out.hic
+        ch_norm_hic = JUICER_ADDNORM(COOLER.out.hic, params.juicer_jvm_params, ch_juicer_tools).hic
+        juicebox_additional = Channel.of([params.juicer_jvm_params, ch_juicer_tools]).combine(PREPARE_GENOME.out.chrom_sizes).collect()
+        if(params.compartments_tool == 'juicebox'){
+            ch_comp_matrix = ch_norm_hic
             ch_comp_additional  = juicebox_additional
         }
-        if(params.interactions_tool == "juicebox"){
+        if(params.interactions_tool == 'juicebox'){
             ch_loop_additional  = juicebox_additional
         }
-        if(params.apa_tool == "juicebox"){
-            ch_apa_matrix = COOLER.out.hic
+        if(params.apa_tool == 'juicebox'){
+            ch_apa_matrix = ch_norm_hic
             ch_apa_additional = juicebox_additional
         }
     }
@@ -450,7 +452,7 @@ workflow HICAR {
     //
     if(!params.skip_apa){
         ch_apa_peak = params.apa_peak ? Channel.fromPath( params.apa_peak, checkIfExists: true ) : ATAC_PEAK.out.mergedpeak
-        if(params.apa_tool=="juicebox"){
+        if(params.apa_tool=='juicebox'){
             ch_apa_additional = ch_apa_additional.combine(INTERACTIONS.out.mergedloops)
             ch_apa_additional.view()
         }

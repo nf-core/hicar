@@ -243,11 +243,11 @@
                 }
             }
         },
-        "MAPS_peak_calling_options": {
-            "title": "MAPS peak calling options",
+        "loops_calling_options": {
+            "title": "Interactions calling options",
             "type": "object",
             "fa_icon": "fab fa-connectdevelop",
-            "descripton": "Options for MAPS peak calling options for ATAC-seq reads (R2).",
+            "descripton": "Options for loops calling options.",
             "properties": {
                 "cool_bin": {
                     "type": "string",
@@ -368,6 +368,14 @@
                     "fa_icon": "fas fa-comment-slash",
                     "hidden": true,
                     "default": true
+                },
+                "hicdcplus_cutoff_fdr":{
+                    "type": "number",
+                    "description": "FDR cutoff value",
+                    "fa_icon": "fas fa-percent",
+                    "hidden": false,
+                    "help_text": "Minimal cutoff FDR value in the called connections. See help from [HiCDCPlus documentation](https://bioconductor.org/packages/HiCDCPlus/), default 0.05.",
+                    "default": 0.05
                 }
             }
         },
@@ -798,7 +806,7 @@
             "$ref": "#/definitions/MACS2_peak_calling_options"
         },
         {
-            "$ref": "#/definitions/MAPS_peak_calling_options"
+            "$ref": "#/definitions/loops_calling_options"
         },
         {
             "$ref": "#/definitions/compartment_tads_apa_options"
