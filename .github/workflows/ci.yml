@@ -22,7 +22,22 @@ jobs:
         NXF_VER:
           - "21.10.3"
           - "latest-everything"
-        profile: ["test", "test_multi", "test_hipeak", "test_hichip"]
+        parameters:
+          - "--interactions_tool maps"
+          - "--interactions_tool hicdcplus"
+          - "--tad_tool cooltools"
+          - "--tad_tool homer"
+          - "--compartments_tool homer"
+          - "--compartments_tool juicebox"
+          - "--compartments_tool hicexplorer"
+          - "--apa_tool juicebox"
+          - "--apa_tool cooltools"
+          - "--da_tool edger"
+          - "--da_tool setOperation"
+          - "--da_tool hicexplorer"
+          - "--v4c_tool cooltools --v4c_max_events 3"
+          - "--v4c_tool trackviewer --v4c_max_events 3"
+          - "--method HiChIP --anchor_peaks 'https://raw.githubusercontent.com/aryeelab/hichipper/master/tests/chipseq/GM12878_SMC3_ChIPSeq_chr22.narrowPeak'"
 
     steps:
       - name: Check out pipeline code
@@ -35,6 +50,6 @@ jobs:
 
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile ${{ matrix.profile }},docker --outdir ./results
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results ${{ matrix.parameters }}
 
 #

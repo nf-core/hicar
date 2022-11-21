@@ -10,9 +10,7 @@ process BIOC_ENZYMECUT {
         'quay.io/biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0' }"
 
     input:
-    path fasta
-    val bin_size
-    val site
+    tuple val(bin_size), val(site), path(fasta)
     val enzyme
 
     output:

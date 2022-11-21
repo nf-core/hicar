@@ -20,8 +20,9 @@ process MERGE_PEAK {
     cat $peak | \\
         cut -f1-3 | \\
         sort -k1,1 -k2,2n | \\
-        bedtools merge $args \\
-            -i stdin > merged_peak.bed
+        bedtools merge $args -i stdin | \\
+        awk '{printf "%s\\tpeak%s\\n",\$0,NR}' \\
+            > merged_peak.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

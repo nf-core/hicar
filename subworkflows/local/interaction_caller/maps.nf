@@ -7,37 +7,31 @@ include { MAPS_PEAK        } from './maps_peak'
 
 workflow MAPS {
     take:
-    fasta                           // [ genome fa ]
-    chrom_sizes                     // [ chromsizes ]
-    mappability                     // [ bigwig file ]
-    bin_size                        // values: bin size, 5000, 10000
-    site                            // values: eg. 'GATC 1'
-    reads                           // [ meta, [bedgraph] ] cooler dump reads for each group
-    mergedpeak                      // [ peaks ] merged bed file
-    bedpe                           // [ val(meta), [bedpe] ] merged intra_chromosome reads for group
-    merge_map_py_source             // scripts
-    feature_frag2bin_source         // scripts
-    make_maps_runfile_source        // scripts
-    long_bedpe_postfix              // values
-    short_bed_postfix               // values
-    maps_3d_ext                     // values
+    bedpe                           // 2D: [ val(meta), [bedpe] ] merged intra_chromosome reads for group
+    reads                           // 1D: [ meta, [group_reads_count_bedgraph], [merged_peaks_bed] ]
+    additional_param                // [
+                                    //    0 values: cuting_site,
+                                    //    1 [ genome fa ],
+                                    //    2 [ chrom_size ],
+                                    //    3 [ mappability bigwig ],
+                                    //    4 scripts: merge_map_py_source,
+                                    //    5 scripts: feature_frag2bin_source
+                                    //    6 scripts: make_maps_runfile_source
+                                    // ]
 
     main:
     // generate features
-    background = MAPS_MULTIENZYME(fasta,
-                    bin_size,
-                    chrom_sizes,
-                    mappability,
-                    merge_map_py_source,
-                    feature_frag2bin_source,
-                    params.enzyme,
-                    site).bin_feature
+    background = MAPS_MULTIENZYME(
+        bedpe.map{ [ it[0].bin ] }.unique(),                   // bin_size
+        additional_param.map{[ it[0], it[1], it[2], it[3] ]},  // site, fasta, chrom_size, mappability_bw
+        additional_param.map{[ it[4] ]},                       // merge_map_py_source
+        additional_param.map{[ it[5] ]}                        // feature_frag2bin_source
+        ).bin_feature
     ch_versions = MAPS_MULTIENZYME.out.versions
 
     reads_peak   = reads
-                    .map{ meta, reads ->
-                            [meta.id, reads]} // here id is group
-                    .combine(mergedpeak)// group, reads, peaks
+                    .map{ meta, reads, peaks ->
+                            [meta.id, reads, peaks]} // here id is group
                     .cross(bedpe.map{[it[0].id, it[0].bin, it[1]]})// group, bin, bedpe
                     .map{ short_bed, long_bedpe -> //[bin_size, group, macs2, long_bedpe, short_bed]
                             [long_bedpe[1], short_bed[0], short_bed[2], long_bedpe[2], short_bed[1]]}
@@ -47,12 +41,9 @@ workflow MAPS {
                 .set{ maps_input }
     MAPS_PEAK(
         maps_input,
-        make_maps_runfile_source,
-        chrom_sizes,
-        params.juicer_jvm_params,
-        long_bedpe_postfix,
-        short_bed_postfix,
-        maps_3d_ext)
+        additional_param.map{[ it[6] ]},            //make_maps_runfile_source,
+        additional_param.map{[ it[1] ]},            //chrom_size
+        )
     ch_versions = ch_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
     ch_multiqc_files = MAPS_PEAK.out.stats.collect().ifEmpty(null)
 

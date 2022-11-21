@@ -11,9 +11,7 @@ process MAPS_CUT {
         'quay.io/biocontainers/biopython:1.70--np112py36_1' }"
 
     input:
-    path fasta
-    val bin_size
-    val site
+    tuple val(bin_size), val(site), path(fasta)
     val enzyme
 
     output:

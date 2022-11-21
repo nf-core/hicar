@@ -15,6 +15,7 @@ workflow JUICER_COMPARTMENTS {
         matrix,
         resolution,
         additional_param,
+        params.juicer_jvm_params
     )
     ch_version = JUICER_EIGENVECTOR.out.versions.ifEmpty(null)
 

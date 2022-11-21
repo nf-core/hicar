@@ -1,12 +1,12 @@
-process DIFFHICAR {
+process DIFFHIC {
     tag "$bin_size"
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-edger=3.32.1" : null)
+    conda (params.enable_conda ? "bioconda::bioconductor-diffhic=1.26.0" : null)
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bioconductor-edger:3.32.1--r40h399db7b_0' :
-        'quay.io/biocontainers/bioconductor-edger:3.32.1--r40h399db7b_0' }"
+        'https://depot.galaxyproject.org/singularity/bioconductor-diffhic:1.26.0--r41hc247a5b_2' :
+        'quay.io/biocontainers/bioconductor-diffhic:1.26.0--r41hc247a5b_2' }"
 
     input:
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")
@@ -14,74 +14,76 @@ process DIFFHICAR {
 
     output:
     tuple val(bin_size), path("${prefix}/*")               , emit: diff
-    tuple val(bin_size), val("$prefix"), path("${prefix}/edgeR.DEtable*") , optional: true, emit: anno
+    tuple val(bin_size), val("$prefix"), path("${prefix}/diffHic.DEtable*"), optional: true, emit: anno
     path "${prefix}/*.qc.json"                             , emit: stats
     path "versions.yml"                                    , emit: versions
 
     script:
-    prefix   = task.ext.prefix ?: "edgeR_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "diffHic_bin${bin_size}"
     """
     #!/usr/bin/env Rscript
     #######################################################################
     #######################################################################
-    ## Created on April. 29, 2021 call edgeR
-    ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## Created on Nov. 11, 2022 call diffhic
+    ## Copyright (c) 2022 Jianhong Ou (jianhong.ou@gmail.com)
     #######################################################################
     #######################################################################
-    library(edgeR)
-    versions <- c(
-        "${task.process}:",
-        paste("    edgeR:", as.character(packageVersion("edgeR"))))
-    writeLines(versions, "versions.yml")
+    pkgs <- c("edgeR", "diffHic")
+    versions <- c("${task.process}:")
+    for(pkg in pkgs){
+        # load library
+        library(pkg, character.only=TRUE)
+        # parepare for versions.yml
+        versions <- c(versions,
+            paste0("    ", pkg, ": ", as.character(packageVersion(pkg))))
+    }
+    writeLines(versions, "versions.yml") # write versions.yml
 
-    binsize = "$prefix"
+    OUTFOLDER = "$prefix"
 
     ## get peaks
     pf <- dir("peaks", "bedpe", full.names = TRUE)
     header <- lapply(pf, read.delim, header=FALSE, nrow=1)
     peaks <- mapply(pf, header, FUN=function(f, h){
-      hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
-                      h[1, , drop=TRUE])
-      .ele <- read.delim(f, header = hasHeader)
-      if(!hasHeader){
-        colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")
-        ## bedpe, [start, end)
-        .ele\$start1 <- .ele\$start1+1
-        .ele\$start2 <- .ele\$start2+1
-      }
-      .ele
-      }, SIMPLIFY = FALSE)
+        hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
+                        h[1, , drop=TRUE])
+        .ele <- read.delim(f, header = hasHeader)
+        if(!hasHeader){
+            colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")
+            ## bedpe, [start, end)
+            .ele\$start1 <- .ele\$start1+1
+            .ele\$start2 <- .ele\$start2+1
+        }
+        .ele
+    }, SIMPLIFY = FALSE)
     ### reduce the peaks
     peaks <- unique(do.call(rbind, peaks)[, c("chr1", "start1", "end1",
-                                            "chr2", "start2", "end2")])
-
+        "chr2", "start2", "end2")])
+    peaks <- with(peaks, GInteractions(GRanges(chr1, IRanges(start1, end1)),
+         GRanges(chr2, IRanges(start2, end2))))
     ## get counts
     pc <- dir("long", "bedpe", full.names = FALSE)
     cnts <- lapply(file.path("long", pc), read.table)
     samples <- sub("(_REP\\\\d+)\\\\.(.*?)\\\\.${long_bedpe_postfix}", "\\\\1", pc)
     cnts <- lapply(split(cnts, samples), do.call, what=rbind)
     sizeFactor <- vapply(cnts, FUN=function(.ele) sum(.ele[, 7], na.rm = TRUE),
-                        FUN.VALUE = numeric(1))
+        FUN.VALUE = numeric(1))
 
-    getID <- function(mat) gsub("\\\\s+", "", apply(mat[, seq.int(6)], 1, paste, collapse="_"))
-    getID1 <- function(mat) gsub("\\\\s+", "", apply(mat[, seq.int(3)], 1, paste, collapse="_"))
-    getID2 <- function(mat) gsub("\\\\s+", "", apply(mat[, 4:6], 1, paste, collapse="_"))
-    ## prefilter, to decrease the memory cost
-    peaks_id1 <- getID1(peaks)
-    peaks_id2 <- getID2(peaks)
-    cnts <- lapply(cnts, function(.ele) .ele[getID1(.ele) %in% peaks_id1, , drop=FALSE])
-    cnts <- lapply(cnts, function(.ele) .ele[getID2(.ele) %in% peaks_id2, , drop=FALSE])
-    rm(peaks_id1, peaks_id2, getID1, getID2)
-    ## match all the counts for peaks
-    peaks_id <- getID(peaks)
-    cnts <- do.call(cbind, lapply(cnts, function(.ele){
-        .ele[match(peaks_id, getID(.ele)), 7]
-    }))
-    cnts[is.na(cnts)] <- 0
-    names(peaks_id) <- paste0(rep("p", length(peaks_id)), seq_along(peaks_id))
-    rownames(cnts) <- names(peaks_id)
+    cnts <- lapply(cnts, function(.ele){
+    with(.ele, GInteractions(GRanges(V1, IRanges(V2, V3)),
+        GRanges(V4, IRanges(V5, V6)),
+        score = V7))
+    })
+    cnts <- lapply(cnts, function(.ele){
+        ol <- findOverlaps(peaks, .ele, type="equal", select = "first")
+        .peak <- peaks
+        .peak\$score <- 0
+        .peak\$score[!is.na(ol)] <- .ele[ol[!is.na(ol)]]\$score
+        .peak\$score
+    })
+    cnts <- do.call(cbind, cnts)
 
-    pf <- as.character(binsize)
+    pf <- as.character(OUTFOLDER)
     dir.create(pf, showWarnings = FALSE, recursive=TRUE)
 
     fname <- function(subf, ext, ...){ # create file name
@@ -91,7 +93,7 @@ process DIFFHICAR {
     }
 
     ## write counts
-    write.csv(cbind(peaks, cnts), fname(NA, "csv", "raw.counts"), row.names = FALSE)
+    write.csv(cbind(as.data.frame(peaks), cnts), fname(NA, "csv", "raw.counts"), row.names = FALSE)
     ## write sizeFactors
     write.csv(sizeFactor, fname(NA, "csv", "library.size"), row.names = TRUE)
 
@@ -105,11 +107,37 @@ process DIFFHICAR {
 
     contrasts.lev <- levels(coldata\$condition)
 
+    data <- InteractionSet(assays = list(counts=cnts),
+        interactions = peaks,
+        colData = DataFrame(totals = sizeFactor))
+    data.tmm <- csaw::normOffsets(data, se.out=TRUE)
+    pdf(fname(NA, "pdf", "normalization"), width=12, height=6)
+    par(mfrow=c(1, 2))
+    ab <- aveLogCPM(asDGEList(data))
+    o <- order(ab)
+    adj.counts <- cpm(asDGEList(data), log=TRUE)
+    mval <- adj.counts[,3]-adj.counts[,2]
+    plotMD(asDGEList(data), main="before")
+    fit <- loessFit(x=ab, y=mval)
+    lines(ab[o], fit\$fitted[o], col="red")
+    abline(h=0, col='blue', lty=2)
+
+    ab <- aveLogCPM(asDGEList(data.tmm))
+    o <- order(ab)
+    adj.counts <- cpm(asDGEList(data.tmm), log=TRUE)
+    mval <- adj.counts[,3]-adj.counts[,2]
+    plotMD(asDGEList(data.tmm), main="after")
+    fit <- loessFit(x=ab, y=mval)
+    lines(ab[o], fit\$fitted[o], col="red")
+    abline(h=0, col='blue', lty=2)
+
+    dev.off()
+
     if(length(contrasts.lev)>1 && any(table(condition)>1)){
         contrasts <- combn(contrasts.lev, 2, simplify = FALSE) ## pair all conditions
         ## create DGEList
         group <- coldata\$condition
-        y <- DGEList(counts = cnts,
+        y <- asDGEList(data.tmm,
                     lib.size = sizeFactor,
                     group = group)
 
@@ -185,16 +213,16 @@ process DIFFHICAR {
             dev.off()
             ## save res
             res <- as.data.frame(rs)
-            res <- cbind(peaks, res[names(peaks_id), ])
-            write.csv(res, fname(name, "csv", "edgeR.DEtable", name), row.names = FALSE)
+            res <- cbind(peaks, res)
+            write.csv(res, fname(name, "csv", "diffHic.DEtable", name), row.names = FALSE)
             ## save metadata
             elementMetadata <- do.call(rbind, lapply(c("adjust.method","comparison","test"), function(.ele) rs[[.ele]]))
             rownames(elementMetadata) <- c("adjust.method","comparison","test")
             colnames(elementMetadata)[1] <- "value"
-            write.csv(elementMetadata, fname(name, "csv", "edgeR.metadata", name), row.names = TRUE)
+            write.csv(elementMetadata, fname(name, "csv", "diffHic.metadata", name), row.names = TRUE)
             ## save subset results
             res.s <- res[res\$FDR<0.05 & abs(res\$logFC)>1, ]
-            write.csv(res.s, fname(name, "csv", "edgeR.DEtable", name, "padj0.05.lfc1"), row.names = FALSE)
+            write.csv(res.s, fname(name, "csv", "diffHic.DEtable", name, "padj0.05.lfc1"), row.names = FALSE)
             ## Volcano plot
             res\$qvalue <- -10*log10(res\$PValue)
             res.s\$qvalue <- -10*log10(res.s\$PValue)

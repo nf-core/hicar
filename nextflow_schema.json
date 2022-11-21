@@ -410,6 +410,49 @@
                     "description": "The APA peak path",
                     "default": "Anchor 1D peaks",
                     "hidden": false
+                },
+                "apa_tool": {
+                    "type": "string",
+                    "default": "hicexploer",
+                    "description": "APA tool"
+                },
+                "compartments_tool": {
+                    "type": "string",
+                    "default": "cooltools",
+                    "description": "Call compartment tool"
+                },
+                "interactions_tool": {
+                    "type": "string",
+                    "default": "maps",
+                    "description": "Call loops tool"
+                },
+                "da_tool": {
+                    "type": "string",
+                    "default": "diffhic",
+                    "description": "Differential analysis tool. Possible options are edger, diffhic, and setOperation"
+                },
+                "juicer_box_jar": {
+                    "type": "string",
+                    "default": "https://github.com/aidenlab/Juicebox/releases/download/v2.16.00/juicebox_2.16.00.jar",
+                    "description": "juicer_box jar file url"
+                },
+                "maps_3d_ext": {
+                    "type": "string",
+                    "default": "sig3Dinteractions.pe.txt",
+                    "hidden": true,
+                    "description": "extension file name for MAPS"
+                },
+                "long_bedpe_postfix": {
+                    "type": "string",
+                    "default": "long.bedpe",
+                    "hidden": true,
+                    "description": "extension file name for long pairs"
+                },
+                "short_bed_postfix": {
+                    "type": "string",
+                    "default": "shrt.vip.bed",
+                    "hidden": true,
+                    "description": "extension file name for short pairs"
                 }
             }
         },
@@ -419,12 +462,6 @@
             "fa_icon": "fab fa-wpforms",
             "description": "Options for tracks viewed by igv, ucsc genome browser and virtual 4c plot tools",
             "properties": {
-                "skip_virtual_4c": {
-                    "type": "boolean",
-                    "description": "create track files for virtual 4c or not",
-                    "fa_icon": "fas fa-align-left",
-                    "hidden": false
-                },
                 "v4c_max_events": {
                     "type": "integer",
                     "description": "max events to plot for virtual 4c",
@@ -746,48 +783,11 @@
                     "type": "boolean",
                     "description": "skip call interactions/loops"
                 },
-                "apa_tool": {
-                    "type": "string",
-                    "default": "hicexploer",
-                    "description": "APA tool"
-                },
-                "compartments_tool": {
-                    "type": "string",
-                    "default": "cooltools",
-                    "description": "Call compartment tool"
-                },
-                "interactions_tool": {
-                    "type": "string",
-                    "default": "maps",
-                    "description": "Call loops tool"
-                },
-                "da_tool": {
-                    "type": "string",
-                    "default": "edger",
-                    "description": "Differential analysis tool"
-                },
-                "juicer_box_jar": {
-                    "type": "string",
-                    "default": "https://github.com/aidenlab/Juicebox/releases/download/v2.16.00/juicebox_2.16.00.jar",
-                    "description": "juicer_box jar file url"
-                },
-                "maps_3d_ext": {
-                    "type": "string",
-                    "default": "sig3Dinteractions.pe.txt",
-                    "hidden": true,
-                    "description": "extension file name for MAPS"
-                },
-                "long_bedpe_postfix": {
-                    "type": "string",
-                    "default": "long.bedpe",
-                    "hidden": true,
-                    "description": "extension file name for long pairs"
-                },
-                "short_bed_postfix": {
-                    "type": "string",
-                    "default": "shrt.vip.bed",
-                    "hidden": true,
-                    "description": "extension file name for short pairs"
+                "skip_virtual_4c": {
+                    "type": "boolean",
+                    "description": "create track files for virtual 4c or not",
+                    "fa_icon": "fas fa-align-left",
+                    "hidden": false
                 }
             }
         }

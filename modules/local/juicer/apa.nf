@@ -11,7 +11,8 @@ process JUICER_APA {
 
     input:
     tuple val(meta), path(hic), path(loops)
-    tuple val(juicer_jvm_params), path(juicer_box_jar)
+    path juicer_box_jar
+    val juicer_jvm_params
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: results

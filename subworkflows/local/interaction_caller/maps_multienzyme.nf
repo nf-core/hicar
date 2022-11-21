@@ -14,29 +14,31 @@ include { MAPS_FEATURE                 } from '../../../modules/local/maps/featu
 
 workflow MAPS_MULTIENZYME {
     take:
-    fasta                      // channel: [ path(fasta) ]
     cool_bin                   // channel: [ val(bin) ]
-    chromsizes                 // channel: [ path(chromsizes) ]
-    mappability                // channel: [ path(bw) ]
+    genome                     // channel: [ site, [fasta], [chrom_size], [mappability_bw] ]
     merge_map_py_source        // channel: [ file(merge_map_py_source) ]
     feature_frag2bin_source    // channel: [ file(feature_frag2bin_source) ]
-    enzyme                     // values
-    site                       // values
 
     main:
+    chrom_sizes = genome.map{[ it[2] ]}
+    mappability = genome.map{[ it[3] ]}
     if(params.maps_digest_file && params.enzyme.toLowerCase() != "mnase"){
         ch_version = Channel.empty()
         ch_digest = cool_bin.combine(Channel.fromPath(params.maps_digest_file))
-        MAPS_FEND(ch_digest, chromsizes)
+        MAPS_FEND(ch_digest, chrom_sizes)
     }else{
         if(params.enzyme.toLowerCase() != "mnase"){
-            ch_version = BIOC_ENZYMECUT(fasta, cool_bin, site, enzyme).versions
+            ch_version = BIOC_ENZYMECUT(
+                cool_bin.combine(genome.map{[it[0], it[1]]}), // [bin, site, [fasta]]
+                params.enzyme).versions
             ch_digest = BIOC_ENZYMECUT.out.cut
         }else{
-            ch_version = MAPS_CUT(fasta, cool_bin, site, enzyme).versions
+            ch_version = MAPS_CUT(
+                cool_bin.combine(genome.map{[it[0], it[1]]}), // [bin, site, [fasta]]
+                params.enzyme).versions
             ch_digest = MAPS_CUT.out.cut
         }
-        MAPS_FEND(ch_digest, chromsizes)
+        MAPS_FEND(ch_digest, chrom_sizes)
     }
     seqlevelsstyle = SEQLEVELS_STYLE(MAPS_FEND.out.bed.map{it[1]}.collect().map{it[0]}).seqlevels_style
     if("$seqlevelsstyle" != "UCSC"){
@@ -52,7 +54,7 @@ workflow MAPS_MULTIENZYME {
     MAPS_MERGE(ch_digest.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]},
                 merge_map_py_source)
 
-    MAPS_FEATURE(MAPS_MERGE.out.map, chromsizes, feature_frag2bin_source)
+    MAPS_FEATURE(MAPS_MERGE.out.map, chrom_sizes, feature_frag2bin_source)
 
     emit:
     bin_feature              = MAPS_FEATURE.out.bin_feature      // channel: [ val(bin_size), path(bin_feature) ]

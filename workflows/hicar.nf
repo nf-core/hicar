@@ -51,7 +51,8 @@ def checkToolsUsedInDownstream(tool, params){
         params.tad_tool == tool ||
         params.compartments_tool == tool ||
         params.apa_tool == tool ||
-        params.da_tool == tool
+        params.da_tool == tool ||
+        params.v4c_tool == tool
     )
 }
 
@@ -73,13 +74,13 @@ ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-ch_juicer_tools              = file(params.juicer_tools_jar,
+ch_juicer_tools              = Channel.fromPath(params.juicer_tools_jar,
                                     checkIfExists: true)
-ch_merge_map_py_source       = file(params.merge_map_py_source,
+ch_merge_map_py_source       = Channel.fromPath(params.merge_map_py_source,
                                     checkIfExists: true)
-ch_feature_frag2bin_source   = file(params.feature_frag2bin_source,
+ch_feature_frag2bin_source   = Channel.fromPath(params.feature_frag2bin_source,
                                     checkIfExists: true)
-ch_make_maps_runfile_source  = file(params.make_maps_runfile_source,
+ch_make_maps_runfile_source  = Channel.fromPath(params.make_maps_runfile_source,
                                     checkIfExists: true)
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,12 +94,12 @@ ch_make_maps_runfile_source  = file(params.make_maps_runfile_source,
 include { CHECKSUMS } from '../modules/local/checksums'
 include { HOMER_INSTALL } from '../modules/local/homer/install'
 // include { HICEXPLORER_HICCORRECTMATRIX } from '../modules/local/hicexplorer/hiccorrectmatrix' // NOT WORK, buggy
+include { RECENTER_PEAK } from '../modules/local/hicexplorer/recenterpeak'
+include { HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL } from '../modules/local/hicexplorer/chicviewpointbackgroundmodel'
+include { HICEXPLORER_CHICVIEWPOINT } from '../modules/local/hicexplorer/chicviewpoint'
 include { JUICER_ADDNORM } from '../modules/local/juicer/addnorm'
 include { BIOC_CHIPPEAKANNO } from '../modules/local/bioc/chippeakanno'
-include { BIOC_CHIPPEAKANNO as BIOC_CHIPPEAKANNO_MAPS } from '../modules/local/bioc/chippeakanno'
 include { BIOC_ENRICH } from '../modules/local/bioc/enrich'
-include { BIOC_TRACKVIEWER } from '../modules/local/bioc/trackviewer'
-include { BIOC_TRACKVIEWER as BIOC_TRACKVIEWER_MAPS } from '../modules/local/bioc/trackviewer'
 include { IGV } from '../modules/local/igv'
 
 //
@@ -117,6 +118,7 @@ include { APA } from '../subworkflows/local/apa'
 include { INTERACTIONS } from '../subworkflows/local/interactions'
 include { HIPEAK } from '../subworkflows/local/hipeak'
 include { DA } from '../subworkflows/local/differential_analysis'
+include { V4C } from '../subworkflows/local/v4c'
 
 include { RUN_CIRCOS } from '../subworkflows/local/circos'
 include { RUN_CIRCOS as MAPS_CIRCOS } from '../subworkflows/local/circos'
@@ -155,10 +157,13 @@ workflow HICAR {
     ch_circos_files     = Channel.empty() // circos plots
     ch_de_files         = Channel.empty() // Differential analysis
     ch_annotation_files = Channel.empty() // files to be annotated
+    ch_v4c_files        = Channel.empty() // files used for v4c events
+    ch_loop_1d_peak     = Channel.empty() // 1D peak for interactions/loops calling
+    ch_loop_matrix      = Channel.empty() // matrix for interactions/loops calling
     ch_apa_matrix       = Channel.empty() // matrix for apa analysis
     ch_tad_matrix       = Channel.empty() // matrix for tad analysis
     ch_comp_matrix      = Channel.empty() // matrix for compartment calling
-    ch_loop_additional  = Channel.empty() // additional inputs for interaction calling
+    ch_loop_additional  = Channel.empty() // additional inputs for interaction/loops calling
     ch_apa_additional   = Channel.empty() // additional inputs for apa
     ch_tad_additional   = Channel.empty() // additional inputs for tad
     ch_comp_additional  = Channel.empty() // additional inputs for A/B compartments
@@ -286,7 +291,53 @@ workflow HICAR {
     ch_versions = ch_versions.mix(COOLER.out.versions.ifEmpty(null))
 
     //
-    // prepare for HiCExploer
+    // 1D peak is required for loops calling
+    // calling ATAC peaks, output ATAC narrowPeak and reads in peak
+    // or user user predefined peaks
+    //
+    ATAC_PEAK(// TODO, add TSS heatmap plot, add QC report
+        PAIRTOOLS_PAIRE.out.validpair,
+        PREPARE_GENOME.out.chrom_sizes,
+        PREPARE_GENOME.out.gsize,
+        PREPARE_GENOME.out.gtf,
+        params.method,
+        params.anchor_peaks,
+        ch_anchor_peaks,
+        params.short_bed_postfix
+    )
+    ch_versions = ch_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
+    ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
+
+    //
+    // prepare for MAPS
+    //
+    if(params.interactions_tool == 'maps'){
+        ch_loop_matrix = COOLER.out.bedpe
+        ch_loop_1d_peak = ATAC_PEAK.out.reads.combine(ATAC_PEAK.out.mergedpeak)
+        ch_loop_additional = PREPARE_GENOME.out.site
+                                .combine(PREPARE_GENOME.out.fasta)
+                                .combine(PREPARE_GENOME.out.chrom_sizes)
+                                .combine(PREPARE_GENOME.out.mappability)
+                                .combine(ch_merge_map_py_source)
+                                .combine(ch_feature_frag2bin_source)
+                                .combine(ch_make_maps_runfile_source)
+                                .collect()
+    }
+
+    //
+    // prepare for HiC-DC+
+    //
+    if(params.interactions_tool == 'hicdcplus'){
+        ch_loop_matrix = COOLER.out.bedpe
+        ch_loop_1d_peak = ATAC_PEAK.out.reads
+        ch_loop_additional = PREPARE_GENOME.out.site
+                                .combine(PREPARE_GENOME.out.fasta)
+                                .combine(PREPARE_GENOME.out.chrom_sizes)
+                                .combine(PREPARE_GENOME.out.mappability)
+    }
+
+    //
+    // prepare for HiCExplorer
     //
     if(checkToolsUsedInDownstream('hicexplorer', params)){
         // HICEXPLORER_HICCORRECTMATRIX(COOLER.out.raw) // not work, buggy
@@ -301,6 +352,23 @@ workflow HICAR {
         }
         if(params.apa_tool == 'hicexplorer'){
             ch_apa_matrix = COOLER.out.cool
+        }
+        if(params.da_tool == 'hicexplorer' ||
+            params.v4c_tool == 'hicexplorer'){
+            // get viewpoint, input is the merged peaks, [bed]
+            RECENTER_PEAK(ATAC_PEAK.out.mergedpeak)
+
+            // create background model, input is [bin_size, [cool], [recentered_peak]]
+            COOLER.out.cool
+                .map{ meta, cool ->
+                            [meta.bin, cool]}
+                .groupTuple()
+                .combine(RECENTER_PEAK.out.peak)
+                .set{ch_chic_explorer}
+            HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL(ch_chic_explorer)
+
+            // create interaction file, input is [bin_size, [cool], [recentered_peak], [background_model]]
+            HICEXPLORER_CHICVIEWPOINT(ch_chic_explorer.combine(HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL.out.background_model, by: 0))
         }
     }
 
@@ -332,7 +400,7 @@ workflow HICAR {
             PREPARE_GENOME.out.fasta.combine(HOMER_INSTALL.out.output).map{it[0]} // force wait Homer install done
         )
         if(params.interactions_tool == 'homer'){
-            ch_loop_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
+            ch_loop_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
         }
         if(params.tad_tool == 'homer'){
             ch_tad_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
@@ -353,7 +421,7 @@ workflow HICAR {
     //
     if(checkToolsUsedInDownstream('juicebox', params)){
         ch_norm_hic = JUICER_ADDNORM(COOLER.out.hic, params.juicer_jvm_params, ch_juicer_tools).hic
-        juicebox_additional = Channel.of([params.juicer_jvm_params, ch_juicer_tools]).combine(PREPARE_GENOME.out.chrom_sizes).collect()
+        juicebox_additional = ch_juicer_tools.combine(PREPARE_GENOME.out.chrom_sizes).collect()
         if(params.compartments_tool == 'juicebox'){
             ch_comp_matrix = ch_norm_hic
             ch_comp_additional  = juicebox_additional
@@ -366,24 +434,6 @@ workflow HICAR {
             ch_apa_additional = juicebox_additional
         }
     }
-
-    //
-    // 1D peak is required for loops calling
-    // calling ATAC peaks, output ATAC narrowPeak and reads in peak
-    // or user user predefined peaks
-    //
-    ATAC_PEAK(// TODO, add TSS heatmap plot, add QC report
-        PAIRTOOLS_PAIRE.out.validpair,
-        PREPARE_GENOME.out.chrom_sizes,
-        PREPARE_GENOME.out.gsize,
-        PREPARE_GENOME.out.gtf,
-        params.method,
-        params.anchor_peaks,
-        ch_anchor_peaks,
-        params.short_bed_postfix
-    )
-    ch_versions = ch_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
-    ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
 
     //
     // calling compartments
@@ -418,33 +468,15 @@ workflow HICAR {
     //
     if(!params.skip_interactions){
         INTERACTIONS(
-            // 1D peaks
-            ATAC_PEAK.out.reads,                               // [ meta, [bedgraph] ] cooler dump ATAC reads for each group
-            ATAC_PEAK.out.mergedpeak,                          // [ peaks ] merged bed file
-            // 2D signals
-            COOLER.out.bedpe,                                  // [ val(meta), [bedpe] ] merged intra_chromosome and tnter_chromosome reads for group
-            ch_loop_additional,                                // [ val(meta), [tagdir] ], additional inputs
-            // reference
-            PREPARE_GENOME.out.fasta,                          // [ genome fa ]
-            PREPARE_GENOME.out.chrom_sizes,                    // [ chromsizes ]
-            PREPARE_GENOME.out.mappability,                    // [ bigwig file ]
-            PREPARE_GENOME.out.site,                           // values: eg. 'GATC 1'
-            PREPARE_GENOME.out.ucscname,                       // values: eg. 'hg38'
-            // resolutions
-            cool_bin,                                          // values: bin size, 5000, 10000
-            // source
-            ch_merge_map_py_source,
-            ch_feature_frag2bin_source,
-            ch_make_maps_runfile_source,
-            // other constant values
-            params.long_bedpe_postfix,
-            params.short_bed_postfix,
-            params.maps_3d_ext
+            ch_loop_matrix,
+            ch_loop_1d_peak,
+            ch_loop_additional
         )
         ch_versions = ch_versions.mix(INTERACTIONS.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(INTERACTIONS.out.mqc.collect().ifEmpty([]))
         ch_annotation_files = ch_annotation_files.mix(INTERACTIONS.out.anno)
         ch_circos_files = ch_circos_files.mix(INTERACTIONS.out.circos)
+        ch_de_files = ch_de_files.mix(INTERACTIONS.out.loops)
     }
 
     //
@@ -453,8 +485,8 @@ workflow HICAR {
     if(!params.skip_apa){
         ch_apa_peak = params.apa_peak ? Channel.fromPath( params.apa_peak, checkIfExists: true ) : ATAC_PEAK.out.mergedpeak
         if(params.apa_tool=='juicebox'){
-            ch_apa_additional = ch_apa_additional.combine(INTERACTIONS.out.mergedloops)
-            ch_apa_additional.view()
+            ch_apa_additional = ch_apa_additional.combine(INTERACTIONS.out.mergedloops).unique()
+            //ch_apa_additional.view()
         }
         APA(
             ch_apa_matrix,
@@ -492,45 +524,22 @@ workflow HICAR {
     // Differential analysis
     //
     if(!params.skip_diff_analysis){
-        DA(INTERACTIONS.out.loops, COOLER.out.samplebedpe, params.long_bedpe_postfix)
+        if(params.da_tool=='hicexplorer'){
+            DA(
+                HICEXPLORER_CHICVIEWPOINT.out.interactions,
+                []
+            )
+        }else{
+            //ch_de_files.view()
+            DA(
+                ch_de_files,
+                COOLER.out.samplebedpe
+            )
+        }
         ch_versions = ch_versions.mix(DA.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(DA.out.mqc.collect().ifEmpty([]))
-        ch_annotation_files = ch_annotation_files.mix(DA.out.anno)
-
-      /*  if(ch_diffhicar){
-            DIFFHICAR(ch_diffhicar)
-            ch_versions = ch_versions.mix(DIFFHICAR.out.versions.ifEmpty(null))
-            ch_multiqc_files = ch_multiqc_files.mix(DIFFHICAR.out.stats.collect().ifEmpty([]))
-            //annotation
-            if(!params.skip_peak_annotation){
-                BIOC_CHIPPEAKANNO(DIFFHICAR.out.diff, PREPARE_GENOME.out.gtf)
-                ch_versions = ch_versions.mix(BIOC_CHIPPEAKANNO.out.versions.ifEmpty(null))
-                if(PREPARE_GENOME.out.ucscname && !params.skip_enrichment){
-                    BIOC_ENRICH(
-                        BIOC_CHIPPEAKANNO.out.anno.filter{it.size()>0},
-                        PREPARE_GENOME.out.ucscname)
-                    ch_versions = ch_versions.mix(BIOC_ENRICH.out.versions.ifEmpty(null))
-                }
-                if(!params.skip_virtual_4c){
-                    BIOC_CHIPPEAKANNO.out.csv
-                        .mix(COOLER.out.mcool
-                                .map{meta, mcool -> [meta.bin, mcool]}
-                                .groupTuple())
-                        .groupTuple()
-                        .filter{it.size()>2} //filter the sample without annotation table
-                        .map{bin, df -> [bin, df[0], df[1]]}
-                        .set{ch_trackviewer}
-                    //ch_trackviewer.view()
-                    BIOC_TRACKVIEWER(
-                        ch_trackviewer,
-                        PAIRTOOLS_PAIRE.out.hdf5.collect{it[1]},
-                        PREPARE_GENOME.out.gtf,
-                        PREPARE_GENOME.out.chrom_sizes,
-                        PREPARE_GENOME.out.digest_genome)
-                    ch_versions = ch_versions.mix(BIOC_TRACKVIEWER.out.versions.ifEmpty(null))
-                }
-            }
-        }*/
+        ch_annotation_files = ch_annotation_files.mix(DA.out.anno.map{[it[1], it[2]]})
+        ch_v4c_files = ch_v4c_files.mix(DA.out.anno.map{[it[0], it[2]]})
     }
 
     //
@@ -544,12 +553,48 @@ workflow HICAR {
     //
     // visualization: virtual_4c
     //
+    if(!params.skip_virtual_4c){
+        if(params.v4c_tool == 'hicexplorer'){
+            if(params.da_tool == 'hicexplorer'){
+                V4C(
+                    DA.out.diff,
+                    [],[],[],[]
+                )
+                ch_versions = ch_versions.mix(V4C.out.versions.ifEmpty(null))
+            }else{
+                // NOT applicable
+            }
+        }else{
+            //ch_v4c_files.view()
+            //COOLER.out.cool.view()
+            ch_v4c_files
+                .mix(
+                    COOLER.out.cool
+                        .map{
+                                meta, cool ->
+                                    [meta.bin, cool]}
+                        .groupTuple())
+                .groupTuple()
+                .filter{it[1].size()>1} // in case the ch_v4c files is empty
+                .map{bin, df -> [bin, df[0], df[1]]} // [bin, cool, bedpe]
+                .combine(ATAC_PEAK.out.mergedpeak)
+                .set{ch_v4c}
+            //ch_v4c.view()
+            V4C(
+                ch_v4c,
+                PAIRTOOLS_PAIRE.out.hdf5.collect{it[1]},
+                PREPARE_GENOME.out.gtf,
+                PREPARE_GENOME.out.chrom_sizes,
+                PREPARE_GENOME.out.digest_genome)
+            ch_versions = ch_versions.mix(V4C.out.versions.ifEmpty(null))
+        }
+    }
 
     //
     // visualization: circos
     //
-/*    ch_circos_files.view()
-    RUN_CIRCOS(
+    ch_circos_files.view()
+/*    RUN_CIRCOS(
         ch_circos_files,
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.chrom_sizes,
@@ -586,11 +631,6 @@ workflow HICAR {
     ch_versions = ch_versions.mix(MAPS_CIRCOS.out.versions.ifEmpty(null))
 */
 
-
-
-
-
-
     //
     // Create igv index.html file
     //
@@ -604,44 +644,6 @@ workflow HICAR {
     //igv_track_files.view()
     IGV(igv_track_files, PREPARE_GENOME.out.ucscname, RelativePublishFolder.getPublishedFolder(workflow, 'IGV'))
 
-/*
-    //
-    // Annotate the MAPS peak
-    //
-    if(!params.skip_peak_annotation){
-        INTERACTIONS.out.loops //[]
-            .map{meta, bin_size, peak -> [bin_size, peak]}
-            .filter{ it[1].readLines().size > 1 }
-            .groupTuple()
-            .set{ch_maps_anno}
-        BIOC_CHIPPEAKANNO_MAPS(ch_maps_anno, PREPARE_GENOME.out.gtf)
-        ch_versions = ch_versions.mix(BIOC_CHIPPEAKANNO_MAPS.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(BIOC_CHIPPEAKANNO_MAPS.out.png.collect().ifEmpty([]))
-        if(!params.skip_virtual_4c){
-            BIOC_CHIPPEAKANNO_MAPS.out.csv
-                .mix(
-                    COOLER.out.mcool
-                        .map{
-                                meta, mcool ->
-                                    [meta.bin, mcool]}
-                        .groupTuple())
-                .groupTuple()
-                .filter{it.size()>2} //filter the sample without annotation table
-                .map{bin, df -> [bin, df[0], df[1]]}
-                .set{ch_maps_trackviewer}
-            //ch_maps_trackviewer.view()
-            BIOC_TRACKVIEWER_MAPS(
-                ch_maps_trackviewer,
-                PAIRTOOLS_PAIRE.out.hdf5.collect{it[1]},
-                PREPARE_GENOME.out.gtf,
-                PREPARE_GENOME.out.chrom_sizes,
-                PREPARE_GENOME.out.digest_genome)
-            ch_versions = ch_versions.mix(BIOC_TRACKVIEWER_MAPS.out.versions.ifEmpty(null))
-        }
-    }
-
-
-*/
     //
     // MODULE: Pipeline reporting
     //

@@ -1,5 +1,7 @@
 //
 // Call interaction loops
+// input:
+// [[2D signals], [1D peaks], [additional_files]]
 // Ask all the output of each module must contain channel:
 // versions: [path]; interactions: [ meta, bin_size, [bedpe] ]
 // optional output: mqc: [path];
@@ -11,28 +13,9 @@ include { MERGE_INTERACTIONS } from '../../modules/local/bioc/merge_interactions
 
 workflow INTERACTIONS {
     take:
-    // 1D peaks
-    reads                           // [ meta, [bedgraph] ] cooler dump ATAC reads for each group
-    mergedpeak                      // [ peaks ] merged bed file
-    // 2D signals
-    bedpe                           // [ val(meta), [bedpe] ] merged intra_chromosome and inter_chromosome reads for group
-    tagdir                          // [ val(meta), [tagdir] ]
-    // reference
-    fasta                           // [ genome fa ]
-    chrom_sizes                     // [ chromsizes ]
-    mappability                     // [ bigwig file ]
-    site                            // values: eg. 'GATC 1'
-    genome                          // value: UCSC genome name: hg38, mm10 ...
-    // resolutions
-    bin_size                        // values: bin size, 5000, 10000
-    // source
-    merge_map_py_source             // scripts
-    feature_frag2bin_source         // scripts
-    make_maps_runfile_source        // scripts
-    // other constant values
-    long_bedpe_postfix              // values
-    short_bed_postfix               // values
-    maps_3d_ext                     // values
+    matrix
+    peaks
+    additional_param
 
     main:
     ch_versions             = Channel.empty()
@@ -45,20 +28,9 @@ workflow INTERACTIONS {
     switch(params.interactions_tool){
         case "maps":
             MAPS(
-                fasta,
-                chrom_sizes,
-                mappability,
-                bin_size,
-                site,
-                reads,
-                mergedpeak,
-                bedpe,
-                merge_map_py_source,
-                feature_frag2bin_source,
-                make_maps_runfile_source,
-                long_bedpe_postfix,
-                short_bed_postfix,
-                maps_3d_ext
+                matrix,
+                peaks,
+                additional_param
             )
             ch_loops = MAPS.out.interactions
             ch_versions = MAPS.out.versions
@@ -72,48 +44,15 @@ workflow INTERACTIONS {
             break
         case "hicdcplus":
             HICDCPLUS(
-                fasta,
-                chrom_sizes,
-                mappability,
-                bin_size,
-                site,
-                reads,
-                mergedpeak,
-                bedpe
+                matrix,
+                peaks,
+                additional_param
             )
             ch_loops = HICDCPLUS.out.interactions
             ch_versions = HICDCPLUS.out.versions
             ch_annotation_files = HICDCPLUS.out.interactions.map{
                 meta, bin_size, interactions -> [meta.id+bin_size, interactions]}
             ch_circos_files = HICDCPLUS.out.interactions.map{
-                meta, bin_size, bedpe ->
-                    meta.bin = bin_size
-                    [meta, bedpe]
-            }
-            break
-        default:
-            MAPS(
-                fasta,
-                chrom_sizes,
-                mappability,
-                bin_size,
-                site,
-                reads,
-                mergedpeak,
-                bedpe,
-                merge_map_py_source,
-                feature_frag2bin_source,
-                make_maps_runfile_source,
-                juicer_tools,
-                long_bedpe_postfix,
-                short_bed_postfix,
-                maps_3d_ext
-            )
-            ch_loops = MAPS.out.interactions
-            ch_versions = MAPS.out.versions
-            ch_annotation_files = MAPS.out.interactions.map{
-                meta, bin_size, interactions -> [meta.id+bin_size, interactions]}
-            ch_circos_files = MAPS.out.interactions.map{
                 meta, bin_size, bedpe ->
                     meta.bin = bin_size
                     [meta, bedpe]

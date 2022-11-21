@@ -54,14 +54,14 @@ workflow TADS {
             ch_circos_files = HOMER_TADS.out.tads
             break
         default:
-            HICEXPLORER_CALLTADS(
+            HICEXPLORER_TADS(
                 matrix,
                 resolution,
                 additional_param //chromsizes
             )
-            ch_tads = HICEXPLORER_CALLTADS.out.tads
-            ch_versions = HICEXPLORER_CALLTADS.out.versions
-            ch_circos_files = HICEXPLORER_CALLTADS.out.tads
+            ch_tads = HICEXPLORER_TADS.out.tads
+            ch_versions = HICEXPLORER_TADS.out.versions
+            ch_circos_files = HICEXPLORER_TADS.out.tads
             break
     }
 

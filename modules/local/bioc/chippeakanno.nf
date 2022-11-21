@@ -1,27 +1,27 @@
 process BIOC_CHIPPEAKANNO {
-    tag "$bin_size"
+    tag "$foldername"
     label 'process_medium'
-    label 'error_ignore'
+    //label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.26.0" : null)
+    conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.32.0" : null)
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' :
+        'quay.io/biocontainers/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' }"
 
     input:
-    tuple val(bin_size), path(diff)
+    tuple val(foldername), path(diff)
     path gtf
     val maps_3d_ext
 
     output:
-    tuple val(bin_size), path("${prefix}/anno/*"), emit: anno
-    tuple val(bin_size), path("${prefix}/anno/**.anno.csv"), emit: csv
+    tuple val(foldername), path("${prefix}/anno/*"), emit: anno
+    tuple val(foldername), path("${prefix}/anno/**.anno.csv"), emit: csv
     path "${prefix}/anno/*.png", optional:true, emit: png
     path "versions.yml"                       , emit: versions
 
     script:
-    prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "$foldername"
     """
     #!/usr/bin/env Rscript
 
@@ -46,7 +46,7 @@ process BIOC_CHIPPEAKANNO {
     pf <- file.path("${prefix}", "anno")
     bin_size <- "${prefix}"
 
-    detbl <- dir(".", "DEtable.*.csv|${maps_3d_ext}|peaks",
+    detbl <- dir(".", "DEtable.*.csv|${maps_3d_ext}|peaks|bedpe|bed",
                 recursive = TRUE, full.names = TRUE)
     detbl <- detbl[!grepl("anno.csv", detbl)] ## in case of re-run
 
@@ -78,7 +78,16 @@ process BIOC_CHIPPEAKANNO {
             if(grepl("peaks\$", det)){
                 DB <- read.table(det, header=TRUE)
             }else{
-                DB <- read.delim(det)
+            header <- read.table(det, header=FALSE, nrow=1)
+            hasHeader <- all(c("chr1", "start1", "end1",
+                                "chr2", "start2", "end2") %in%
+                                header[1, , drop=TRUE])
+            DB <- read.table(det, header = hasHeader,
+                                stringsAsFactors = FALSE)
+            if(!hasHeader){
+              colnames(DB)[1:6] <- c("chr1", "start1", "end1",
+                                    "chr2", "start2", "end2")
+            }
             }
         }
         if(nrow(DB)<1) next
@@ -98,7 +107,7 @@ process BIOC_CHIPPEAKANNO {
                                         FeatureLocForDistance = "TSS",
                                         ignore.strand = TRUE)
         if(length(id2symbol)>0) DB.anno2\$symbol[!is.na(DB.anno2\$feature)] <- id2symbol[DB.anno2\$feature[!is.na(DB.anno2\$feature)]]
-        groupName <- sub("${maps_3d_ext}|csv", "", basename(det))
+        groupName <- sub(".(${maps_3d_ext}|csv|bedpe|txt)", "", basename(det))
         if(grepl("padj", det)){
             resList[[groupName]] <- c(DB.anno1, DB.anno2)
         }else{
@@ -113,7 +122,7 @@ process BIOC_CHIPPEAKANNO {
         DB.anno <- merge(DB.anno1, DB.anno2, by="peak",
                         suffixes = c(".anchor1",".anchor2"))
         DB <- cbind(DB[DB.anno\$peak, ], DB.anno)
-        pff <- file.path(pf, sub(".(csv|bedpe|peaks)", ".anno.csv", det))
+        pff <- file.path(pf, sub(".(csv|bedpe|peaks|txt)", ".anno.csv", det))
         dir.create(dirname(pff), recursive = TRUE, showWarnings = FALSE)
         write.csv(DB, pff, row.names = FALSE)
     }

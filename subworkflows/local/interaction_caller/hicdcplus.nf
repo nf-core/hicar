@@ -7,14 +7,14 @@ include { HICDCPLUS_CALLLOOPS            } from '../../../modules/local/hicdcplu
 
 workflow HICDCPLUS {
     take:
-    fasta                           // [ genome fa ]
-    chrom_sizes                     // [ chromsizes ]
-    mappability                     // [ bigwig file ]
-    bin_size                        // values: bin size, 5000, 10000
-    site                            // values: eg. 'GATC 1'
-    reads                           // [ meta, [bedgraph] ] cooler dump reads for each group
-    mergedpeak                      // [ peaks ] merged bed file
     bedpe                           // [ val(meta), [bedpe] ] merged intra_chromosome reads for group
+    reads                           // [ meta, [bedgraph] ] cooler dump reads for each group
+    additional_param                // [
+                                    //    0 values: site, eg. 'GATC 1'
+                                    //    1 [ genome fa ],
+                                    //    2 [ chromsizes ],
+                                    //    3 [ mappability bigwig ],
+                                    // ]
 
     main:
     ch_multiqc_files = Channel.empty()
@@ -22,16 +22,17 @@ workflow HICDCPLUS {
 
     // generate features
     ch_versions = HICDCPLUS_FEATURES(
-                    bin_size.combine(site)
-                        .combine(fasta)
-                        .combine(chrom_sizes)
-                        .combine(mappability)
+                    bedpe.map{[ it[0].bin ]} // bin_size
+                        .unique() // unique the bin_size
+                        .combine(additional_param)
                     ).versions
     // call loops
-    ch_reads = reads.combine(HICDCPLUS_FEATURES.out.features).map{[[id:it[0].id, bin:it[2]], it[1], it[3]]}
+    ch_reads = reads.combine(HICDCPLUS_FEATURES.out.features)
+                                    .map{[[id:it[0].id, bin:it[2]],
+                                        it[1], it[3]]}
         .combine(bedpe, by: 0)
-    ch_reads.view()
-    ch_loop = HICDCPLUS_CALLLOOPS(ch_reads, chrom_sizes).interactions
+    //ch_reads.view()
+    ch_loop = HICDCPLUS_CALLLOOPS(ch_reads.combine(additional_param.map{[it[2]]})).interactions
     ch_versions = ch_versions.mix(HICDCPLUS_CALLLOOPS.out.versions.ifEmpty([]))
 
     emit:

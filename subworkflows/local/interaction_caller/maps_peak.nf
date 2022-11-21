@@ -18,16 +18,12 @@ workflow MAPS_PEAK {
     reads                     // channel: [ meta, bin_size, path(macs2), path(long_bedpe), path(short_bed), path(background) ]
     make_maps_runfile_source  // channel: [ file make_maps_runfile_source ]
     chromsizes                // channel: [ path(chromsizes) ]
-    juicer_jvm_params         // values
-    long_bedpe_postfix        // values
-    short_bed_postfix         // values
-    maps_3d_ext               // values
 
     main:
     //create parameter table
     //input=val(meta), val(bin_size), path(macs2), path(long_bedpe), path(short_bed), path(background)
     //maps from bedpe
-    ch_version = MAPS_MAPS(reads, make_maps_runfile_source, long_bedpe_postfix, short_bed_postfix).versions
+    ch_version = MAPS_MAPS(reads, make_maps_runfile_source, params.long_bedpe_postfix, params.short_bed_postfix).versions
     //regression and peak calling
     peak = MAPS_CALLPEAK(MAPS_MAPS.out.maps).peak
     ch_version = ch_version.mix(MAPS_CALLPEAK.out.versions)
@@ -50,7 +46,7 @@ workflow MAPS_PEAK {
     }
 
     //peak formatting
-    MAPS_REFORMAT(peak, maps_3d_ext)
+    MAPS_REFORMAT(peak, params.maps_3d_ext)
     ch_version = ch_version.mix(MAPS_REFORMAT.out.versions)
     //merge stats
     MAPS_STATS(MAPS_CALLPEAK.out.summary.map{it[2]}.collect())

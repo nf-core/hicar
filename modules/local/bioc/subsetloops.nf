@@ -13,7 +13,8 @@ process BIOC_SUBSETLOOPS {
     tuple val(bin_size), path(mergedloops)
 
     output:
-    tuple val(bin_size), path("${prefix}*")             , emit: loops
+    tuple val(bin_size), path("sub_loop/${prefix}*")    , emit: loops
+    tuple val(bin_size), path("sub_peak/${prefix}*")    , emit: bed
     path "versions.yml"                                 , emit: versions
 
     script:
@@ -44,7 +45,7 @@ process BIOC_SUBSETLOOPS {
     data <- lapply(inf, import, format="BEDPE")
     seqstyle1 <- seqlevelsStyle(peaks)
     seqstyle2 <- seqlevelsStyle(first(data[[1]]))
-    if(seqstyle1[1]!=seqstyle2[2]){
+    if(length(intersect(seqstyle1, seqstyle2))==0){
         seqlevelsStyle(peaks) <- seqstyle2[1]
     }
     data <- lapply(data, function(.ele){
@@ -53,6 +54,18 @@ process BIOC_SUBSETLOOPS {
         .ele[keep]
     })
 
-    mapply(export, data, ext, format="BEDPE")
+    dir.create("sub_loop")
+    mapply(export, data, file.path("sub_loop", ext), format="BEDPE")
+
+    data2 <- lapply(data, function(.ele){
+        keep <- countOverlaps(query=peaks, subject=first(.ele), ignore.strand=TRUE) > 0 |
+            countOverlaps(query=peaks, subject=second(.ele), ignore.strand=TRUE) > 0
+        peaks[keep]
+    })
+
+    dir.create("sub_peak")
+    mapply(export, data2,
+        file.path("sub_peak", paste0(ext, ".bed")),
+        format="BED")
     """
 }

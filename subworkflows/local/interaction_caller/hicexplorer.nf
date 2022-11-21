@@ -2,21 +2,19 @@
  * Call interaction peaks by HiCExplorer, current not proper
  */
 
-include { HICEXPLORER_HICDETECTLOOPS      } from '../../../modules/local/hicexplorer/hicdetectloops'
+include { HICEXPLORER_CHICSIGNIFICANTINTERACTIONS      } from '../../../modules/local/hicexplorer/chicsignificantinteractions'
+
 
 workflow HICEXPLORER_INTERACTIONS {
     take:
-    matrix                          // [ meta, [matrix] ] corrected matrix file
+    matrix                          // [ bin_size, [cool] ] corrected matrix file
 
     main:
     ch_multiqc_files = Channel.empty()
     ch_loop = Channel.empty()
     ch_versions = Channel.empty()
 
-    // call interactions
-    ch_loop = HICEXPLORER_HICDETECTLOOPS(matrix).bedpe
-    ch_versions = HICEXPLORER_HICDETECTLOOPS.out.versions
-
+    ch_versions = HICEXPLORER_CHICSIGNIFICANTINTERACTIONS(matrix).versions
 
     emit:
     interactions = ch_loop                      // channel: [ meta, bin_size, path(bedpe) ]
