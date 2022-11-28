@@ -20,7 +20,7 @@ process CIRCOS {
     script:
     """
     circos
-    mv circos.png ${meta.id}.png
+    mv circos.png ${meta.id}_${meta.bin}.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

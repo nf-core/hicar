@@ -107,17 +107,17 @@ process BIOC_TRACKVIEWER {
         evts <- dir(".", ".bedpe\$", full.names = TRUE, recursive = TRUE)
         if(length(evts)<1) stop("No events file.")
         header <- lapply(evts, read.delim, header=FALSE, nrow=1)
-        peaks <- mapply(evts, header, FUN=function(f, h){
-        hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
-                           h[1, , drop=TRUE])
-        .ele <- read.delim(f, header = hasHeader)
-        if(!hasHeader){
-          colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")
-          ## bedpe, [start, end)
-          .ele\$start1 <- .ele\$start1+1
-          .ele\$start2 <- .ele\$start2+1
-        }
-        .ele
+        evts <- mapply(evts, header, FUN=function(f, h){
+            hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
+                               h[1, , drop=TRUE])
+            .ele <- read.delim(f, header = hasHeader)
+            if(!hasHeader){
+                colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")
+                ## bedpe, [start, end)
+                .ele\$start1 <- .ele\$start1+1
+                .ele\$start2 <- .ele\$start2+1
+            }
+            .ele
         }, SIMPLIFY = FALSE)
         evts <- do.call(rbind, evts)
     }

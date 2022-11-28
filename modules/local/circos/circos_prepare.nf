@@ -35,11 +35,10 @@ process CIRCOS_PREPARE {
     writeLines(versions, "versions.yml")
 
     ## Options
-    ## make_option(c("-i", "--interaction"), type="character", default=NULL, help="interaction bedpe file", metavar="string")
+    ## make_option(c("-i", "--interactions"), type="character", default=NULL, help="interaction bedpe file", metavar="string")
     ## make_option(c("-g", "--gtf"), type="character", default=NULL, help="annotation gtf file", metavar="string")
     ## make_option(c("-c", "--chromsize"), type="character", default=NULL, help="filename of chromosome size", metavar="string")
     ## make_option(c("-u", "--ucscname"), type="character", default=NULL, help="ucsc annotation name", metavar="string")
-    interaction <- "$bedpe"
     chromsize <- "$chromsize"
     gtf <- "$gtf"
     ucscname <- "$ucscname"
@@ -67,58 +66,6 @@ process CIRCOS_PREPARE {
         totalLinks <- opt[["totalLinks"]]
     }
 
-    dir.create(outfolder, showWarnings = FALSE)
-
-    headerline <- readLines(interaction, n=1)
-    if(grepl("start1", headerline[1])){
-        ## output from MAPS
-        pe <- read.delim(interaction)
-        pe <- Pairs(GRanges(pe[, "chr1"], IRanges(pe[, "start1"]+1, pe[, "end1"])),
-                    GRanges(pe[, "chr2"], IRanges(pe[, "start2"]+1, pe[, "end2"])),
-                    score = pe[, "ClusterNegLog10P"])
-    }else{
-        pe <- import(interaction, format="BEDPE")
-    }
-    seqlevelsStyle(first(pe)) <- seqlevelsStyle(second(pe)) <- "UCSC"
-    pes <- unique(pe[order(mcols(pe)\$score, decreasing=TRUE)])
-    pes_cis <- pes[seqnames(first(pe))==seqnames(second(pe))]
-    pes_trans <- pes[seqnames(first(pe))!=seqnames(second(pe))]
-    if(length(pes_cis)>0){ # keep top events for plot, default 24K
-        pes <- pes_cis[seq.int(min(totalLinks, length(pes_cis)))]
-    }else{
-        stop("No data available for plot")
-    }
-    if(length(pes_trans)>0){
-        ## keep top 24K links only. otherwise hard to plot.
-        pes <- sort(c(pes[seq.int(min(floor(totalLinks/2), length(pes_trans)))],
-                    pes_trans[seq.int(min(floor(totalLinks/2), length(pes_trans)))]))
-    }
-    out <- as.data.frame(pes)
-    scores <- sqrt(range(mcols(pe)\$score)/10)
-    scores <- c(floor(scores[1]), ceiling(scores[2]))
-    cid <- cut(sqrt(mcols(pes)\$score/10), breaks = seq(scores[1], scores[2]))
-    levels(cid) <- seq_along(levels(cid))
-    out <- cbind(out[, c("first.seqnames", "first.start", "first.end",
-                        "second.seqnames", "second.start", "second.end")],
-                thickness=paste0("thickness=", cid))
-
-    write.table(out, file.path(outfolder, "link.txt"),
-        quote=FALSE, col.names=FALSE, row.names=FALSE,
-        sep=" ") ## output cis- and trans- interactions
-
-    ## create karyotype file
-    chromsize <- read.delim(chromsize, header=FALSE)
-    chromsize[, 1] <- as.character(chromsize[, 1])
-    seqlevelsStyle(chromsize[, 1]) <- "UCSC"
-    chromsize <- cbind("chr", "-", chromsize[, c(1, 1)], 0, chromsize[, 2],
-                        paste0("chr", sub("^chr", "", chromsize[, 1])))
-    colnames(chromsize) <- c("chr", "-", "chrname", "chrlabel",
-                            0, "chrlen", "chrcolor")
-    chromsize <- chromsize[order(as.numeric(sub("chr", "", chromsize[, "chrname"])),
-                            chromsize[, "chrname"]), , drop=FALSE]
-    write.table(chromsize, file.path(outfolder, "karyotype.tab"),
-                quote=FALSE, col.names=FALSE, row.names=FALSE, sep=" ")
-
     getScore <- function(seql, rg){
         gtile <- tileGenome(seqlengths = seql, tilewidth = 1e5)
         gtile <- unlist(gtile)
@@ -133,19 +80,81 @@ process CIRCOS_PREPARE {
         gtile\$score <- unlist(vm, use.names = FALSE)
         gtile
     }
+    dir.create(outfolder, showWarnings = FALSE)
+    interaction <- dir(".", pattern = ".bedpe", ignore.case = TRUE)
+    try({
+        headerline <- readLines(interaction[1], n=1)
+        if(grepl("start1", headerline[1])){
+            ## output from MAPS
+            pe <- read.delim(interaction)
+            pe <- Pairs(GRanges(pe[, "chr1"], IRanges(pe[, "start1"]+1, pe[, "end1"])),
+                        GRanges(pe[, "chr2"], IRanges(pe[, "start2"]+1, pe[, "end2"])),
+                        score = pe[, "ClusterNegLog10P"])
+        }else{
+            pe <- import(interaction, format="BEDPE")
+        }
+        seqlevelsStyle(first(pe)) <- seqlevelsStyle(second(pe)) <- "UCSC"
+        pes <- unique(pe[order(mcols(pe)\$score, decreasing=TRUE)])
+        pes_cis <- pes[seqnames(first(pe))==seqnames(second(pe))]
+        pes_trans <- pes[seqnames(first(pe))!=seqnames(second(pe))]
+        if(length(pes_cis)>0){ # keep top events for plot, default 24K
+            pes <- pes_cis[seq.int(min(totalLinks, length(pes_cis)))]
+        }else{
+            stop("No data available for plot")
+        }
+        if(length(pes_trans)>0){
+            ## keep top 24K links only. otherwise hard to plot.
+            pes <- sort(c(pes[seq.int(min(floor(totalLinks/2), length(pes_trans)))],
+                        pes_trans[seq.int(min(floor(totalLinks/2), length(pes_trans)))]))
+        }
+        out <- as.data.frame(pes)
+        scores <- sqrt(range(mcols(pe)\$score)/10)
+        scores <- c(floor(scores[1]), ceiling(scores[2]))
+        cid <- cut(sqrt(mcols(pes)\$score/10), breaks = seq(scores[1], scores[2]))
+        levels(cid) <- seq_along(levels(cid))
+        out <- cbind(out[, c("first.seqnames", "first.start", "first.end",
+                            "second.seqnames", "second.start", "second.end")],
+                    thickness=paste0("thickness=", cid))
+
+        write.table(out, file.path(outfolder, "link.txt"),
+            quote=FALSE, col.names=FALSE, row.names=FALSE,
+            sep=" ") ## output cis- and trans- interactions
+    })
+    bedfile <- dir(".", pattern = ".(bed|txt)\$", ignore.case = TRUE)
+    labelAname <- "TBD"
+    try({
+        labelAname <- sub(".(bed|txt)\$", "", basename(bedfile)[1], ignore.case = TRUE)
+        rg <- import(bedfile[1], format='bed')
+        seqlevelsStyle(rg) <- "UCSC"
+        rg <- as.data.frame(rg)
+        if(all(rg\$score<0)){
+            rg\$score <- -1*rg\$score
+        }
+        rg <- rg[, c("seqnames", "start", "end", "score"), drop=FALSE]
+        write.table(rg, file.path(outfolder, "hist.link.txt"),
+                    quote=FALSE, col.names=FALSE, row.names=FALSE,
+                    sep=" ")
+    })
+
+    ## create karyotype file
+    chromsize <- read.delim(chromsize, header=FALSE)
+    chromsize[, 1] <- as.character(chromsize[, 1])
+    seqlevelsStyle(chromsize[, 1]) <- "UCSC"
+    chromsize <- cbind("chr", "-", chromsize[, c(1, 1)], 0, chromsize[, 2],
+                        paste0("chr", sub("^chr", "", chromsize[, 1])))
+    colnames(chromsize) <- c("chr", "-", "chrname", "chrlabel",
+                            0, "chrlen", "chrcolor")
+    chromsize <- chromsize[order(as.numeric(sub("chr", "", chromsize[, "chrname"])),
+                            chromsize[, "chrname"]), , drop=FALSE]
+    write.table(chromsize, file.path(outfolder, "karyotype.tab"),
+                quote=FALSE, col.names=FALSE, row.names=FALSE, sep=" ")
+
     ## create link desity file
-    rg <- coverage(c(first(pe), second(pe)))
+    seqn <- sort(as.character(unique(chromsize\$chrname)))[1]
     seql <- chromsize\$chrlen
     names(seql) <- chromsize\$chrname
-    gtile <- getScore(seql, rg)
-    rg <- as.data.frame(gtile)
-    rg <- rg[rg\$score>0, c("seqnames", "start", "end", "score"), drop=FALSE]
-    write.table(rg, file.path(outfolder, "hist.link.txt"),
-                quote=FALSE, col.names=FALSE, row.names=FALSE,
-                sep=" ")
-    seqn <- sort(as.character(unique(rg\$seqnames)))[1]
     labelA <- labelB <- c(seqn, 0, 5000)
-    labelA <- c(labelA, "interaction-density")
+    labelA <- c(labelA, labelAname)
     labelB <- c(labelB, "exon-density")
     writeLines(labelA, file.path(outfolder, "labelA.txt"), sep=" ")
     writeLines(labelB, file.path(outfolder, "labelB.txt"), sep=" ")

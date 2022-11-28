@@ -12,9 +12,8 @@ workflow COOLTOOLS_COMPARTMENTS {
 
     main:
     COOLTOOLS_EIGSCIS(
-        maxtix,
-        resolution,
-        additional_param,
+        maxtix.combine(additional_param),
+        resolution
     )
     ch_version = COOLTOOLS_EIGSCIS.out.versions.ifEmpty(null)
 

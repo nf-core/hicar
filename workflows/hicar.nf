@@ -395,25 +395,27 @@ workflow HICAR {
         HOMER_INSTALL(
             PREPARE_GENOME.out.ucscname
         )
-        HOMER_MAKETAGDIRECTORY(
-            PAIRTOOLS_PAIRE.out.homerpair,
-            PREPARE_GENOME.out.fasta.combine(HOMER_INSTALL.out.output).map{it[0]} // force wait Homer install done
-        )
-        if(params.interactions_tool == 'homer'){
-            ch_loop_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
+        if(HOMER_INSTALL.out.output){// force wait Homer install done
+            HOMER_MAKETAGDIRECTORY(
+                PAIRTOOLS_PAIRE.out.homerpair,
+                PREPARE_GENOME.out.fasta
+            )
+            if(params.interactions_tool == 'homer'){
+                ch_loop_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
+            }
+            if(params.tad_tool == 'homer'){
+                ch_tad_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
+                ch_tad_additional = PREPARE_GENOME.out.ucscname // values: eg. 'hg38'
+            }
+            if(params.compartments_tool == 'homer'){
+                ch_comp_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
+                ch_comp_additional = PREPARE_GENOME.out.ucscname
+            }
+            if(params.apa_tool == 'homer'){
+                ch_apa_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
+            }
+            ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
         }
-        if(params.tad_tool == 'homer'){
-            ch_tad_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
-            ch_tad_additional = PREPARE_GENOME.out.ucscname // values: eg. 'hg38'
-        }
-        if(params.compartments_tool == 'homer'){
-            ch_comp_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
-            ch_comp_additional = PREPARE_GENOME.out.ucscname
-        }
-        if(params.apa_tool == 'homer'){
-            ch_apa_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
-        }
-        ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
     }
 
     //
@@ -446,7 +448,7 @@ workflow HICAR {
         )
         ch_versions = ch_versions.mix(COMPARTMENTS.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect().ifEmpty([]))
-        ch_circos_files = ch_circos_files.mix(COMPARTMENTS.out.circos)
+        //ch_circos_files = ch_circos_files.mix(COMPARTMENTS.out.circos)
     }
 
     //
@@ -567,9 +569,14 @@ workflow HICAR {
         }else{
             //ch_v4c_files.view()
             //COOLER.out.cool.view()
+            if(params.v4c_tool=='trackviewer'){
+                ch_cooler_for_v4c = COOLER.out.mcool
+            }else{
+                ch_cooler_for_v4c = COOLER.out.cool
+            }
             ch_v4c_files
                 .mix(
-                    COOLER.out.cool
+                    ch_cooler_for_v4c
                         .map{
                                 meta, cool ->
                                     [meta.bin, cool]}
@@ -593,16 +600,16 @@ workflow HICAR {
     //
     // visualization: circos
     //
-    ch_circos_files.view()
-/*    RUN_CIRCOS(
-        ch_circos_files,
+    ch_circos_files.groupTuple().view()
+    RUN_CIRCOS(
+        ch_circos_files.groupTuple(),
         PREPARE_GENOME.out.gtf,
         PREPARE_GENOME.out.chrom_sizes,
         PREPARE_GENOME.out.ucscname,
         ch_circos_config
     )
     ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))
-*/
+
     //
     // visualization: IGV
     //

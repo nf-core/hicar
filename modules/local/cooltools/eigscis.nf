@@ -9,9 +9,8 @@ process COOLTOOLS_EIGSCIS {
         'quay.io/biocontainers/mulled-v2-c81d8d6b6acf4714ffaae1a274527a41958443f6:cc7ea58b8cefc76bed985dcfe261cb276ed9e0cf-0' }"
 
     input:
-    tuple val(meta), path(mcool)
+    tuple val(meta), path(mcool), path(fasta), path(chromsizes)
     val resolution
-    tuple path(fasta), path(chromsizes)
 
     output:
     tuple val(meta), path("*compartments*")         , emit: results
