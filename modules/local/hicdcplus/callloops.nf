@@ -107,13 +107,16 @@ process HICDCPLUS_CALLLOOPS {
     # add counts
     ## re-arrange the pairs to a fake hic-pro validatedpair file
     for(allvalidpairs_path in allvalidpairs_paths){
-        allvalidpairs <- data.table::fread(allvalidpairs_path, sep = "\\t", header = FALSE, stringsAsFactors = FALSE)
-        allvalidpairs <- allvalidpairs[rep(seq.int(nrow(allvalidpairs)), as.numeric(allvalidpairs\$V7)),  drop=FALSE]
-        allvalidpairs <- cbind('.', allvalidpairs[, 1], rowMeans(allvalidpairs[, 2:3]), '.', allvalidpairs[, 4], rowMeans(allvalidpairs[, 5:6]))
-        data.table::fwrite(allvalidpairs, 'tmp.txt', sep = '\\t', col.names = FALSE, row.names = FALSE)
-        gi_list <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path="tmp.txt")
-        unlink("tmp.txt")
+        line1 <- data.table::fread(allvalidpairs_path, sep = "\\t", header = FALSE, stringsAsFactors = FALSE, nrows=1)
+	      if(line1[[1]]==line1[[4]]){
+            allvalidpairs <- data.table::fread(allvalidpairs_path, sep = "\\t", header = FALSE, stringsAsFactors = FALSE)
+            allvalidpairs <- allvalidpairs[rep(seq.int(nrow(allvalidpairs)), as.numeric(allvalidpairs\$V7)),  drop=FALSE]
+            allvalidpairs <- cbind('.', allvalidpairs[, 1], rowMeans(allvalidpairs[, 2:3]), '.', allvalidpairs[, 4], rowMeans(allvalidpairs[, 5:6]))
+            data.table::fwrite(allvalidpairs, 'tmp.txt', sep = '\\t', col.names = FALSE, row.names = FALSE, append = TRUE)
+        }
     }
+    gi_list <- add_hicpro_allvalidpairs_counts(gi_list, allvalidpairs_path="tmp.txt")
+    unlink("tmp.txt")
     #expand features for modeling
     gi_list <- expand_1D_features(gi_list)
     #run HiC-DC+
