@@ -52,7 +52,8 @@ def checkToolsUsedInDownstream(tool, params){
         params.compartments_tool == tool ||
         params.apa_tool == tool ||
         params.da_tool == tool ||
-        params.v4c_tool == tool
+        params.v4c_tool == tool ||
+        params.tfea_tool == tool
     )
 }
 
@@ -119,6 +120,7 @@ include { INTERACTIONS } from '../subworkflows/local/interactions'
 include { HIPEAK } from '../subworkflows/local/hipeak'
 include { DA } from '../subworkflows/local/differential_analysis'
 include { V4C } from '../subworkflows/local/v4c'
+include { TFEA } from '../subworkflows/local/tfea'
 
 include { RUN_CIRCOS } from '../subworkflows/local/circos'
 include { RUN_CIRCOS as MAPS_CIRCOS } from '../subworkflows/local/circos'
@@ -163,10 +165,12 @@ workflow HICAR {
     ch_apa_matrix       = Channel.empty() // matrix for apa analysis
     ch_tad_matrix       = Channel.empty() // matrix for tad analysis
     ch_comp_matrix      = Channel.empty() // matrix for compartment calling
+    ch_tfea_bed         = Channel.empty() // peaks for TFEA
     ch_loop_additional  = Channel.empty() // additional inputs for interaction/loops calling
     ch_apa_additional   = Channel.empty() // additional inputs for apa
     ch_tad_additional   = Channel.empty() // additional inputs for tad
     ch_comp_additional  = Channel.empty() // additional inputs for A/B compartments
+    ch_tfea_additional  = Channel.empty() // additional inputs for TFEA
 
     ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_config)
     ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
@@ -307,6 +311,7 @@ workflow HICAR {
     )
     ch_versions = ch_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
     ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
+    ch_tfea_bed = ATAC_PEAK.out.peak.map{[it[0], 'R2', it[1]]}
 
     //
     // prepare for MAPS
@@ -414,6 +419,9 @@ workflow HICAR {
             if(params.apa_tool == 'homer'){
                 ch_apa_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
             }
+            if(params.tfea_tool == 'homer'){
+                ch_tfea_additional = PREPARE_GENOME.out.ucscname
+            }
             ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
         }
     }
@@ -520,6 +528,7 @@ workflow HICAR {
         )
         ch_versions = ch_versions.mix(HIPEAK.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(HIPEAK.out.mqc.collect().ifEmpty([]))
+        ch_tfea_bed = ch_tfea_bed.mix(HIPEAK.out.fragmentPeak.map{[it[0], 'R1', it[1]]})
     }
 
     //
@@ -542,6 +551,24 @@ workflow HICAR {
         ch_multiqc_files = ch_multiqc_files.mix(DA.out.mqc.collect().ifEmpty([]))
         ch_annotation_files = ch_annotation_files.mix(DA.out.anno.map{[it[1], it[2]]})
         ch_v4c_files = ch_v4c_files.mix(DA.out.anno.map{[it[0], it[2]]})
+    }
+
+    //
+    // Motif analysis: for R2 reads and R1 reads
+    //
+    if(!params.skip_tfea){
+        if(params.tfea_tool=='atacseqtfea'){
+            ch_tfea_bed = ch_tfea_bed.map{[[id:it[1]], it[2]]}.groupTuple(by:0)
+                            .combine(
+                                SAMTOOLS_MERGE.out.bam
+                                        .map{[it[1]]}
+                                        .collect().toList())
+            ch_tfea_additional = PREPARE_GENOME.out.ucscname
+                                    .combine(PREPARE_GENOME.out.fasta)
+                                    .combine(PREPARE_GENOME.out.gtf)
+        }
+        TFEA(ch_tfea_bed, ch_tfea_additional)
+        ch_versions = ch_versions.mix(TFEA.out.versions.ifEmpty(null))
     }
 
     //
@@ -600,7 +627,7 @@ workflow HICAR {
     //
     // visualization: circos
     //
-    ch_circos_files.groupTuple().view()
+    //ch_circos_files.groupTuple().view()
     RUN_CIRCOS(
         ch_circos_files.groupTuple(),
         PREPARE_GENOME.out.gtf,

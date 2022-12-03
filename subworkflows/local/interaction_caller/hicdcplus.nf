@@ -27,13 +27,10 @@ workflow HICDCPLUS {
                         .combine(additional_param)
                     ).versions
     // call loops
-    reads.view()
-    HICDCPLUS_FEATURES.out.features.view()
     ch_reads = reads.combine(HICDCPLUS_FEATURES.out.features)
                                     .map{[[id:it[0].id, bin:it[2]],
                                         it[1], it[3]]}
         .combine(bedpe, by: 0)
-    ch_reads.view()
     ch_loop = HICDCPLUS_CALLLOOPS(ch_reads.combine(additional_param.map{[it[2]]})).interactions
     ch_versions = ch_versions.mix(HICDCPLUS_CALLLOOPS.out.versions.ifEmpty([]))
 

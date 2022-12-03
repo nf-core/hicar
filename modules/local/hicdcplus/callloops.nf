@@ -104,6 +104,11 @@ process HICDCPLUS_CALLLOOPS {
         return(gi_list)
     }
     gi_list <- generate_binned_gi_list(binsize, names(seqlen), Dthreshold, seqlen)
+    ## filter the list to avoid the fitting error
+    gi_list_D <- vapply(gi_list, function(.ele){
+        sum(mcols(.ele)[["D"]]>0)>1
+    }, logical(1L))
+    gi_list <- gi_list[gi_list_D]
     # add counts
     ## re-arrange the pairs to a fake hic-pro validatedpair file
     for(allvalidpairs_path in allvalidpairs_paths){

@@ -156,13 +156,13 @@
                 },
                 "publish_mappability": {
                     "type": "boolean",
-                    "default": "false",
-                    "description": "publish mappability"
+                    "description": "publish mappability",
+                    "fa_icon": "fas fa-align-center"
                 },
                 "publish_genome": {
                     "type": "boolean",
-                    "default": "false",
-                    "description": "publish genome"
+                    "description": "publish genome",
+                    "fa_icon": "fas fa-dna"
                 }
             }
         },
@@ -369,7 +369,7 @@
                     "hidden": true,
                     "default": true
                 },
-                "hicdcplus_cutoff_fdr":{
+                "hicdcplus_cutoff_fdr": {
                     "type": "number",
                     "description": "FDR cutoff value",
                     "fa_icon": "fas fa-percent",
@@ -409,50 +409,77 @@
                     "type": "string",
                     "description": "The APA peak path",
                     "default": "Anchor 1D peaks",
-                    "hidden": false
+                    "hidden": false,
+                    "fa_icon": "fas fa-caret-up"
                 },
                 "apa_tool": {
                     "type": "string",
                     "default": "hicexploer",
-                    "description": "APA tool"
+                    "description": "APA tool",
+                    "fa_icon": "fab fa-adn"
                 },
                 "compartments_tool": {
                     "type": "string",
                     "default": "cooltools",
-                    "description": "Call compartment tool"
+                    "description": "Call compartment tool",
+                    "fa_icon": "fas fa-expand"
                 },
                 "interactions_tool": {
                     "type": "string",
                     "default": "maps",
-                    "description": "Call loops tool"
+                    "description": "Call loops tool",
+                    "fa_icon": "fab fa-airbnb"
                 },
                 "da_tool": {
                     "type": "string",
                     "default": "diffhic",
-                    "description": "Differential analysis tool. Possible options are edger, diffhic, and setOperation"
+                    "description": "Differential analysis tool. Possible options are edger, diffhic, and setOperation",
+                    "fa_icon": "fas fa-adjust"
+                },
+                "v4c_tool": {
+                    "type": "string",
+                    "default": "hicexplorer",
+                    "description": "virtual 4c tool",
+                    "fa_icon": "fas fa-mountain"
+                },
+                "tfea_tool": {
+                    "type": "string",
+                    "default": "homer",
+                    "fa_icon": "fas fa-infinity",
+                    "description": "Transcription Factor Enrichment Analysis tool"
                 },
                 "juicer_box_jar": {
                     "type": "string",
                     "default": "https://github.com/aidenlab/Juicebox/releases/download/v2.16.00/juicebox_2.16.00.jar",
-                    "description": "juicer_box jar file url"
+                    "description": "juicer_box jar file url",
+                    "fa_icon": "fab fa-java"
+                },
+                "peakinteractionsthreshold": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "parameter for HiCExplorer ChicSignificantinterations",
+                    "fa_icon": "fas fa-filter"
                 },
                 "maps_3d_ext": {
                     "type": "string",
                     "default": "sig3Dinteractions.pe.txt",
                     "hidden": true,
-                    "description": "extension file name for MAPS"
+                    "description": "extension file name for MAPS",
+                    "fa_icon": "far fa-file"
                 },
                 "long_bedpe_postfix": {
                     "type": "string",
                     "default": "long.bedpe",
                     "hidden": true,
-                    "description": "extension file name for long pairs"
+                    "description": "extension file name for long pairs",
+                    "fa_icon": "far fa-file"
                 },
                 "short_bed_postfix": {
                     "type": "string",
                     "default": "shrt.vip.bed",
                     "hidden": true,
-                    "description": "extension file name for short pairs"
+                    "description": "extension file name for short pairs",
+                    "fa_icon": "far fa-file"
                 }
             }
         },
@@ -577,7 +604,7 @@
         "max_job_request_options": {
             "title": "Max job request options",
             "type": "object",
-            "fa_icon": "fab fa-acquisitions-incorporated",
+            "fa_icon": "fas fa-server",
             "description": "Set the top limit for requested resources for any single job.",
             "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
             "properties": {
@@ -765,7 +792,8 @@
                 },
                 "skip_apa": {
                     "type": "boolean",
-                    "description": "skip APA or not"
+                    "description": "skip APA or not",
+                    "fa_icon": "far fa-times-circle"
                 },
                 "skip_compartments": {
                     "type": "boolean",
@@ -781,13 +809,24 @@
                 },
                 "skip_interactions": {
                     "type": "boolean",
-                    "description": "skip call interactions/loops"
+                    "description": "skip call interactions/loops",
+                    "fa_icon": "far fa-times-circle"
+                },
+                "skip_tfea": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-times-circle",
+                    "description": "skip Transcription Factor Enrichment Analysis"
                 },
                 "skip_virtual_4c": {
                     "type": "boolean",
                     "description": "create track files for virtual 4c or not",
                     "fa_icon": "fas fa-align-left",
                     "hidden": false
+                },
+                "skip_circos": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-times-circle",
+                    "description": "skip circos plot"
                 }
             }
         }

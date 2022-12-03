@@ -95,7 +95,7 @@ workflow ATAC_PEAK {
     mergedpeak = MERGE_PEAK.out.peak                  // channel: [ path(bed) ]
     stats      = ATACQC.out.stats                     // channel: [ path(csv) ]
     reads      = DUMP_READS.out.peak                  // channel: [ val(meta), path(bedgraph) ]
-    samplereads= DUMP_READS.out.peak                  // channel: [ val(meta), path(bedgraph) ]
+    samplereads= DUMP_READS_PER_SAMPLE.out.peak       // channel: [ val(meta), path(bedgraph) ]
     bws        = UCSC_BEDGRAPHTOBIGWIG_PER_GROUP.out.bigwig     // channel: [ val(meta), path(bigwig) ]
     versions   = ch_version                           // channel: [ path(version) ]
 }

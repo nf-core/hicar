@@ -67,17 +67,8 @@ workflow HIPEAK {
 
     ch_circos_files = HI_PEAK.out.bedpe
 
-/*    RUN_CIRCOS(
-        HI_PEAK.out.bedpe,
-        gtf,
-        chrom_sizes,
-        ucscname,
-        ch_circos_config
-    )
-    ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))*/
-
-
     emit:
+    fragmentPeak    = R1_PEAK.out.peak
     circos          = ch_circos_files
     igv             = ch_track_files
     anno            = ch_annotation_files
