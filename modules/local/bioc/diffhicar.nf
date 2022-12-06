@@ -15,6 +15,7 @@ process DIFFHICAR {
     output:
     tuple val(bin_size), path("${prefix}/*")               , emit: diff
     tuple val(bin_size), val("$prefix"), path("${prefix}/edgeR.DEtable*") , optional: true, emit: anno
+    tuple val(bin_size), val("$prefix"), path("${prefix}/*.bedpe") , optional: true, emit: bedpe
     path "${prefix}/*.qc.json"                             , emit: stats
     path "versions.yml"                                    , emit: versions
 
@@ -198,6 +199,11 @@ process DIFFHICAR {
             ## Volcano plot
             res\$qvalue <- -10*log10(res\$PValue)
             res.s\$qvalue <- -10*log10(res.s\$PValue)
+            res.s1 <- cbind(res.s[, c("chr1", "start1", "end1", "chr2", "start2", "end2", "qvalue"), drop = FALSE],
+                name = rep('.', nrow(res.s)),
+                res.s[, c("qvalue"), drop = FALSE],
+                strand1 = rep('.', nrow(res.s)), strand2 = rep('.', nrow(res.s)))
+            write.table(res.s1, fname(name, "bedpe", "edgeR.DEtable", name, "padj0.05.lfc1"), row.names=FALSE, col.names=FALSE, sep="\\t", quote=FALSE)
             pdf(fname(name, "pdf", "Volcano-plot", name))
             plot(x=res\$logFC, y=res\$qvalue,
                 main = paste("Volcano plot for", name),

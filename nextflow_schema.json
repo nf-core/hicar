@@ -286,7 +286,7 @@
                     "description": "MAPS regression -log10(fdr) cutoff value",
                     "fa_icon": "fas fa-percent",
                     "hidden": false,
-                    "help_text": "Minimal cutoff -log10(FDR) value in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2 (=fdr 0.05).",
+                    "help_text": "Minimal cutoff -log10(FDR) value in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2 (=fdr 0.01).",
                     "default": 2
                 },
                 "maps_filter": {

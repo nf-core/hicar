@@ -15,6 +15,7 @@ process DIFFHIC {
     output:
     tuple val(bin_size), path("${prefix}/*")               , emit: diff
     tuple val(bin_size), val("$prefix"), path("${prefix}/diffHic.DEtable*"), optional: true, emit: anno
+    tuple val(bin_size), val("$prefix"), path("${prefix}/*.bedpe") , optional: true, emit: bedpe
     path "${prefix}/*.qc.json"                             , emit: stats
     path "versions.yml"                                    , emit: versions
 
@@ -220,6 +221,10 @@ process DIFFHIC {
             rownames(elementMetadata) <- c("adjust.method","comparison","test")
             colnames(elementMetadata)[1] <- "value"
             write.csv(elementMetadata, fname(name, "csv", "diffHic.metadata", name), row.names = TRUE)
+            current_peaks <- peaks
+            current_peaks\$score <- res\$F
+            current_peaks <- current_peaks[res\$FDR<0.05 & abs(res\$logFC)>1]
+            rtracklayer::export(current_peaks, fname(name, "bedpe", "diffHic.DEtable", name, "padj0.05.lfc1"), format = 'bedpe')
             ## save subset results
             res.s <- res[res\$FDR<0.05 & abs(res\$logFC)>1, ]
             write.csv(res.s, fname(name, "csv", "diffHic.DEtable", name, "padj0.05.lfc1"), row.names = FALSE)

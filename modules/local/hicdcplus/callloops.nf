@@ -106,7 +106,7 @@ process HICDCPLUS_CALLLOOPS {
     gi_list <- generate_binned_gi_list(binsize, names(seqlen), Dthreshold, seqlen)
     ## filter the list to avoid the fitting error
     gi_list_D <- vapply(gi_list, function(.ele){
-        sum(mcols(.ele)[["D"]]>0)>1
+        sum(mcols(.ele)[["D"]]>0)>300 ## determined by ssize = 0.01, keep at least 3 point for model.
     }, logical(1L))
     gi_list <- gi_list[gi_list_D]
     # add counts

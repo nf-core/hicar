@@ -1,6 +1,7 @@
 process HOMER_FINDMOTIFSGENOME {
     tag "$meta.id"
     label 'process_medium'
+    label 'error_ignore'
 
     // WARN: Version information not provided by tool on CLI. Please update version string below when bumping container versions.
     conda (params.enable_conda ? "bioconda::homer=4.11 bioconda::samtools=1.11 conda-forge::r-base=4.0.2 bioconda::bioconductor-deseq2=1.30.0 bioconda::bioconductor-edger=3.32.0 anaconda::perl=5.26.2 wget" : null)
