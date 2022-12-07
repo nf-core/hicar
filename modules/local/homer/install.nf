@@ -23,8 +23,8 @@ process HOMER_INSTALL {
     """
     ## install genome
     homerDir=\$(grep "my \\\$homeDir =" \$(which runHiCpca.pl))
-    homerDir=\${homerDir/my \\\$homeDir = \\"/}
-    homerDir=\${homerDir/\\";/}
+    homerDir=\${homerDir/my \\\$homeDir = /}
+    homerDir=\${homerDir/;/}
     perl \${homerDir}configureHomer.pl -install $genome
     echo 'done'
 
