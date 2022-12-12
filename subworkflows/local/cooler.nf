@@ -42,7 +42,7 @@ workflow COOLER {
     // create mcooler file for visualization
     COOLER_ZOOMIFY(COOLER_BALANCE.out.cool)
     // dump interaction bedpe for each group
-    COOLER_DUMP_PER_GROUP(COOLER_MERGE.out.cool, [])
+    COOLER_DUMP_PER_GROUP(COOLER_MERGE.out.cool.map{[it[0], it[1], []]})
     // dump long interaction bedpe for each group for MAPS to call peaks
     DUMPREADS_PER_GROUP(COOLER_DUMP_PER_GROUP.out.bedpe, long_bedpe_postfix)
     ch_hic = Channel.empty()
@@ -53,7 +53,7 @@ workflow COOLER {
     }
 
     // dump long interaction bedpe for each sample
-    COOLER_DUMP_PER_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool]}, [])
+    COOLER_DUMP_PER_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool, []]})
     DUMPREADS_PER_SAMPLE(COOLER_DUMP_PER_SAMPLE.out.bedpe, long_bedpe_postfix)
     ch_version = ch_version.mix(DUMPREADS_PER_GROUP.out.versions)
 

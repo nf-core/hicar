@@ -159,7 +159,7 @@ workflow PREPARE_GENOME {
     /*
      * Uncompress bwa index or generate from scratch if required
      */
-    ch_bwa_index = params.bwa_index ? Channel.value(file(params.bwa_index)) : BWA_INDEX ( ch_fasta ).index
+    ch_bwa_index = params.bwa_index ? Channel.value(file(params.bwa_index)).map{ [['id':ucscname], it] } : BWA_INDEX ( ch_fasta.map{[['id':ucscname], it]} ).index
 
     emit:
     fasta             = ch_fasta                       // path: genome.fasta,

@@ -3,8 +3,6 @@ description: "Suggested text and references to use when describing pipeline usag
 section_name: "nf-core/hicar Methods Description"
 section_href: "https://github.com/nf-core/hicar"
 plot_type: "html"
-## TODO nf-core: Update the HTML below to your prefered methods description, e.g. add publication citation for this pipeline
-## You inject any metadata in the Nextflow '${workflow}' object
 data: |
   <h4>Methods</h4>
   <p>Data was processed using nf-core/hicar v${workflow.manifest.version} ${doi_text} of the nf-core collection of workflows (<a href="https://doi.org/10.1038/s41587-020-0439-x">Ewels <em>et al.</em>, 2020</a>).</p>
@@ -14,6 +12,7 @@ data: |
   <ul>
     <li>Di Tommaso, P., Chatzou, M., Floden, E. W., Barja, P. P., Palumbo, E., & Notredame, C. (2017). Nextflow enables reproducible computational workflows. Nature Biotechnology, 35(4), 316-319. <a href="https://doi.org/10.1038/nbt.3820">https://doi.org/10.1038/nbt.3820</a></li>
     <li>Ewels, P. A., Peltzer, A., Fillinger, S., Patel, H., Alneberg, J., Wilm, A., Garcia, M. U., Di Tommaso, P., & Nahnsen, S. (2020). The nf-core framework for community-curated bioinformatics pipelines. Nature Biotechnology, 38(3), 276-278. <a href="https://doi.org/10.1038/s41587-020-0439-x">https://doi.org/10.1038/s41587-020-0439-x</a></li>
+    <li>Wei, Xiaolin, et al. "HiCAR is a robust and sensitive method to analyze open-chromatin-associated genome organization." Molecular cell 82.6 (2022): 1225-1238. <a href="https://doi.org/10.1016/j.molcel.2022.01.023">https://doi.org/10.1016/j.molcel.2022.01.023</a></li>
   </ul>
   <div class="alert alert-info">
     <h5>Notes:</h5>

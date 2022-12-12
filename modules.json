@@ -12,27 +12,27 @@
                     },
                     "bedtools/sort": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "4bb1d4e362a38642e877afe41aaf58ded9e56c86",
                         "installed_by": ["modules"]
                     },
                     "bwa/index": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "9518fa4f65f3fb8cde24fde7d40333b39ec8fd65",
                         "installed_by": ["modules"]
                     },
                     "bwa/mem": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "653588be2a4aadab487b530643dbc9baf7a485c4",
                         "installed_by": ["modules"]
                     },
                     "cooler/digest": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "73890978012600b41dcc1b44136287a172b3fb71",
                         "installed_by": ["modules"]
                     },
                     "cooler/dump": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "73890978012600b41dcc1b44136287a172b3fb71",
                         "installed_by": ["modules"]
                     },
                     "custom/dumpsoftwareversions": {
@@ -47,7 +47,7 @@
                     },
                     "fastqc": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "810e8f2603ec38401d49a4aaed06f6d058745552",
                         "installed_by": ["modules"]
                     },
                     "genmap/index": {
@@ -122,37 +122,37 @@
                     },
                     "samtools/flagstat": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "cf5b9c30a2adacc581793afb79fae5f5b50bed01",
                         "installed_by": ["modules"]
                     },
                     "samtools/idxstats": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "71961a0773491b49dd96c197877db3434bfc82c6",
                         "installed_by": ["modules"]
                     },
                     "samtools/index": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "cf5b9c30a2adacc581793afb79fae5f5b50bed01",
                         "installed_by": ["modules"]
                     },
                     "samtools/merge": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "cf5b9c30a2adacc581793afb79fae5f5b50bed01",
                         "installed_by": ["modules"]
                     },
                     "samtools/sort": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "cf5b9c30a2adacc581793afb79fae5f5b50bed01",
                         "installed_by": ["modules"]
                     },
                     "samtools/stats": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "cf5b9c30a2adacc581793afb79fae5f5b50bed01",
                         "installed_by": ["modules"]
                     },
                     "samtools/view": {
                         "branch": "master",
-                        "git_sha": "5e34754d42cd2d5d248ca8673c0a53cdf5624905",
+                        "git_sha": "cf5b9c30a2adacc581793afb79fae5f5b50bed01",
                         "installed_by": ["modules"]
                     },
                     "ucsc/bedclip": {
