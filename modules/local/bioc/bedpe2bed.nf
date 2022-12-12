@@ -9,15 +9,15 @@ process BEDPE2BED {
         'quay.io/biocontainers/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' }"
 
     input:
-    tuple val(bin_size), path(fname)
+    tuple val(meta), path(fname)
 
     output:
-    tuple val(bin_size), path("${prefix}_regions.bed")  , emit: bed
+    tuple val(meta), path("${prefix}_regions.bed")      , emit: bed
     path "versions.yml"                                 , emit: versions
 
     script:
     def args = task.ext.args ?: ''
-    prefix = task.ext.prefix ?: "bin$bin_size"
+    prefix = task.ext.prefix ?: "$meta.id"
     """
     #!/usr/bin/env Rscript
     pkgs <- c("rtracklayer")

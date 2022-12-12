@@ -78,16 +78,16 @@ process BIOC_CHIPPEAKANNO {
             if(grepl("peaks\$", det)){
                 DB <- read.table(det, header=TRUE)
             }else{
-            header <- read.table(det, header=FALSE, nrow=1)
-            hasHeader <- all(c("chr1", "start1", "end1",
-                                "chr2", "start2", "end2") %in%
-                                header[1, , drop=TRUE])
-            DB <- read.table(det, header = hasHeader,
-                                stringsAsFactors = FALSE)
-            if(!hasHeader){
-              colnames(DB)[1:6] <- c("chr1", "start1", "end1",
-                                    "chr2", "start2", "end2")
-            }
+                header <- read.table(det, header=FALSE, nrow=1)
+                hasHeader <- all(c("chr1", "start1", "end1",
+                                    "chr2", "start2", "end2") %in%
+                                    header[1, , drop=TRUE])
+                DB <- read.table(det, header = hasHeader,
+                                    stringsAsFactors = FALSE)
+                if(!hasHeader){
+                  colnames(DB)[1:6] <- c("chr1", "start1", "end1",
+                                        "chr2", "start2", "end2")
+                }
             }
         }
         if(nrow(DB)<1) next

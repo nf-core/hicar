@@ -529,6 +529,7 @@ workflow HICAR {
         ch_versions = ch_versions.mix(HIPEAK.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(HIPEAK.out.mqc.collect().ifEmpty([]))
         ch_tfea_bed = ch_tfea_bed.mix(HIPEAK.out.fragmentPeak.map{[it[0], 'R1', it[1]]})
+        ch_tfea_bed = ch_tfea_bed.mix(HIPEAK.out.bed4tfea)
     }
 
     //
@@ -567,6 +568,7 @@ workflow HICAR {
                                     .combine(PREPARE_GENOME.out.fasta)
                                     .combine(PREPARE_GENOME.out.gtf)
         }
+        //ch_tfea_bed.view()
         TFEA(ch_tfea_bed, ch_tfea_additional)
         ch_versions = ch_versions.mix(TFEA.out.versions.ifEmpty(null))
     }
@@ -682,7 +684,7 @@ workflow HICAR {
     // MODULE: Pipeline reporting
     //
     CUSTOM_DUMPSOFTWAREVERSIONS (
-        ch_versions.unique{ it.text }.collectFile(name: 'collated_versions.yml')
+        ch_versions.unique().collectFile(name: 'collated_versions.yml')
     )
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect().ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.yml.collect().ifEmpty([]))

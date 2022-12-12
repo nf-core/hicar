@@ -69,6 +69,7 @@ workflow HIPEAK {
 
     emit:
     fragmentPeak    = R1_PEAK.out.peak
+    bed4tfea        = HI_PEAK.out.bed4tfea
     circos          = ch_circos_files
     igv             = ch_track_files
     anno            = ch_annotation_files

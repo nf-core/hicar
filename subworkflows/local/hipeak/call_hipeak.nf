@@ -11,6 +11,9 @@ include { BIOC_CHIPPEAKANNO
     as BIOC_CHIPPEAKANNO_HIPEAK     } from '../../../modules/local/bioc/chippeakanno'
 include { BIOC_CHIPPEAKANNO
     as BIOC_CHIPPEAKANNO_DIFFHIPEAK } from '../../../modules/local/bioc/chippeakanno'
+include { BEDPE2BED                 } from '../../../modules/local/bioc/bedpe2bed'
+include { BEDPE2BED
+    as BEDPE2BED_DIFF               } from '../../../modules/local/bioc/bedpe2bed'
 
 workflow HI_PEAK {
     take:
@@ -42,6 +45,7 @@ workflow HI_PEAK {
     //assign type for peak
     ASSIGN_TYPE(CALL_HIPEAK.out.peak)
     ch_version = ch_version.mix(ASSIGN_TYPE.out.versions)
+    ch_bed = BEDPE2BED(ASSIGN_TYPE.out.bedpe).bed.map{[it[0], 'hipeak', it[1]]}
     // annotation
     if(!skip_peak_annotation){
         BIOC_CHIPPEAKANNO_HIPEAK(ASSIGN_TYPE.out.peak
@@ -60,6 +64,7 @@ workflow HI_PEAK {
             DIFF_HIPEAK(hipeaks,
                         peaks.map{it[3]}.collect())
             ch_version = ch_version.mix(DIFF_HIPEAK.out.versions.ifEmpty(null))
+            ch_bed = ch_bed.mix(BEDPE2BED_DIFF(DIFF_HIPEAK.out.bedpe.map{[[id:'hipeak_diff'], it]}).bed.map{[it[0], 'hipeak_diff', it[1]]})
             stats = DIFF_HIPEAK.out.stats
             diff = DIFF_HIPEAK.out.diff
             if(!skip_peak_annotation){
@@ -73,6 +78,7 @@ workflow HI_PEAK {
     emit:
     peak         = ASSIGN_TYPE.out.peak         // channel: [ path(peak) ]
     bedpe        = ASSIGN_TYPE.out.bedpe        // channel: [ path(bedpe) ]
+    bed4tfea     = ch_bed                       // channel: [ meta, bed ]
     stats        = stats                        // channel: [ path(stats) ]
     diff         = diff                         // channel: [ path(diff) ]
     versions     = ch_version                   // channel: [ path(version) ]

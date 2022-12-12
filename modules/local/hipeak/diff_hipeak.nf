@@ -14,6 +14,7 @@ process DIFF_HIPEAK {
 
     output:
     path "${prefix}/*"                        , emit: diff
+    path "${prefix}/*.bedpe"  , optional: true, emit: bedpe
     path "${prefix}/*.qc.json", optional: true, emit: stats
     path "versions.yml"                       , emit: versions
 
@@ -277,7 +278,12 @@ process DIFF_HIPEAK {
             write.csv(elementMetadata, fname(name, "csv", "edgeR.metadata", name), row.names = TRUE)
             ## save subset results
             res.s <- res[res\$FDR<0.05 & abs(res\$logFC)>1, ]
-            write.csv(res.s, fname(name, "csv", "edgeR.DEtable", name, "padj0.05.lfc1"), row.names = FALSE)
+            if(nrow(res.s)>0){
+                write.csv(res.s, fname(name, "csv", "edgeR.DEtable", name, "padj0.05.lfc1"), row.names = FALSE)
+                write.table(res.s[, c("chr1", "start1", "end1", "chr2", "start2", "end2"), drop=FALSE],
+                    fname(name, "bedpe", "edgeR.DEtable", name, "padj0.05.lfc1"),
+                    row.names = FALSE, col.names=FALSE, quote=FALSE, sep="\\t")
+            }
             ## Volcano plot
             res\$qvalue <- -10*log10(res\$PValue)
             pdf(fname(name, "pdf", "Volcano-plot", name))

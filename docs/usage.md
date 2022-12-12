@@ -345,29 +345,3 @@ The error may caused by out of memory (although the error message seems to be un
 
 If you are using [Juicer_tools](https://github.com/aidenlab/juicer/wiki/) with GPU supported, it is not supported by the containers. We are using [Juicer Tools Pre](https://github.com/aidenlab/juicer/wiki/Pre) to create the [hic files](https://doi.org/10.1016/j.cels.2016.07.002) from aligned HiCAR reads.
 We recommend having at least 4GB free RAM to generate the hic files.
-
-## Full test
-
-If you want to test all available modules, you can try to test by loop:
-
-```bash
-for comp_tool in cooltools homer juicebox hicexplorer
-do
-  for tad_tool in homer hicexplorer
-  do
-    for loop_tool in maps hicdcplus
-    do
-       for apa_tool in cooltools juicebox hicexplorer
-       do
-         for da_tool in edger diffhic setOperation
-         do
-           for v4c_tool in cooltools hicexplorer trackviewer
-           do
-             nextflow run nf-core/hicar -profile test,docker -resume --outdir ./results --compartments_tool $comp_tool --tad_tool $tad_tool --interactions_tool $loop_tool --apa_tool $apa_tool --da_tool $da_tool --v4c_tool $v4c_tool
-          done
-        done
-      done
-    done
-  done
-done
-```
