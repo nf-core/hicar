@@ -318,7 +318,7 @@ def init(p):
                     if CHR1 == CHR2:
                         reg_and["dist"] = pd.to_numeric(np.abs(reg_and["bin1_mid"] - reg_and["bin2_mid"]))
                     else:
-                        reg_and["dist"] = sys.maxint
+                        reg_and["dist"] = 9223372036854775807
                     reg_and["logl"] = np.log(
                         (reg_and["effective_length1"] + 1.0)
                         * (reg_and["effective_length2"] + 1.0)
