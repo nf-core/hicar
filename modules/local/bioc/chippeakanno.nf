@@ -85,7 +85,7 @@ process BIOC_CHIPPEAKANNO {
                 DB <- read.table(det, header = hasHeader,
                                     stringsAsFactors = FALSE)
                 if(!hasHeader){
-                  colnames(DB)[1:6] <- c("chr1", "start1", "end1",
+                    colnames(DB)[1:6] <- c("chr1", "start1", "end1",
                                         "chr2", "start2", "end2")
                 }
             }

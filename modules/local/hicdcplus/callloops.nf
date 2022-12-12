@@ -113,7 +113,7 @@ process HICDCPLUS_CALLLOOPS {
     ## re-arrange the pairs to a fake hic-pro validatedpair file
     for(allvalidpairs_path in allvalidpairs_paths){
         line1 <- data.table::fread(allvalidpairs_path, sep = "\\t", header = FALSE, stringsAsFactors = FALSE, nrows=1)
-	      if(line1[[1]]==line1[[4]]){
+        if(line1[[1]]==line1[[4]]){
             allvalidpairs <- data.table::fread(allvalidpairs_path, sep = "\\t", header = FALSE, stringsAsFactors = FALSE)
             allvalidpairs <- allvalidpairs[rep(seq.int(nrow(allvalidpairs)), as.numeric(allvalidpairs\$V7)),  drop=FALSE]
             allvalidpairs <- cbind('.', allvalidpairs[, 1], rowMeans(allvalidpairs[, 2:3]), '.', allvalidpairs[, 4], rowMeans(allvalidpairs[, 5:6]))

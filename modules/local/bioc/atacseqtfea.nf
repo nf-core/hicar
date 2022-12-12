@@ -98,20 +98,20 @@ process BIOC_ATACSEQTFEA {
         tmp <- tempfile()
         pkgName <- paste0("Package: BSgenome.", genome)
         writeLines(c(
-          pkgName,
-          "Title: Full genome sequences for temp usage",
-          "Description: Full genome sequences for TFEA",
-          "Version: 0.0.1",
-          paste("BSgenomeObjname:", genome),
-          "SrcDataFiles: chr22.fa",
-          "seqs_srcdir: .",
-          paste("genome:", genome),
-          paste("organism:", genome),
-          paste("common_name:", genome),
-          paste("organism_biocview:", genome),
-          "provider: UNKONWN",
-          paste("release_date:", Sys.Date()),
-          paste0("seqnames: c('", paste(seqlevels(gtf), collapse = "','"), "')")
+            pkgName,
+            "Title: Full genome sequences for temp usage",
+            "Description: Full genome sequences for TFEA",
+            "Version: 0.0.1",
+            paste("BSgenomeObjname:", genome),
+            "SrcDataFiles: chr22.fa",
+            "seqs_srcdir: .",
+            paste("genome:", genome),
+            paste("organism:", genome),
+            paste("common_name:", genome),
+            paste("organism_biocview:", genome),
+            "provider: UNKONWN",
+            paste("release_date:", Sys.Date()),
+            paste0("seqnames: c('", paste(seqlevels(gtf), collapse = "','"), "')")
         ), tmp)
         forgeBSgenomeDataPkg(tmp)
         install.packages(pkgName, repos = NULL, type="source", lib=".")
@@ -137,19 +137,19 @@ process BIOC_ATACSEQTFEA {
     group <- factor(group)
     ## TFEA
     if(levels(group)>=2){
-      contrasts <- combn(levels(group), m=2, simplify=FALSE)
+        contrasts <- combn(levels(group), m=2, simplify=FALSE)
     }else{
-      contrasts <- levels(group)
+        contrasts <- levels(group)
     }
     for(cont in contrasts){
         gp1 <- cont[1]
         bamExp <- bams[group %in% gp1]
         if(length(cont)==2){
-          gp2 <- cont[2]
-          bamCtl <- bams[group %in% gp2]
+            gp2 <- cont[2]
+            bamCtl <- bams[group %in% gp2]
         }else{
-          gp2 <- "NA"
-          bamCtl <- NULL
+            gp2 <- "NA"
+            bamCtl <- NULL
         }
         res <- TFEA(
             bamExp=bamExp,

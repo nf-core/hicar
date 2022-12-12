@@ -109,7 +109,7 @@ process BIOC_TRACKVIEWER {
         header <- lapply(evts, read.delim, header=FALSE, nrow=1)
         evts <- mapply(evts, header, FUN=function(f, h){
             hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
-                               h[1, , drop=TRUE])
+                                h[1, , drop=TRUE])
             .ele <- read.delim(f, header = hasHeader)
             if(!hasHeader){
                 colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")

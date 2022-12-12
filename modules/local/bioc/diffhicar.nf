@@ -41,17 +41,17 @@ process DIFFHICAR {
     pf <- dir("peaks", "bedpe", full.names = TRUE)
     header <- lapply(pf, read.delim, header=FALSE, nrow=1)
     peaks <- mapply(pf, header, FUN=function(f, h){
-      hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
-                      h[1, , drop=TRUE])
-      .ele <- read.delim(f, header = hasHeader)
-      if(!hasHeader){
-        colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")
-        ## bedpe, [start, end)
-        .ele\$start1 <- .ele\$start1+1
-        .ele\$start2 <- .ele\$start2+1
-      }
-      .ele
-      }, SIMPLIFY = FALSE)
+        hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
+                        h[1, , drop=TRUE])
+        .ele <- read.delim(f, header = hasHeader)
+        if(!hasHeader){
+            colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")
+            ## bedpe, [start, end)
+            .ele\$start1 <- .ele\$start1+1
+            .ele\$start2 <- .ele\$start2+1
+        }
+        .ele
+        }, SIMPLIFY = FALSE)
     ### reduce the peaks
     peaks <- unique(do.call(rbind, peaks)[, c("chr1", "start1", "end1",
                                             "chr2", "start2", "end2")])

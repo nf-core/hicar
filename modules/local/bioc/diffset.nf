@@ -30,10 +30,10 @@ process DIFFSET {
     pkgs <- c("UpSetR")
     versions <- c("NFCORE_HICAR:HICAR:DA:DIFFHIC:")
     for(pkg in pkgs){
-      # load library
-      library(pkg, character.only=TRUE)
-      # parepare for versions.yml
-      versions <- c(versions,
+        # load library
+        library(pkg, character.only=TRUE)
+        # parepare for versions.yml
+        versions <- c(versions,
                     paste0("    ", pkg, ": ", as.character(packageVersion(pkg))))
     }
     writeLines(versions, "versions.yml") # write versions.yml
@@ -46,11 +46,11 @@ process DIFFSET {
     header <- lapply(pf, read.delim, header=FALSE, nrow=1)
     peaks <- mapply(pf, header, FUN=function(f, h){
         hasHeader <- all(c("chr1", "start1", "end1",
-                          "chr2", "start2", "end2") %in%
-                          h[1, , drop=TRUE])
+                            "chr2", "start2", "end2") %in%
+                            h[1, , drop=TRUE])
         .ele <- read.delim(f, header = hasHeader,
-                          colClasses = rep("character", length(header)),
-                          stringsAsFactors = FALSE)
+                            colClasses = rep("character", length(header)),
+                            stringsAsFactors = FALSE)
         if(!hasHeader){
             colnames(.ele)[1:6] <- c("chr1", "start1", "end1",
                                 "chr2", "start2", "end2")

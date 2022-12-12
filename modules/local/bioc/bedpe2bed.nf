@@ -49,7 +49,7 @@ process BEDPE2BED {
     peaks <- unique(do.call(rbind, peaks)[, c("chr1", "start1", "end1",
         "chr2", "start2", "end2")])
     peaks <- with(peaks, c(GRanges(chr1, IRanges(start1, end1)),
-         GRanges(chr2, IRanges(start2, end2))))
+        GRanges(chr2, IRanges(start2, end2))))
     peaks <- sort(unique(peaks))
     export(peaks, "${prefix}_regions.bed")
     """

@@ -31,8 +31,8 @@ process HOMER_ANALYZEHIC {
         -interactions ${meta.id}_binsize_${bin}.interactions.txt
 
     awk 'BEGIN {OFS="\t"}; NR>1 { print \$3, \$4, \$5, \$9, \$10, \$11, \$1, \$15, \$6, \$12}' \\
-      ${meta.id}_binsize_${bin}.interactions.txt \\
-      > ${meta.id}_binsize_${bin}.bedpe
+        ${meta.id}_binsize_${bin}.interactions.txt \\
+        > ${meta.id}_binsize_${bin}.bedpe
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

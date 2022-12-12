@@ -61,7 +61,7 @@ process DIFFHIC {
     peaks <- unique(do.call(rbind, peaks)[, c("chr1", "start1", "end1",
         "chr2", "start2", "end2")])
     peaks <- with(peaks, GInteractions(GRanges(chr1, IRanges(start1, end1)),
-         GRanges(chr2, IRanges(start2, end2))))
+        GRanges(chr2, IRanges(start2, end2))))
     ## get counts
     pc <- dir("long", "bedpe", full.names = FALSE)
     cnts <- lapply(file.path("long", pc), read.table)
