@@ -12,7 +12,7 @@ process JUICER_EIGENVECTOR {
     tuple val(meta), path(hic)
     val resolution
     tuple path(juicer_box_jar), path(chromsizes)
-    juicer_jvm_params
+    val juicer_jvm_params
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: compartments
