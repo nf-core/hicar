@@ -342,6 +342,13 @@ workflow HICAR {
     }
 
     //
+    // prepare for peakachu
+    //
+    if(params.interactions_tool == 'peakachu' && params.method == 'HiCAR'){
+        ch_loop_matrix = COOLER.out.cool
+    }
+
+    //
     // prepare for HiCExplorer
     //
     if(checkToolsUsedInDownstream('hicexplorer', params)){
@@ -397,10 +404,18 @@ workflow HICAR {
     // prepare for Homer
     //
     if(checkToolsUsedInDownstream('homer', params)){
-        HOMER_INSTALL(
-            PREPARE_GENOME.out.ucscname
-        )
-        if(HOMER_INSTALL.out.output){// force wait Homer install done
+        if(!workflow.containerEngine){//homer data folder writable
+            HOMER_INSTALL(
+                PREPARE_GENOME.out.ucscname
+            )
+            homer_genome = PREPARE_GENOME.out.ucscname // values: eg. 'hg38'
+            homer_done = HOMER_INSTALL.out.output
+        }else{// using custom genomes and annotation files 'on-the-fly'
+            homer_genome = PREPARE_GENOME.out.fasta
+            homer_done = true
+        }
+
+        if(homer_done){// force wait Homer install done
             HOMER_MAKETAGDIRECTORY(
                 PAIRTOOLS_PAIRE.out.homerpair,
                 PREPARE_GENOME.out.fasta
@@ -410,17 +425,17 @@ workflow HICAR {
             }
             if(params.tad_tool == 'homer'){
                 ch_tad_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
-                ch_tad_additional = PREPARE_GENOME.out.ucscname // values: eg. 'hg38'
+                ch_tad_additional = homer_genome
             }
             if(params.compartments_tool == 'homer'){
                 ch_comp_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
-                ch_comp_additional = PREPARE_GENOME.out.ucscname
+                ch_comp_additional = homer_genome
             }
             if(params.apa_tool == 'homer'){
                 ch_apa_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
             }
             if(params.tfea_tool == 'homer'){
-                ch_tfea_additional = PREPARE_GENOME.out.ucscname
+                ch_tfea_additional = homer_genome
             }
             ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
         }

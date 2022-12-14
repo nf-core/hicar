@@ -58,6 +58,21 @@ workflow INTERACTIONS {
                     [meta, bedpe]
             }
             break
+        case "peakachu":
+            PEAKACHU(
+                matrix,
+                additional_param
+            )
+            ch_loops = PEAKACHU_SCORE.out.interactions
+            ch_versions = PEAKACHU_SCORE.out.versions
+            ch_annotation_files = PEAKACHU_SCORE.out.interactions.map{
+                meta, bin_size, interactions -> [meta.id+bin_size, interactions]}
+            ch_circos_files = PEAKACHU_SCORE.out.interactions.map{
+                meta, bin_size, bedpe ->
+                    meta.bin = bin_size
+                    [meta, bedpe]
+            }
+            break
     }
     // merge loops
     MERGE_INTERACTIONS(
@@ -69,7 +84,7 @@ workflow INTERACTIONS {
 
     emit:
     loops           = ch_loops                              // channel: [ meta, bin_size, path(bedpe) ]
-    mergedloops     = MERGE_INTERACTIONS.out.interactions   // channel: [ bin_siz, path(bedpe) ]
+    mergedloops     = MERGE_INTERACTIONS.out.interactions   // channel: [ bin_size, path(bedpe) ]
     circos          = ch_circos_files
     igv             = ch_track_files
     anno            = ch_annotation_files

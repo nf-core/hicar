@@ -370,6 +370,14 @@
                     "hidden": false,
                     "help_text": "Minimal cutoff FDR value in the called connections. See help from [HiCDCPlus documentation](https://bioconductor.org/packages/HiCDCPlus/), default 0.05.",
                     "default": 0.05
+                },
+                "peakachu_pretrained_url": {
+                    "type": "string",
+                    "description": "The predefined modle download prefix string",
+                    "fa_icon": "fas fa-percent",
+                    "hidden": false,
+                    "help_text": "This method is only available for HiCAR data.",
+                    "default": "http://3dgenome.fsm.northwestern.edu/peakachu/HiCAR-models/HiCAR-peakachu-pretrained."
                 }
             }
         },
