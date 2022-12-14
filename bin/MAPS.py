@@ -211,9 +211,7 @@ def init(p):
                 try:
                     ps_long = pd.read_csv(parse_fname(CHR1 + "_" + CHR2, "long", params), header=None, sep="\t")
                 except pd.errors.EmptyDataError:
-                    ps_long = pd.DataFrame(
-                        columns=long_cols
-                    )
+                    ps_long = pd.DataFrame(columns=long_cols)
                 ps_long.rename(columns=dict(zip(ps_long.columns[0:], long_cols)), inplace=True)
                 ps_long = ps_long.astype({"chr1": str, "chr2": str})
                 ## filter only reads at the same chromosome and proper orientation
