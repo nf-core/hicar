@@ -47,13 +47,13 @@ if(params.anchor_peaks){
 // check the tool is used
 def checkToolsUsedInDownstream(tool, params){
     return (
-        params.interactions_tool == tool ||
-        params.tad_tool == tool ||
-        params.compartments_tool == tool ||
-        params.apa_tool == tool ||
-        params.da_tool == tool ||
-        params.v4c_tool == tool ||
-        params.tfea_tool == tool
+        (params.interactions_tool == tool && !params.skip_interactions) ||
+        (params.tad_tool == tool && !params.skip_tads) ||
+        (params.compartments_tool == tool && !params.skip_compartments) ||
+        (params.apa_tool == tool && !params.skip_apa) ||
+        (params.da_tool == tool && !params.skip_diff_analysis) ||
+        (params.v4c_tool == tool && !params.skip_virtual_4c) ||
+        (params.tfea_tool == tool && !params.skip_tfea)
     )
 }
 
@@ -365,8 +365,8 @@ workflow HICAR {
         if(params.apa_tool == 'hicexplorer'){
             ch_apa_matrix = COOLER.out.cool
         }
-        if(params.da_tool == 'hicexplorer' ||
-            params.v4c_tool == 'hicexplorer'){
+        if((params.da_tool == 'hicexplorer' && !params.skip_diff_analysis)||
+            (params.v4c_tool == 'hicexplorer' && !params.skip_virtual_4c)){
             // get viewpoint, input is the merged peaks, [bed]
             RECENTER_PEAK(ATAC_PEAK.out.mergedpeak)
 

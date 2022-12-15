@@ -73,31 +73,28 @@ def validate_input_data(input_data, long_bedpe_postfix, short_bed_postfix):
         params["SEX_CHROMS"] = ""
     return params
 
+def pd_read_tab(*coln, **args):
+    try:
+        out = pd.read_csv(**args)
+    except Exception:
+        out = pd.DataFrame(columns=coln)
+    return out
 
 def load_MACS2(MACS2_PATH):
-    try:
-        MACS2_full = pd.read_csv(
-            MACS2_PATH, sep="\t", skip_blank_lines=True, comment="#", header=None, usecols=[0, 1, 2]
-        )
-        MACS2_full.columns = ["chr", "start", "end"]
-        MACS2_full = MACS2_full.astype({"chr": str})
-    except pd.errors.EmptyDataError:
-        MACS2_full = pd.DataFrame(columns=["chr", "start", "end"])
+    coln = ["chr", "start", "end"]
+    MACS2_full = pd_read_tab(coln, filepath_or_buffer=MACS2_PATH, sep="\t", skip_blank_lines=True, comment="#", header=None, usecols=[0, 1, 2], low_memory=False)
+    MACS2_full.columns = coln
+    MACS2_full = MACS2_full.astype({"chr": str})
     return MACS2_full
 
-
 def load_metadata(GF_PATH, BIN_SIZE):
-    try:
-        metadata_full = pd.read_csv(GF_PATH, sep="\t", header=None, low_memory=False)
-        metadata_full.columns = ["chr", "start", "end", "effective_length", "gc", "mappability"]
-        metadata_full = metadata_full.astype({"chr": str})
-        metadata_full["bin1_mid"] = metadata_full["start"] // BIN_SIZE
-        metadata_full["bin2_mid"] = metadata_full["bin1_mid"]
-        metadata_full["bin"] = metadata_full["bin1_mid"]
-    except pd.errors.EmptyDataError:
-        metadata_full = pd.DataFrame(
-            columns=["chr", "start", "end", "effective_length", "gc", "mappability", "bin1_mid", "bin2_mid", "bin"]
-        )
+    coln=["chr", "start", "end", "effective_length", "gc", "mappability", "bin1_mid", "bin2_mid", "bin"]
+    metadata_full = pd_read_tab(coln, filepath_or_buffer=GF_PATH, sep="\t", header=None, low_memory=False)
+    metadata_full.columns = ["chr", "start", "end", "effective_length", "gc", "mappability"]
+    metadata_full = metadata_full.astype({"chr": str})
+    metadata_full["bin1_mid"] = metadata_full["start"] // BIN_SIZE
+    metadata_full["bin2_mid"] = metadata_full["bin1_mid"]
+    metadata_full["bin"] = metadata_full["bin1_mid"]
     return metadata_full
 
 
@@ -157,7 +154,7 @@ def get_peaks_range(MACS2_full, CHR, params):
 def init(p):
     ## checking that all files are available
     print("loading parameters file")
-    input_data = pd.read_csv(p.run_file, sep="=", skip_blank_lines=True, comment="#", index_col=0, header=None)
+    input_data = pd_read_tab(["chr", "start", "end"], filepath_or_buffer=p.run_file, sep="=", skip_blank_lines=True, comment="#", index_col=0, header=None)
     input_data = input_data.transpose()
     params = validate_input_data(input_data, p.long_bedpe_postfix, p.short_bed_postfix)
     print("loading MACS2 peaks")
@@ -180,7 +177,7 @@ def init(p):
     qc_str = ""  ## content of qc.maps file
     for CHR1 in chroms:
         peak_skip, MACS2_peak_ranges_list_1 = get_peaks_range(MACS2_full, CHR1, params)
-        ps_short1 = pd.read_csv(parse_fname(CHR1, "short", params), header=None, sep="\t")
+        ps_short1 = pd_read_tab(["chr", "start", "end"], filepath_or_buffer=parse_fname(CHR1, "short", params), header=None, sep="\t")
         if peak_skip:
             continue
         for CHR2 in chroms:
@@ -192,7 +189,7 @@ def init(p):
                 continue
             print("-- handling short.bed\n")
             if CHR1 != CHR2:
-                ps_short2 = pd.read_csv(parse_fname(CHR2, "short", params), header=None, sep="\t")
+                ps_short2 = pd_read_tab(["chr", "start", "end"], filepath_or_buffer=parse_fname(CHR2, "short", params), header=None, sep="\t")
                 ps_short = pd.concat([ps_short1, ps_short2], ignore_index=True)
             else:
                 ps_short = ps_short1
@@ -208,14 +205,12 @@ def init(p):
                 ##### getting overlap
                 ## load long.bed file
                 long_cols = ["chr1", "start1", "end1", "chr2", "start2", "end2", "count"]
-                try:
-                    ps_long = pd.read_csv(parse_fname(CHR1 + "_" + CHR2, "long", params), header=None, sep="\t")
-                except pd.errors.EmptyDataError:
-                    ps_long = pd.DataFrame(columns=long_cols)
+                ps_long = pd_read_tab(long_cols, filepath_or_buffer=parse_fname(CHR1 + "_" + CHR2, "long", params), header=None, sep="\t", low_memory=False)
                 ps_long.rename(columns=dict(zip(ps_long.columns[0:], long_cols)), inplace=True)
-                ps_long = ps_long.astype({"chr1": str, "chr2": str})
-                ## filter only reads at the same chromosome and proper orientation
-                ps_long = ps_long[(ps_long["chr1"] == CHR1) & (ps_long["chr2"] == CHR2)]
+                if ps_long.shape[0]:
+                    ps_long = ps_long.astype({"chr1": str, "chr2": str})
+                    ## filter only reads at the same chromosome and proper orientation
+                    ps_long = ps_long[(ps_long["chr1"] == CHR1) & (ps_long["chr2"] == CHR2)]
                 if ps_long.shape[0]:
                     ps_long["read1_bin_mid"] = ((ps_long["start1"] + ps_long["end1"]) / 2.0) // params["BIN_SIZE"]
                     ps_long["read2_bin_mid"] = ((ps_long["start2"] + ps_long["end2"]) / 2.0) // params["BIN_SIZE"]
