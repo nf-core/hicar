@@ -31,6 +31,7 @@ workflow HI_PEAK {
     main:
     //create count table
     //input=val(meta), path(r2peak), path(r1peak), path(distalpair), val(chrom1)
+    r2_peaks = peaks.map{it[1]}
     chrom1 = chrom_size.splitCsv(sep:"\t", header: false, strip: true).filter{ it[0] !=~ /[_M]/ }.map{it[0]}
     ch_version = PREPARE_COUNTS(peaks.combine(chrom1)).versions
     counts = PREPARE_COUNTS.out.counts.map{[it[0].id, it[1]]}
@@ -52,7 +53,8 @@ workflow HI_PEAK {
                                             .map{it[1]}
                                             .filter{ it.readLines().size > 1 }
                                             .collect()
-                                            .map{["HiPeak", it]}, gtf, maps_3d_ext)
+                                            .map{["HiPeak", it]}
+                                            .combine(r2_peaks), gtf, maps_3d_ext)
         ch_version = ch_version.mix(BIOC_CHIPPEAKANNO_HIPEAK.out.versions.ifEmpty(null))
     }
     //differential analysis
@@ -70,7 +72,8 @@ workflow HI_PEAK {
             if(!skip_peak_annotation){
                 BIOC_CHIPPEAKANNO_DIFFHIPEAK(DIFF_HIPEAK.out.diff
                                                         .collect()
-                                                        .map{["DiffHiPeak", it]}, gtf, maps_3d_ext)
+                                                        .map{["DiffHiPeak", it]}
+                                                        .combine(r2_peaks), gtf, maps_3d_ext)
             }
         }
     }

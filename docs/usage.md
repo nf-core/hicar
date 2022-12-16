@@ -79,7 +79,7 @@ There are multiple available modules to call A/B compartments and TADs.
 
 ### Call interactions/loops
 
-Chromatin loops (or significant interactions), represent two inter/intra chromosome regions that interact at a high frequency with one another (high reads density in sequence data). Different from HiC, HiCAR data are biased with one ends or both ends in the open chromatin. The [`MAPS`](https://github.com/ijuric/MAPS) are designed to remove the this kind of biases introduced by the ChIP or Tn5-transposition procedure. However, many tools are hesitated to introduce this kind of model-based analysis for interaction analysis since high frequency interactions must happened within the highly opened chromatin regions. Here `nf-core/hicar` provide multiple choices for interactions calling. Available tools are 'MAPS', 'Homer' and 'HiC-DC+'.
+Chromatin loops (or significant interactions), represent two inter/intra chromosome regions that interact at a high frequency with one another (high reads density in sequence data). Different from HiC, HiCAR data are biased with one ends or both ends in the open chromatin. The [`MAPS`](https://github.com/ijuric/MAPS) are designed to remove the this kind of biases introduced by the ChIP or Tn5-transposition procedure. However, many tools are hesitated to introduce this kind of model-based analysis for interaction analysis since high frequency interactions must happened within the highly opened chromatin regions. Here `nf-core/hicar` provide multiple choices for interactions calling. Available tools are 'MAPS', 'HiC-DC+' and 'peakachu'.
 
 ### Aggregate peak analysis
 
@@ -87,14 +87,19 @@ Aggregate peak analysis (APA) plots the pileup signals detected by high-resoluti
 
 ### Available tools
 
-| Tools        | A/B compartments | TADs    | Interactions | APA     | V4C     |
-| :----------- | :--------------- | :------ | :----------- | :------ | :------ |
-| cooltools    | &#9745;          | &#9745; | &#9744;      | &#9745; | &#9745; |
-| hic-DC+      | &#9744;          | &#9744; | &#9745;      | &#9744; | &#9744; |
-| hicExplorer  | &#9745;          | &#9745; | &#9744;      | &#9745; | &#9745; |
-| homer        | &#9745;          | &#9745; | &#9744;      | &#9744; | &#9744; |
-| MAPS         | &#9744;          | &#9744; | &#9745;      | &#9744; | &#9744; |
-| juicer_tools | &#9745;          | &#9744; | &#9744;      | &#9745; | &#9744; |
+| Tools        | A/B compartments | TADs    | Interactions | Differential analysis | APA     | V4C     |
+| :----------- | :--------------- | :------ | :----------- | :-------------------- | :------ | :------ |
+| cooltools    | &#9745;          | &#9745; | &#9744;      | &#9744;               | &#9745; | &#9745; |
+| diffhic      | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
+| edgeR        | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
+| hic-DC+      | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
+| hicExplorer  | &#9745;          | &#9745; | &#9744;      | &#9745;               | &#9745; | &#9745; |
+| homer        | &#9745;          | &#9745; | &#9744;      | &#9744;               | &#9744; | &#9744; |
+| MAPS         | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
+| juicer_tools | &#9745;          | &#9744; | &#9744;      | &#9744;               | &#9745; | &#9744; |
+| peakachu     | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
+| setOperation | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
+| trackViewer  | &#9744;          | &#9744; | &#9744;      | &#9744;               | &#9744; | &#9745; |
 
 ## Running the pipeline
 

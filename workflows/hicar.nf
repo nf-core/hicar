@@ -511,7 +511,6 @@ workflow HICAR {
         ch_apa_peak = params.apa_peak ? Channel.fromPath( params.apa_peak, checkIfExists: true ) : ATAC_PEAK.out.mergedpeak
         if(params.apa_tool=='juicebox'){
             ch_apa_additional = ch_apa_additional.combine(INTERACTIONS.out.mergedloops).unique()
-            //ch_apa_additional.view()
         }
         APA(
             ch_apa_matrix,
@@ -592,7 +591,7 @@ workflow HICAR {
     // Annotation
     //
     if(!params.skip_peak_annotation){
-        BIOC_CHIPPEAKANNO(ch_annotation_files, PREPARE_GENOME.out.gtf, params.maps_3d_ext)
+        BIOC_CHIPPEAKANNO(ch_annotation_files.combine(ATAC_PEAK.out.mergedpeak), PREPARE_GENOME.out.gtf, params.maps_3d_ext)
         ch_versions = ch_versions.mix(BIOC_CHIPPEAKANNO.out.versions.ifEmpty(null))
     }
 

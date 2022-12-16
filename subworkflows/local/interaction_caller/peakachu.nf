@@ -2,7 +2,7 @@
  * Call interaction peaks by HiC-CD+
  */
 
-include { PEAKACHU_MODEL             } from '../../../modules/local/peakachu/pretrained'
+include { PEAKACHU_MODEL             } from '../../../modules/local/peakachu/model'
 include { PEAKACHU_SCORE             } from '../../../modules/local/peakachu/score_genome'
 
 workflow PEAKACHU {
@@ -16,7 +16,7 @@ workflow PEAKACHU {
     // generate predefined model file
     ch_versions = PEAKACHU_MODEL( cool ).versions
     // call loops
-    ch_loop = PEAKACHU_SCORE(cool.combine(PEAKACHU_MODEL.out.model, by:0)).interactions
+    ch_loop = PEAKACHU_SCORE(cool.combine(PEAKACHU_MODEL.out.model.map{[it[0], file(it[1].trim(), checkIfExists:true)]}, by:0)).interactions
     ch_versions = ch_versions.mix(PEAKACHU_SCORE.out.versions.ifEmpty([]))
 
     emit:

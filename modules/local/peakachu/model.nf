@@ -11,7 +11,7 @@ process PEAKACHU_MODEL {
     tuple val(meta), path(cool)
 
     output:
-    tuple val(meta), path("model.pkl")                         , emit: interactions
+    tuple val(meta), stdout                                , emit: model
     path "versions.yml"                                    , emit: versions
 
     when:
@@ -26,7 +26,7 @@ process PEAKACHU_MODEL {
     if [ \$reads -lt 10 ]
         then reads=10
     fi
-    wget -O model.pkl "${params.peakachu_pretrained_url}\${reads}million.\${bin}kb.pkl"
+    echo "${params.peakachu_pretrained_url}\${reads}million.\${bin}kb.pkl"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

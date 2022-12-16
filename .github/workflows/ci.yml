@@ -29,11 +29,11 @@ jobs:
         parameters:
           - "--interactions_tool maps"
           - "--interactions_tool hicdcplus"
+          - "--interactions_tool peakachu"
           - "--tad_tool cooltools"
           - "--tad_tool homer"
           - "--compartments_tool homer"
           - "--compartments_tool juicebox"
-          - "--compartments_tool hicexplorer"
           - "--apa_tool juicebox"
           - "--apa_tool cooltools"
           - "--da_tool edger"

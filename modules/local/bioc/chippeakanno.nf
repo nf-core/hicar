@@ -10,7 +10,7 @@ process BIOC_CHIPPEAKANNO {
         'quay.io/biocontainers/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' }"
 
     input:
-    tuple val(foldername), path(diff)
+    tuple val(foldername), path(diff), path(peak)
     path gtf
     val maps_3d_ext
 
@@ -45,11 +45,12 @@ process BIOC_CHIPPEAKANNO {
     gtf <- "${gtf}"
     pf <- file.path("${prefix}", "anno")
     bin_size <- "${prefix}"
+    anchor_peak <- "${peak}"
 
     detbl <- dir(".", "DEtable.*.csv|${maps_3d_ext}|peaks|bedpe|bed",
                 recursive = TRUE, full.names = TRUE)
     detbl <- detbl[!grepl("anno.csv", detbl)] ## in case of re-run
-
+    detbl <- detbl[!basename(detbl) %in% basename(anchor_peak)]
     txdb <- makeTxDbFromGFF(gtf) ## create annotation data from gtf file
     gtf <- import(gtf)
     id2symbol <- function(gtf){ ## convert entriz id to gene symbol
@@ -69,8 +70,14 @@ process BIOC_CHIPPEAKANNO {
     resList <- list() # save annotation results to a list
     peaks <- list()
     promoterList <- list() # list to save the distal sites of promoters interactions
+    R2_peaks <- list() # save annotation results of R2 peaks involved in the loops
 
     dir.create(pf, showWarnings = FALSE, recursive = TRUE)
+    if(file.exists(anchor_peak)){
+        R2 <- import(anchor_peak)
+    }else{
+        R2 <- GRanges()
+    }
     for(det in detbl){
         if(grepl("csv\$", det)) {
             DB <- read.csv(det)
@@ -94,20 +101,52 @@ process BIOC_CHIPPEAKANNO {
         rownames(DB) <- paste0("p", seq.int(nrow(DB)))
         DB.gr1 <- with(DB, GRanges(chr1, IRanges(start1, end1, name=rownames(DB))))
         DB.gr2 <- with(DB, GRanges(chr2, IRanges(start2, end2, name=rownames(DB))))
+        groupName <- sub(".(sig3Dinteractions.pe.txt|csv|bedpe|txt)", "", basename(det))
         # Annotation
-        DB.anno1 <- annotatePeakInBatch(DB.gr1, AnnotationData = anno,
-                                        output = "both",
-                                        PeakLocForDistance = "middle",
-                                        FeatureLocForDistance = "TSS",
-                                        ignore.strand = TRUE)
+        if(length(R2)){
+            ol1 <- findOverlaps(R2, DB.gr1)
+            DB.gr1.R2 <- R2[queryHits(ol1)]
+            DB.gr1.R2\$idx <- subjectHits(ol1)
+            ol2 <- findOverlaps(R2, DB.gr2)
+            DB.gr2.R2 <- R2[queryHits(ol2)]
+            DB.gr2.R2\$idx <- subjectHits(ol2)
+            R2_peaks[[groupName]] <- unique(c(DB.gr1.R2, DB.gr2.R2))
+            DB.anno1 <- annotatePeakInBatch(DB.gr1.R2, AnnotationData = anno,
+                                            output = "both",
+                                            PeakLocForDistance = "middle",
+                                            FeatureLocForDistance = "TSS",
+                                            ignore.strand = TRUE)
+            DB.anno2 <- annotatePeakInBatch(DB.gr2.R2, AnnotationData = anno,
+                                            output = "both",
+                                            PeakLocForDistance = "middle",
+                                            FeatureLocForDistance = "TSS",
+                                            ignore.strand = TRUE)
+            m.DB.anno1 <- as.data.frame(DB.anno1)
+            DB.anno1 <- DB.gr1[DB.anno1\$idx]
+            DB.anno1\$peak <- names(DB.anno1)
+            m.DB.anno1 <- m.DB.anno1[,!colnames(m.DB.anno1) %in% c("width", "strand", "name", "idx", "peak"), drop=FALSE]
+            colnames(m.DB.anno1)[c(1, 2, 3)] <- paste0("ATAC_peak_", colnames(m.DB.anno1)[c(1, 2, 3)])
+            mcols(DB.anno1) <- cbind(mcols(DB.anno1), m.DB.anno1)
+            m.DB.anno2 <- as.data.frame(DB.anno2)
+            DB.anno2 <- DB.gr2[DB.anno2\$idx]
+            DB.anno2\$peak <- names(DB.anno2)
+            m.DB.anno2 <- m.DB.anno2[,!colnames(m.DB.anno2) %in% c("width", "strand", "name", "idx", "peak"), drop=FALSE]
+            colnames(m.DB.anno2)[c(1, 2, 3)] <- paste0("ATAC_peak_", colnames(m.DB.anno2)[c(1, 2, 3)])
+            mcols(DB.anno2) <- cbind(mcols(DB.anno2), m.DB.anno2)
+        }else{
+            DB.anno1 <- annotatePeakInBatch(DB.gr1, AnnotationData = anno,
+                                            output = "both",
+                                            PeakLocForDistance = "middle",
+                                            FeatureLocForDistance = "TSS",
+                                            ignore.strand = TRUE)
+            DB.anno2 <- annotatePeakInBatch(DB.gr2, AnnotationData = anno,
+                                            output = "both",
+                                            PeakLocForDistance = "middle",
+                                            FeatureLocForDistance = "TSS",
+                                            ignore.strand = TRUE)
+        }
         if(length(id2symbol)>0) DB.anno1\$symbol[!is.na(DB.anno1\$feature)] <- id2symbol[DB.anno1\$feature[!is.na(DB.anno1\$feature)]]
-        DB.anno2 <- annotatePeakInBatch(DB.gr2, AnnotationData = anno,
-                                        output = "both",
-                                        PeakLocForDistance = "middle",
-                                        FeatureLocForDistance = "TSS",
-                                        ignore.strand = TRUE)
         if(length(id2symbol)>0) DB.anno2\$symbol[!is.na(DB.anno2\$feature)] <- id2symbol[DB.anno2\$feature[!is.na(DB.anno2\$feature)]]
-        groupName <- sub(".(${maps_3d_ext}|csv|bedpe|txt)", "", basename(det))
         if(grepl("padj", det)){
             resList[[groupName]] <- c(DB.anno1, DB.anno2)
         }else{
@@ -120,7 +159,8 @@ process BIOC_CHIPPEAKANNO {
         DB.anno1 <- mcols(DB.anno1)
         DB.anno2 <- mcols(DB.anno2)
         DB.anno <- merge(DB.anno1, DB.anno2, by="peak",
-                        suffixes = c(".anchor1",".anchor2"))
+                        suffixes = c(".anchor1",".anchor2"),
+                        all = TRUE)
         DB <- cbind(DB[DB.anno\$peak, ], DB.anno)
         pff <- file.path(pf, sub(".(csv|bedpe|peaks|txt)", ".anno.csv", det))
         dir.create(dirname(pff), recursive = TRUE, showWarnings = FALSE)
@@ -145,7 +185,7 @@ process BIOC_CHIPPEAKANNO {
                                                 colors = c("#FFE5CC", "#FFCA99",
                                                         "#FFAD65", "#FF8E32")),
                                             plot = FALSE)
-
+            saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".RDS")))
             ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
             ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".png")), plot=out\$plot)
             out <- metagenePlot(resList, txdb)
@@ -166,7 +206,7 @@ process BIOC_CHIPPEAKANNO {
                                                 colors = c("#FFE5CC", "#FFCA99",
                                                         "#FFAD65", "#FF8E32")),
                                             plot = FALSE)
-
+            saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".RDS")))
             ggsave(file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
             ggsave(file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".png")), plot=out\$plot)
 
@@ -196,7 +236,7 @@ process BIOC_CHIPPEAKANNO {
                                                 colors = c("#FFE5CC", "#FFCA99",
                                                         "#FFAD65", "#FF8E32")),
                                             plot = FALSE)
-
+            saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".RDS")))
             ggsave(file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
             ggsave(file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".png")), plot=out\$plot)
 
@@ -206,6 +246,32 @@ process BIOC_CHIPPEAKANNO {
                 vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
                 dev.off()
                 write.csv(vd\$vennCounts, file.path(pf, paste0("vennDiagram.remote.interaction.peak.with.promoters.all.", bin_size, ".csv")), row.names=FALSE)
+            }
+        }
+        if(length(R2_peaks)>0){
+            R2_peaks <- GRangesList(R2_peaks[lengths(R2_peaks)>0])
+            out <- genomicElementDistribution(R2_peaks,
+                                            TxDb = txdb,
+                                            promoterRegion=c(upstream=2000, downstream=500),
+                                            geneDownstream=c(upstream=0, downstream=2000),
+                                            promoterLevel=list(
+                                                # from 5' -> 3', fixed precedence 3' -> 5'
+                                                breaks = c(-2000, -1000, -500, 0, 500),
+                                                labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
+                                                    "upstream <500b", "TSS - 500b"),
+                                                colors = c("#FFE5CC", "#FFCA99",
+                                                    "#FFAD65", "#FF8E32")),
+                                                plot = FALSE)
+            saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".RDS")))
+            ggsave(file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
+            ggsave(file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".png")), plot=out\$plot)
+
+            if(length(R2_peaks)<=5 && length(R2_peaks)>1){
+                ol <- findOverlapsOfPeaks(R2_peaks)
+                png(file.path(pf, paste0("vennDiagram.ATACpeakInvolvedInInteractionPeaks.all.", bin_size, ".png")))
+                vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
+                dev.off()
+                write.csv(vd\$vennCounts, file.path(pf, paste0("vennDiagram.ATACpeakInvolvedInInteractionPeaks.all.", bin_size, ".csv")), row.names=FALSE)
             }
         }
     }

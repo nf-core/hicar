@@ -9,6 +9,7 @@
 
 include { HICDCPLUS          } from './interaction_caller/hicdcplus'
 include { MAPS               } from './interaction_caller/maps'
+include { PEAKACHU           } from './interaction_caller/peakachu'
 include { MERGE_INTERACTIONS } from '../../modules/local/bioc/merge_interactions'
 
 workflow INTERACTIONS {
@@ -60,14 +61,13 @@ workflow INTERACTIONS {
             break
         case "peakachu":
             PEAKACHU(
-                matrix,
-                additional_param
+                matrix
             )
-            ch_loops = PEAKACHU_SCORE.out.interactions
-            ch_versions = PEAKACHU_SCORE.out.versions
-            ch_annotation_files = PEAKACHU_SCORE.out.interactions.map{
+            ch_loops = PEAKACHU.out.interactions
+            ch_versions = PEAKACHU.out.versions
+            ch_annotation_files = PEAKACHU.out.interactions.map{
                 meta, bin_size, interactions -> [meta.id+bin_size, interactions]}
-            ch_circos_files = PEAKACHU_SCORE.out.interactions.map{
+            ch_circos_files = PEAKACHU.out.interactions.map{
                 meta, bin_size, bedpe ->
                     meta.bin = bin_size
                     [meta, bedpe]

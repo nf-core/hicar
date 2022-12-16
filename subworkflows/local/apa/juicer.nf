@@ -13,8 +13,7 @@ workflow JUICER_APACALLER {
 
     main:
     //additional_param.view()
-    ch_mergedloops = additional_param.map{it[3]}
-    //ch_mergedloops.view()
+    ch_mergedloops = additional_param.map{[it[2], it[3]]}
     BIOC_SUBSETLOOPS(peaks, ch_mergedloops)
 
     ch_hic_loops = matrix.map{[it[0].bin, it[0], it[1]]}
