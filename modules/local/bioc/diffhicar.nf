@@ -81,6 +81,9 @@ process DIFFHICAR {
     cnts[is.na(cnts)] <- 0
     names(peaks_id) <- paste0(rep("p", length(peaks_id)), seq_along(peaks_id))
     rownames(cnts) <- names(peaks_id)
+    if(all(colSums(cnts)==0)){
+        stop("Can not get counts table.")
+    }
 
     pf <- as.character(binsize)
     dir.create(pf, showWarnings = FALSE, recursive=TRUE)

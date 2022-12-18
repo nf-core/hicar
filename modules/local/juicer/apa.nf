@@ -11,7 +11,7 @@ process JUICER_APA {
 
     input:
     tuple val(meta), path(hic), path(loops)
-    path juicer_box_jar
+    path juicer_tools_jar
     val juicer_jvm_params
 
     output:
@@ -23,7 +23,7 @@ process JUICER_APA {
     prefix   = task.ext.prefix ?: "${meta.id}"
     def args = task.ext.args ?: ''
     """
-    java ${juicer_jvm_params} -jar ${juicer_box_jar} apa \\
+    java ${juicer_jvm_params} -jar ${juicer_tools_jar} apa \\
         $args \\
         --threads $task.cpus \\
         $hic $loops $prefix

@@ -69,12 +69,12 @@ process DIFFHIC {
     cnts <- lapply(split(cnts, samples), do.call, what=rbind)
     sizeFactor <- vapply(cnts, FUN=function(.ele) sum(.ele[, 7], na.rm = TRUE),
         FUN.VALUE = numeric(1))
-
     cnts <- lapply(cnts, function(.ele){
     with(.ele, GInteractions(GRanges(V1, IRanges(V2, V3)),
         GRanges(V4, IRanges(V5, V6)),
         score = V7))
     })
+    cnts0 <- cnts ## backup
     cnts <- lapply(cnts, function(.ele){
         ol <- findOverlaps(peaks, .ele, type="equal", select = "first")
         .peak <- peaks
@@ -83,6 +83,18 @@ process DIFFHIC {
         .peak\$score
     })
     cnts <- do.call(cbind, cnts)
+    if(all(colSums(cnts)==0)){## peaks not exactly bin based
+        cnts <- lapply(cnts0, function(.ele){
+            ol <- findOverlaps(peaks, .ele, select = "all")
+            .peak <- peaks
+            .peak\$score <- 0
+            .score <- lapply(split(.ele[subjectHits(ol)]\$score, queryHits(ol)), max, na.rm=TRUE)
+            .score <- unlist(.score)
+            .peak\$score[as.numeric(names(.score))] <- .score
+            .peak\$score
+        })
+        cnts <- do.call(cbind, cnts)
+    }
 
     pf <- as.character(OUTFOLDER)
     dir.create(pf, showWarnings = FALSE, recursive=TRUE)

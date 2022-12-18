@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import struct, io, os, joblib, argparse
+import struct, io, os, joblib, argparse, sys
 import numpy as np
 from sklearn.isotonic import IsotonicRegression
 from scipy import sparse
@@ -13,7 +13,7 @@ import cooler
 def tocsr(X):
 
     row, col, data = X.row, X.col, X.data
-    M = csr_matrix((data, (row, col)), shape=X.shape, dtype=float)
+    M = sparse.csr_matrix((data, (row, col)), shape=X.shape, dtype=float)
 
     return M
 
@@ -26,7 +26,7 @@ def calculate_expected(M, maxdis, raw=False):
     # extract valid columns
     if raw:
         R, C, data = R[valid_pixels], C[valid_pixels], M.data[valid_pixels]
-        M = spare.csr_matrix((data, (R, C)), shape=M.shape, dtype=float)
+        M = sparse.csr_matrix((data, (R, C)), shape=M.shape, dtype=float)
         marg = np.array(M.sum(axis=0)).ravel()
         valid_cols = marg > 0
     else:
@@ -257,7 +257,10 @@ class Chromosome:
                     self.chromname,
                     c[i] * self.r,
                     (c[i] + 1) * self.r,
+                    '.',
                     prob_csr[r[i], c[i]],
+                    '.',
+                    '.',
                     raw_csr[r[i], c[i]],
                 ]
                 out.write("\t".join(list(map(str, line))) + "\n")
