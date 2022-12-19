@@ -39,6 +39,30 @@ ch_anchor_peaks = Channel.empty()
 if(params.anchor_peaks){
     ch_anchor_peaks = file("${params.anchor_peaks}", checkIfExists: true)
 }
+
+// check the tools
+if (!params.interactions_tool in ['maps', 'hicdcplus', 'peakachu']){
+    exit 1, 'The interactions_tool must be one of maps, hicdcplus or peakachu'
+}
+if (!params.tad_tool in ['cooltools', 'hicexplorer', 'homer']){
+    exit 1, 'The tad_tool must be one of cooltools, hicexplorer or homer'
+}
+if (!params.compartments_tool in ['cooltools', 'hicexplorer', 'homer', 'juicebox']){
+    exit 1, 'The compartments_tool must be one of cooltools, hicexplorer, homer or juicebox'
+}
+if (!params.apa_tool in ['cooltools', 'hicexplorer', 'juicebox']){
+    exit 1, 'The apa_tool must be one of cooltools, hicexplorer or juicebox'
+}
+if (!params.da_tool in ['edger', 'diffhic', 'hicexplorer', 'setOperation']){
+    exit 1, 'The da_tool must be one of edger, diffhic, hicexplorer or setOperation'
+}
+if (!params.v4c_tool in ['cooltools', 'hicexplorer', 'trackviewer']){
+    exit 1, 'The v4c_tool must be one of cooltools, hicexplorer or trackviewer'
+}
+if (!params.tfea_tool in ['atacseqtfea', 'homer']){
+    exit 1, 'The tfea_tool must be one of atacseqtfea, or homer'
+}
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     PIPELINE CONTROLER
