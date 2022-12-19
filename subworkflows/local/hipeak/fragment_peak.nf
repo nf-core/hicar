@@ -5,10 +5,11 @@ include { R1READS             } from '../../../modules/local/fragmentreads/r1rea
 include { MERGE_READS
     as MERGE_R1READS          } from '../../../modules/local/atacreads/mergereads'
 include { CALL_R1PEAK         } from '../../../modules/local/fragmentreads/call_peak'
-include { DUMP_READS
-    as DUMP_R1_READS_PER_GROUP     } from '../../../modules/local/atacreads/dumpreads'
-include { DUMP_READS
-    as DUMP_R1_READS_PER_SAMPLE    } from '../../../modules/local/atacreads/dumpreads'
+include {
+    DUMP_READS
+        as DUMP_R1_READS_PER_GROUP;
+    DUMP_READS
+        as DUMP_R1_READS_PER_SAMPLE    } from '../../../modules/local/atacreads/dumpreads'
 include { MERGE_PEAK
     as MERGE_R1PEAK           } from '../../../modules/local/atacreads/mergepeak'
 include { BEDTOOLS_GENOMECOV

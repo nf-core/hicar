@@ -2,28 +2,33 @@
  * call peak by MACS2 for ATAC reads
  */
 include { PAIRTOOLS_SELECT
-    as  PAIRTOOLS_SELECT_SHORT} from '../../modules/nf-core/pairtools/select/main'
-include { SHIFT_READS         } from '../../modules/local/atacreads/shiftreads'
-include { MERGE_READS         } from '../../modules/local/atacreads/mergereads'
-include { MACS2_CALLPEAK      } from '../../modules/nf-core/macs2/callpeak/main'
-include { DUMP_READS          } from '../../modules/local/atacreads/dumpreads'
-include { DUMP_READS
-    as DUMP_READS_PER_SAMPLE  } from '../../modules/local/atacreads/dumpreads'
-include { MERGE_PEAK          } from '../../modules/local/atacreads/mergepeak'
-include { ATACQC              } from '../../modules/local/atacreads/atacqc'
-include { BEDTOOLS_GENOMECOV
-    as BEDTOOLS_GENOMECOV_PER_SAMPLE } from '../../modules/nf-core/bedtools/genomecov/main'
-include { BEDTOOLS_GENOMECOV
-    as BEDTOOLS_GENOMECOV_PER_GROUP  } from '../../modules/nf-core/bedtools/genomecov/main'
-include { BEDFILES_SORT
-    as BEDFILES_SORT_PER_GROUP       } from '../../modules/local/atacreads/bedsort'
-include { BEDFILES_SORT
-    as BEDFILES_SORT_PER_SAMPLE      } from '../../modules/local/atacreads/bedsort'
-include { UCSC_BEDCLIP        } from '../../modules/nf-core/ucsc/bedclip/main'
-include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_PER_GROUP} from '../../modules/nf-core/ucsc/bedgraphtobigwig/main'
-include { UCSC_BEDGRAPHTOBIGWIG
-    as UCSC_BEDGRAPHTOBIGWIG_PER_SAMPLE} from '../../modules/nf-core/ucsc/bedgraphtobigwig/main'
+    as  PAIRTOOLS_SELECT_SHORT              } from '../../modules/nf-core/pairtools/select/main'
+include { SHIFT_READS                       } from '../../modules/local/atacreads/shiftreads'
+include { MERGE_READS                       } from '../../modules/local/atacreads/mergereads'
+include { MACS2_CALLPEAK                    } from '../../modules/nf-core/macs2/callpeak/main'
+include {
+    DUMP_READS
+        as DUMP_READS_PER_GROUP;
+    DUMP_READS
+        as DUMP_READS_PER_SAMPLE            } from '../../modules/local/atacreads/dumpreads'
+include { MERGE_PEAK                        } from '../../modules/local/atacreads/mergepeak'
+include { ATACQC                            } from '../../modules/local/atacreads/atacqc'
+include {
+    BEDTOOLS_GENOMECOV
+        as BEDTOOLS_GENOMECOV_PER_SAMPLE;
+    BEDTOOLS_GENOMECOV
+        as BEDTOOLS_GENOMECOV_PER_GROUP     } from '../../modules/nf-core/bedtools/genomecov/main'
+include {
+    BEDFILES_SORT
+        as BEDFILES_SORT_PER_GROUP;
+    BEDFILES_SORT
+        as BEDFILES_SORT_PER_SAMPLE         } from '../../modules/local/atacreads/bedsort'
+include { UCSC_BEDCLIP                      } from '../../modules/nf-core/ucsc/bedclip/main'
+include {
+    UCSC_BEDGRAPHTOBIGWIG
+        as UCSC_BEDGRAPHTOBIGWIG_PER_GROUP;
+    UCSC_BEDGRAPHTOBIGWIG
+        as UCSC_BEDGRAPHTOBIGWIG_PER_SAMPLE } from '../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 
 workflow ATAC_PEAK {
     take:
@@ -76,8 +81,8 @@ workflow ATAC_PEAK {
     ch_version = ch_version.mix(ATACQC.out.versions)
 
     // dump ATAC reads for each group for maps
-    DUMP_READS(MERGE_READS.out.bed, short_bed_postfix)
-    ch_version = ch_version.mix(DUMP_READS.out.versions)
+    DUMP_READS_PER_GROUP(MERGE_READS.out.bed, short_bed_postfix)
+    ch_version = ch_version.mix(DUMP_READS_PER_GROUP.out.versions)
     BEDFILES_SORT_PER_GROUP(ch_group_bdg, "bedgraph")
     UCSC_BEDCLIP(BEDFILES_SORT_PER_GROUP.out.sorted, chromsizes)
     UCSC_BEDGRAPHTOBIGWIG_PER_GROUP(UCSC_BEDCLIP.out.bedgraph, chromsizes)
@@ -94,7 +99,7 @@ workflow ATAC_PEAK {
     peak       = ch_group_peak                        // channel: [ val(meta), path(peak) ]
     mergedpeak = MERGE_PEAK.out.peak                  // channel: [ path(bed) ]
     stats      = ATACQC.out.stats                     // channel: [ path(csv) ]
-    reads      = DUMP_READS.out.peak                  // channel: [ val(meta), path(bedgraph) ]
+    reads      = DUMP_READS_PER_GROUP.out.peak        // channel: [ val(meta), path(bedgraph) ]
     samplereads= DUMP_READS_PER_SAMPLE.out.peak       // channel: [ val(meta), path(bedgraph) ]
     bws        = UCSC_BEDGRAPHTOBIGWIG_PER_GROUP.out.bigwig     // channel: [ val(meta), path(bigwig) ]
     versions   = ch_version                           // channel: [ path(version) ]

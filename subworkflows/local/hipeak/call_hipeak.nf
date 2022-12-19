@@ -11,9 +11,9 @@ include { BIOC_CHIPPEAKANNO
     as BIOC_CHIPPEAKANNO_HIPEAK     } from '../../../modules/local/bioc/chippeakanno'
 include { BIOC_CHIPPEAKANNO
     as BIOC_CHIPPEAKANNO_DIFFHIPEAK } from '../../../modules/local/bioc/chippeakanno'
-include { BEDPE2BED                 } from '../../../modules/local/bioc/bedpe2bed'
-include { BEDPE2BED
-    as BEDPE2BED_DIFF               } from '../../../modules/local/bioc/bedpe2bed'
+include {
+    BEDPE2BED as BEDPE2BED_HI;
+    BEDPE2BED as BEDPE2BED_DIFF     } from '../../../modules/local/bioc/bedpe2bed'
 
 workflow HI_PEAK {
     take:
@@ -46,7 +46,7 @@ workflow HI_PEAK {
     //assign type for peak
     ASSIGN_TYPE(CALL_HIPEAK.out.peak)
     ch_version = ch_version.mix(ASSIGN_TYPE.out.versions)
-    ch_bed = BEDPE2BED(ASSIGN_TYPE.out.bedpe).bed.map{[it[0], 'hipeak', it[1]]}
+    ch_bed = BEDPE2BED_HI(ASSIGN_TYPE.out.bedpe).bed.map{[it[0], 'hipeak', it[1]]}
     // annotation
     if(!skip_peak_annotation){
         BIOC_CHIPPEAKANNO_HIPEAK(ASSIGN_TYPE.out.peak

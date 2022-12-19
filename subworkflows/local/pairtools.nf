@@ -2,21 +2,23 @@
  * pair the proper mapped pairs
  */
 
-include { PAIRTOOLS_DEDUP    } from '../../modules/nf-core/pairtools/dedup/main'
-include { PAIRTOOLS_FLIP     } from '../../modules/nf-core/pairtools/flip/main'
-include { PAIRTOOLS_PARSE    } from '../../modules/nf-core/pairtools/parse/main'
-include { PAIRTOOLS_RESTRICT } from '../../modules/nf-core/pairtools/restrict/main'
-include { PAIRTOOLS_SELECT   } from '../../modules/nf-core/pairtools/select/main'
-include { PAIRTOOLS_SELECT
-    as PAIRTOOLS_SELECT_LONG } from '../../modules/nf-core/pairtools/select/main'
-include { PAIRTOOLS_SORT     } from '../../modules/nf-core/pairtools/sort/main'
-include { PAIRIX             } from '../../modules/nf-core/pairix/main'
-include { READS_STAT         } from '../../modules/local/reads_stat'
-include { READS_SUMMARY      } from '../../modules/local/reads_summary'
-include { PAIRSQC            } from '../../modules/local/pairix/pairsqc'
-include { PAIRSPLOT          } from '../../modules/local/pairix/pairsplot'
-include { BIOC_PAIRS2HDF5    } from '../../modules/local/bioc/pairs2hdf5'
-include { DUMP4HOMER         } from '../../modules/local/homer/dump4homer'
+include { PAIRTOOLS_DEDUP        } from '../../modules/nf-core/pairtools/dedup/main'
+include { PAIRTOOLS_FLIP         } from '../../modules/nf-core/pairtools/flip/main'
+include { PAIRTOOLS_PARSE        } from '../../modules/nf-core/pairtools/parse/main'
+include { PAIRTOOLS_RESTRICT     } from '../../modules/nf-core/pairtools/restrict/main'
+include {
+    PAIRTOOLS_SELECT
+        as PAIRTOOLS_SELECT_VP;
+    PAIRTOOLS_SELECT
+        as PAIRTOOLS_SELECT_LONG } from '../../modules/nf-core/pairtools/select/main'
+include { PAIRTOOLS_SORT         } from '../../modules/nf-core/pairtools/sort/main'
+include { PAIRIX                 } from '../../modules/nf-core/pairix/main'
+include { READS_STAT             } from '../../modules/local/reads_stat'
+include { READS_SUMMARY          } from '../../modules/local/reads_summary'
+include { PAIRSQC                } from '../../modules/local/pairix/pairsqc'
+include { PAIRSPLOT              } from '../../modules/local/pairix/pairsplot'
+include { BIOC_PAIRS2HDF5        } from '../../modules/local/bioc/pairs2hdf5'
+include { DUMP4HOMER             } from '../../modules/local/homer/dump4homer'
 
 workflow PAIRTOOLS_PAIRE {
     take:
@@ -28,9 +30,9 @@ workflow PAIRTOOLS_PAIRE {
     //raw pairs, output raw.pairsam
     PAIRTOOLS_PARSE(ch_bam, chromsizes)
     // select valid pairs
-    PAIRTOOLS_SELECT(PAIRTOOLS_PARSE.out.pairsam)
+    PAIRTOOLS_SELECT_VP(PAIRTOOLS_PARSE.out.pairsam)
     // remove same fragment pairs, output samefrag.pairs, valid.pairs <- like HiC pairs
-    PAIRTOOLS_RESTRICT(PAIRTOOLS_SELECT.out.selected, frag)
+    PAIRTOOLS_RESTRICT(PAIRTOOLS_SELECT_VP.out.selected, frag)
     PAIRTOOLS_SELECT_LONG(PAIRTOOLS_RESTRICT.out.restrict)
     // dump for homer
     DUMP4HOMER(PAIRTOOLS_SELECT_LONG.out.unselected)
@@ -61,7 +63,7 @@ workflow PAIRTOOLS_PAIRE {
     stat = READS_SUMMARY.out.summary      // channel: [ path(summary) ]
     qc   = PAIRSQC.out.qc                 // channel: [ val(meta), [qc]]
     raw  = PAIRTOOLS_PARSE.out.pairsam    // channel: [ val(meta), [pairsam] ]
-    validpair  = PAIRTOOLS_SELECT.out.selected        // channel: [val(meta), [validpair]]
+    validpair  = PAIRTOOLS_SELECT_VP.out.selected        // channel: [val(meta), [validpair]]
     distalpair = PAIRTOOLS_SELECT_LONG.out.unselected // channel: [val(meta), [valid.pair.gz]]
     homerpair  = DUMP4HOMER.out.hicsummary            // channel: [val(meta), [hicsummary.txt.gz]]
     hdf5 = BIOC_PAIRS2HDF5.out.hdf5       // channel: [ val(meta), [hdf5] ]
