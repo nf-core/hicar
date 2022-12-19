@@ -499,7 +499,7 @@ workflow HICAR {
         )
         ch_versions = ch_versions.mix(INTERACTIONS.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(INTERACTIONS.out.mqc.collect().ifEmpty([]))
-        ch_annotation_files = ch_annotation_files.mix(INTERACTIONS.out.anno)
+        ch_annotation_files = ch_annotation_files.mix(INTERACTIONS.out.anno.map{[params.interactions_tool+'/'+it[0], it[1]]})
         ch_circos_files = ch_circos_files.mix(INTERACTIONS.out.circos)
         ch_de_files = ch_de_files.mix(INTERACTIONS.out.loops)
     }
@@ -564,7 +564,7 @@ workflow HICAR {
         }
         ch_versions = ch_versions.mix(DA.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(DA.out.mqc.collect().ifEmpty([]))
-        ch_annotation_files = ch_annotation_files.mix(DA.out.anno.map{[it[1], it[2]]})
+        ch_annotation_files = ch_annotation_files.mix(DA.out.anno.map{[params.da_tool+'/'+it[1], it[2]]})
         ch_v4c_files = ch_v4c_files.mix(DA.out.anno.map{[it[0], it[2]]})
     }
 
@@ -654,36 +654,29 @@ workflow HICAR {
     ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))
 
     //
-    // visualization: IGV
+    // visualization: IGV, Create igv index.html file
     //
+    def bedpe_module_name = 'MAPS_REFORMAT'
+    switch(params.interactions_tool){
+        case 'maps':
+            bedpe_module_name = 'MAPS_REFORMAT'
+            break
+        case 'hicdcplus':
+            bedpe_module_name = 'HICDCPLUS_CALLLOOPS'
+            break
+        case 'peakachu':
+            bedpe_module_name = 'PEAKACHU_SCORE'
+            break
+    }
     INTERACTIONS.out.loops.map{[it[0].id+'.'+it[1]+'.contacts',
                             RelativePublishFolder.getPublishedFolder(workflow,
-                                                'MAPS_REFORMAT')+it[2].name]}
+                                                bedpe_module_name)+it[2].name]}
         .mix(ATAC_PEAK.out
                     .bws.map{[it[0].id+"_R2",
                         RelativePublishFolder.getPublishedFolder(workflow,
                                             'UCSC_BEDGRAPHTOBIGWIG_PER_GROUP')+it[1].name]})
         .set{ch_trackfiles} // collect track files for igv
 
-
-/*
-    MAPS_CIRCOS(
-        INTERACTIONS.out.loops.map{
-            meta, bin_size, bedpe ->
-                meta.id = "MAPS_PEAK_" + meta.id
-                [meta, bedpe]
-        },
-        PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.chrom_sizes,
-        PREPARE_GENOME.out.ucscname,
-        ch_circos_config
-    )
-    ch_versions = ch_versions.mix(MAPS_CIRCOS.out.versions.ifEmpty(null))
-*/
-
-    //
-    // Create igv index.html file
-    //
     ch_trackfiles.collect{it.join('\t')}
         .flatten()
         .collectFile(

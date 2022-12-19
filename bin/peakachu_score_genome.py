@@ -257,10 +257,10 @@ class Chromosome:
                     self.chromname,
                     c[i] * self.r,
                     (c[i] + 1) * self.r,
-                    '.',
+                    ".",
                     prob_csr[r[i], c[i]],
-                    '.',
-                    '.',
+                    ".",
+                    ".",
                     raw_csr[r[i], c[i]],
                 ]
                 out.write("\t".join(list(map(str, line))) + "\n")

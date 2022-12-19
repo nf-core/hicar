@@ -15,9 +15,9 @@ process BIOC_CHIPPEAKANNO {
     val maps_3d_ext
 
     output:
-    tuple val(foldername), path("${prefix}/anno/*"), emit: anno
-    tuple val(foldername), path("${prefix}/anno/**.anno.csv"), emit: csv
-    path "${prefix}/anno/*.png", optional:true, emit: png
+    tuple val(foldername), path("${prefix}/*"), emit: anno
+    tuple val(foldername), path("${prefix}/**.anno.csv"), emit: csv
+    path "${prefix}/*.png", optional:true, emit: png
     path "versions.yml"                       , emit: versions
 
     script:
@@ -43,8 +43,8 @@ process BIOC_CHIPPEAKANNO {
     writeLines(versions, "versions.yml") # write versions.yml
 
     gtf <- "${gtf}"
-    pf <- file.path("${prefix}", "anno")
-    bin_size <- "${prefix}"
+    pf <- file.path("${prefix}")
+    bin_size <- basename("${prefix}")
     anchor_peak <- "${peak}"
 
     detbl <- dir(".", "DEtable.*.csv|${maps_3d_ext}|peaks|bedpe|bed",

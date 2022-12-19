@@ -226,8 +226,10 @@ The TAD-separation score and the matrix will be visualized using [hicPlotTADs](h
     - `merged/*`: The merged loops for each resolution.
     - `*`: The tables of chromatin interactions with p-value and fdr.
   - `MAPSpeak/`
-    - `bin*/*`: The annotated TADs and loops.
     - `*`: The tables of chromatin interactions with p-value and fdr.
+  - `peakachu/`
+    - `merged/*`: The merged loops for each resolution.
+    - `*`: The bedpe files of chromatin interactions with peakachu scores.
 
 </details>
 
@@ -244,14 +246,14 @@ By default, the interactions are called by `positive poisson` regression model
 and then filtered by coverage (default is 12 per bin), fold change (default is 2 times over expected value) and fdr (default is 0.01).
 
 The chromatin interactions called by [HiCDCPlus](https://doi.org/10.1038/s41467-021-23749-x)
-or other tools are also located in interactions folder.
+and [peakachu](https://doi.org/10.1038/s41467-020-17239-9) or other tools are also located in interactions folder.
 
 ### Differential analysis
 
 <details markdown="1">
 <summary>Output files</summary>
 
-- `differential_analysis/*`: Differential analysis results.
+- `differential_analysis/<differential analysis tool>/<interaction caller>/*`: Differential analysis results.
 
 </details>
 
@@ -268,7 +270,7 @@ The differential analysis is done for validated chromatin interactions by loop c
 <details markdown="1">
 <summary>Output files</summary>
 
-- `annotations/*`: Annotation results.
+- `annotations/<interaction caller>/*`: Annotation results.
 
 </details>
 
