@@ -2,7 +2,7 @@ process PAIRSPLOT {
     tag "$meta.id"
     label 'process_low'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-chipqc=1.28.0" : null)
+    conda "bioconda::bioconductor-chipqc=1.28.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-chipqc:1.28.0--r41hdfd78af_0' :

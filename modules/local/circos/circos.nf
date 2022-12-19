@@ -3,7 +3,7 @@ process CIRCOS {
     label 'process_medium'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::circos=0.69.8" : null)
+    conda "bioconda::circos=0.69.8"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/circos:0.69.8--hdfd78af_1' :

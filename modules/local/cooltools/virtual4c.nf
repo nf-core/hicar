@@ -3,7 +3,7 @@ process COOLTOOLS_VIRTUAL4C {
     label 'process_medium'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::cooltools=0.5.2" : null)
+    conda "bioconda::cooltools=0.5.2"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/cooltools:0.5.2--py39h5371cbf_1' :

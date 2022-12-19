@@ -3,7 +3,7 @@ process BIOC_CHIPPEAKANNO {
     label 'process_medium'
     //label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.32.0" : null)
+    conda "bioconda::bioconductor-chippeakanno=3.32.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' :

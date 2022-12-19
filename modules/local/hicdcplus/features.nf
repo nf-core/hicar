@@ -3,7 +3,7 @@ process HICDCPLUS_FEATURES {
     label 'process_high'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-hicdcplus=1.2.1" : null)
+    conda "bioconda::bioconductor-hicdcplus=1.2.1"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-hicdcplus:1.2.1--r41h619a076_0' :

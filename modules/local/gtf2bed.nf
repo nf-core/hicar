@@ -2,7 +2,7 @@ process GTF2BED {
     tag '$gtf'
     label 'process_low'
 
-    conda (params.enable_conda ? "bioconda::perl-getopt-long=2.50" : null)
+    conda "bioconda::perl-getopt-long=2.50"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/perl-getopt-long:2.50--pl526_1' :

@@ -4,7 +4,7 @@ process BIOC_ATACSEQTFEA {
     label 'process_single'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-atacseqtfea=1.0.1" : null)
+    conda "bioconda::bioconductor-atacseqtfea=1.0.1"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/https://depot.galaxyproject.org/singularity/bioconductor-atacseqtfea%3A1.0.1--r42hdfd78af_0' :

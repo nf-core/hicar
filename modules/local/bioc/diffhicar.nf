@@ -2,7 +2,7 @@ process DIFFHICAR {
     tag "$bin_size"
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-edger=3.32.1" : null)
+    conda "bioconda::bioconductor-edger=3.32.1"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-edger:3.32.1--r40h399db7b_0' :

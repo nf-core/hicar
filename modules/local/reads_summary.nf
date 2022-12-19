@@ -1,7 +1,7 @@
 process READS_SUMMARY {
     label 'process_low'
 
-    conda (params.enable_conda ? "r::r-magrittr=1.5" : null)
+    conda "r::r-magrittr=1.5"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-magrittr:1.5--r3.2.2_0' :

@@ -2,7 +2,7 @@ process HICHIPPER_HICHIPPER {
     tag "${meta.id}"
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::hichipper=0.7.7" : null)
+    conda "bioconda::hichipper=0.7.7"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/hichipper:0.7.7--py_1' :
         'quay.io/biocontainers/hichipper:0.7.7--py_1' }"

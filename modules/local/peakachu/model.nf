@@ -1,7 +1,7 @@
 process PEAKACHU_MODEL {
     label 'process_single'
 
-    conda (params.enable_conda ? "bioconda::cooler=0.8.11" : null)
+    conda "bioconda::cooler=0.8.11"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/cooler:0.8.11--pyh3252c3a_0' :

@@ -2,7 +2,7 @@ process CHECKSUMS {
     tag "${meta.id}"
     label 'process_low'
 
-    conda (params.enable_conda ? "conda-forge::coreutils=8.31" : null)
+    conda "conda-forge::coreutils=8.31"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/coreutils:8.31--h14c3975_0' :

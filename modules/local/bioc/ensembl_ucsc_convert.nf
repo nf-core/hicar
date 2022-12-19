@@ -2,7 +2,7 @@ process ENSEMBL_UCSC_CONVERT {
     tag "$fname"
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-rtracklayer=1.50.0" : null)
+    conda "bioconda::bioconductor-rtracklayer=1.50.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' :

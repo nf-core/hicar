@@ -2,7 +2,7 @@ process DIFFSET {
     tag "$bin_size"
     label 'process_low'
 
-    conda (params.enable_conda ? "conda-forge::r-upsetr=1.4.0" : null)
+    conda "conda-forge::r-upsetr=1.4.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-upsetr:1.0.3--r3.3.2_1' :

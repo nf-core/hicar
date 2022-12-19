@@ -3,7 +3,7 @@ process JUICER_PRE {
     label 'process_medium'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::java-jdk=8.0.112" : null)
+    conda "bioconda::java-jdk=8.0.112"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--1' :

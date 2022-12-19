@@ -2,7 +2,7 @@ process CHROMSIZES {
     tag "$fasta"
     label 'process_low'
 
-    conda (params.enable_conda ? "bioconda::samtools=1.12" : null)
+    conda "bioconda::samtools=1.12"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/samtools:1.12--hd5e65b6_0' :

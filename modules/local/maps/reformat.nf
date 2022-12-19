@@ -2,7 +2,7 @@ process MAPS_REFORMAT {
     tag "$meta.id"
     label 'process_low'
 
-    conda (params.enable_conda ? "conda-forge::r-data.table=1.12.2" : null)
+    conda "conda-forge::r-data.table=1.12.2"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-data.table:1.12.2' :
