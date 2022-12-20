@@ -30,7 +30,6 @@ jobs:
           - "--interactions_tool maps"
           - "--interactions_tool hicdcplus"
           - "--interactions_tool peakachu"
-          - "--tad_tool cooltools"
           - "--tad_tool homer"
           - "--compartments_tool homer"
           - "--compartments_tool juicebox"

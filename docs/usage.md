@@ -350,3 +350,21 @@ The error may caused by out of memory (although the error message seems to be un
 
 If you are using [Juicer_tools](https://github.com/aidenlab/juicer/wiki/) with GPU supported, it is not supported by the containers. We are using [Juicer Tools Pre](https://github.com/aidenlab/juicer/wiki/Pre) to create the [hic files](https://doi.org/10.1016/j.cels.2016.07.002) from aligned HiCAR reads.
 We recommend having at least 4GB free RAM to generate the hic files.
+
+### Tips for HPC Users
+
+When using an HPC system you should specify the executor matching your system. Check [available executors](https://www.nextflow.io/docs/latest/executor.html) to use the correct executor and parameters.
+This instructs Nextflow to submit pipeline tasks as jobs into your HPC workload manager.
+Take SLURM workload manager system as an example for the minimal test, this can be done adding the following lines to the `nextflow.config`.
+
+```nextflow
+process.executor = 'slurm' // the workload manager name
+process.queueSize = 10 // the job queue size
+process.clusterOptions = "-J nextFlowHiCAR -p scavenger" // the options, here -p request a specific partition for the resource allocation. It will be different in your cluster.
+```
+
+### Useful resources
+
+- [Nextflow pipeline configuration](https://nf-co.re/usage/configuration)
+
+- [Troubleshooting documentation](https://nf-co.re/docs/usage/troubleshooting)
