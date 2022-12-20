@@ -402,7 +402,7 @@
                 },
                 "tad_tool": {
                     "type": "string",
-                    "description": "The caller for TADs",
+                    "description": "The caller for TADs, available choices: 'cooltools', 'hicexplorer', 'homer'",
                     "help_text": "Possible tools are hicfindtads and cooltools (by insulation function).",
                     "fa_icon": "fas fa-th",
                     "default": "hicfindtads"
@@ -417,38 +417,38 @@
                 "apa_tool": {
                     "type": "string",
                     "default": "hicexploer",
-                    "description": "APA tool",
+                    "description": "APA tool, available choices: 'cooltools', 'hicexplorer', and 'juicebox'",
                     "fa_icon": "fab fa-adn"
                 },
                 "compartments_tool": {
                     "type": "string",
                     "default": "cooltools",
-                    "description": "Call compartment tool",
+                    "description": "Call compartment tool, available choices: 'cooltools', 'hicexplorer', 'homer', and 'juicebox'",
                     "fa_icon": "fas fa-expand"
                 },
                 "interactions_tool": {
                     "type": "string",
                     "default": "maps",
-                    "description": "Call loops tool",
+                    "description": "Call loops tool, available choices: 'maps', 'hicdcplus', and 'peakachu'",
                     "fa_icon": "fab fa-airbnb"
                 },
                 "da_tool": {
                     "type": "string",
                     "default": "diffhic",
-                    "description": "Differential analysis tool. Possible options are edger, diffhic, and setOperation",
+                    "description": "Differential analysis tool. Possible options are 'edger', 'diffhic', 'hicexplorer', and 'setOperation'",
                     "fa_icon": "fas fa-adjust"
                 },
                 "v4c_tool": {
                     "type": "string",
                     "default": "hicexplorer",
-                    "description": "virtual 4c tool",
+                    "description": "virtual 4c tool, available choices: 'cooltools', 'hicexplorer', and 'trackviewer'",
                     "fa_icon": "fas fa-mountain"
                 },
                 "tfea_tool": {
                     "type": "string",
                     "default": "homer",
                     "fa_icon": "fas fa-infinity",
-                    "description": "Transcription Factor Enrichment Analysis tool"
+                    "description": "Transcription Factor Enrichment Analysis tool, available choices: 'atacseqtfea', and 'homer'"
                 },
                 "juicer_box_jar": {
                     "type": "string",

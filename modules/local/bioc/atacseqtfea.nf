@@ -7,8 +7,8 @@ process BIOC_ATACSEQTFEA {
     conda "bioconda::bioconductor-atacseqtfea=1.0.1"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/https://depot.galaxyproject.org/singularity/bioconductor-atacseqtfea%3A1.0.1--r42hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-atacseqtfea%3A1.0.1--r42hdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/bioconductor-atacseqtfea:1.0.1--r42hdfd78af_0' :
+        'quay.io/biocontainers/bioconductor-atacseqtfea:1.0.1--r42hdfd78af_0' }"
 
     input:
     tuple val(meta), path(peak), path(bam)
@@ -95,7 +95,7 @@ process BIOC_ATACSEQTFEA {
         getBSgenome(genome)
     }, error=function(e){
         message("Try to forge a genome")
-        tmp <- tempfile()
+        tmp <- paste0(genome, '.seeds')
         pkgName <- paste0("Package: BSgenome.", genome)
         writeLines(c(
             pkgName,
@@ -126,11 +126,14 @@ process BIOC_ATACSEQTFEA {
             p.cutoff = PVALUE
         )
     ## prepare R2 read bam file
+    bams <- sapply(bams, function(.ele) sortBam(.ele, sub(".bam\$", ".srt", .ele)))
     indexBam(bams)
-    bams <- lapply(bams, sub(".bam\$", ".R2.bam", bams),
-                    param=ScanBamParam(
-                        flag = scanBamFlag(isSecondMateRead=TRUE),
-                        what=scanBamWhat()))
+    bams <- lapply(bams, function(.ele) {
+        filterBam(.ele, sub(".bam\$", ".R2.bam", .ele),
+            param=ScanBamParam(
+                flag = scanBamFlag(isSecondMateRead=TRUE),
+                what=scanBamWhat()))
+    })
     bams <- unlist(bams)
     group <- sub("_REP.*\$", "", bams)
     stopifnot(length(unique(group))>=1)
