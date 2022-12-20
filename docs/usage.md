@@ -80,7 +80,7 @@ There are multiple available modules to call A/B compartments and TADs.
 Here is a short introduction about the tools:
 
 - The [`cooltools`](https://github.com/open2c/cooltools) leverages [`cooler`](https://github.com/open2c/cooler/tree/master/cooler) format to enable flexible and reproducible analysis of high-resolution data. `insulation` tool will be used for TADs calling.
-- The [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) is a set of programs to process, normalize, analyze and visualize Hi-C and cHi-C data. The [`hicFindTADs`](https://hicexplorer.readthedocs.io/en/latest/content/tools/hicFindTADs.html) will be used.
+- The [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) is a set of programs to process, normalize, analyze and visualize Hi-C and cHi-C data. The [`hicFindTADs`](https://hicexplorer.readthedocs.io/en/latest/content/tools/hicFindTADs.html) will be used to call TADs.
 - The [`Homer`](http://homer.ucsd.edu/homer/interactions2/HiCpca.html) is a software for motif discovery and next-gen sequencing analysis.
 - The [`juicer_tools`](https://github.com/aidenlab/juicer) is a platform for analyzing bin sized Hi-C data.
 
@@ -88,7 +88,13 @@ Here is a short introduction about the tools:
 
 Chromatin loops (or significant interactions), represent two inter/intra chromosome regions that interact at a high frequency with one another (high reads density in sequence data). Different from HiC, HiCAR data are biased with one ends or both ends in the open chromatin. The [`MAPS`](https://github.com/ijuric/MAPS) are designed to remove the this kind of biases introduced by the ChIP or Tn5-transposition procedure. However, many tools are hesitated to introduce this kind of model-based analysis for interaction analysis since high frequency interactions must happened within the highly opened chromatin regions. Here `nf-core/hicar` provide multiple choices for interactions calling. Available tools are 'MAPS', ['HiC-DC+'](https://doi.org/10.1038/s41467-021-23749-x) and ['peakachu'](https://doi.org/10.1038/s41467-020-17239-9).
 
-In downstream, differential analysis available for called interactions. Available tools are Bioconductor packages such as `edgeR`, and `diffhic`, and [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/). We borrowed capture Hi-C analysis pipeline from HiCExplorer to do the differential analysis. Different from `edgeR` and `diffhic` pipeline, HiCExplorer pipeline does not requre the replicates. A simple differential analysis by set operation are also available.
+In downstream, differential analysis available for called interactions. Available tools are Bioconductor packages such as `edgeR`, and `diffhic`, and [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/). We borrowed capture Hi-C analysis pipeline from HiCExplorer to do the differential analysis. Different from `edgeR` and `diffhic` pipeline, HiCExplorer pipeline does not require the replicates. A simple differential analysis by set operation are also available.
+
+For annotation, we will use Bioconductor package [`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/). Please note that, the involved genes are not only distance based annotation. The most of the interaction calling tools are bin-based caller, and the bin size are kilo-base or even more, which make the annotation difficult. For HiCAR data, the R2 reads are Tn5 insertion site of the open chromatin. And the most of the R2 reads will be a anchor of annotion for the gene promoters. We will annotate the interactions by the annotation of called ATAC (R2) peaks located within the interaction regions.
+
+### Call high resolution interactions
+
+The high resolution interaction caller are also available for confident transcription factor enrichment analysis. However, please note that the high resolution interaction caller are not bin-based but peak based analysis, which ask high computational resources.
 
 ### Aggregate peak analysis
 
