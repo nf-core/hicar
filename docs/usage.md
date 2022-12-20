@@ -61,6 +61,10 @@ TREATMENT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,,
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
+## Different levels of 3D organization of chromatin
+
+![Schematic representation of the 3D arrangement of chromatin](images/chromatin_organization.png)
+
 ### Call A/B compartments and TADs
 
 On a large scale, the arrangement of chromosomes are organised into two compartments labelled A ("active") and B ("inactive").
@@ -70,36 +74,46 @@ A topologically associating domain (TAD) is a smaller size genomic region compar
 
 There are multiple available modules to call A/B compartments and TADs.
 
-- For A/B Compartments calling, available tools are 'cooltools', and 'homer'.
-  - The [`cooltools`](https://github.com/open2c/cooltools) leverages [`cooler`](https://github.com/open2c/cooler/tree/master/cooler) format to enable flexible and reproducible analysis of high-resolution data.
-  - The [`Homer`](http://homer.ucsd.edu/homer/interactions2/HiCpca.html) is a software for motif discovery and next-gen sequencing analysis.
-- For TADs calling, available tools are 'cooltools', and 'hicexploer'.
-  - The [`cooltools`](https://github.com/open2c/cooltools) `insulation` tool will be used for TADs calling.
-  - The [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) is a set of programs to process, normalize, analyze and visualize Hi-C and cHi-C data. The [`hicFindTADs`](https://hicexplorer.readthedocs.io/en/latest/content/tools/hicFindTADs.html) will be used.
+- For A/B Compartments calling, available tools are 'cooltools', 'hicExplorer', 'Homer', and 'juicer_tools'.
+- For TADs calling, available tools are 'cooltools', 'hicexploer', and 'Homer'.
+
+Here is a short introduction about the tools:
+
+- The [`cooltools`](https://github.com/open2c/cooltools) leverages [`cooler`](https://github.com/open2c/cooler/tree/master/cooler) format to enable flexible and reproducible analysis of high-resolution data. `insulation` tool will be used for TADs calling.
+- The [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) is a set of programs to process, normalize, analyze and visualize Hi-C and cHi-C data. The [`hicFindTADs`](https://hicexplorer.readthedocs.io/en/latest/content/tools/hicFindTADs.html) will be used.
+- The [`Homer`](http://homer.ucsd.edu/homer/interactions2/HiCpca.html) is a software for motif discovery and next-gen sequencing analysis.
+- The [`juicer_tools`](https://github.com/aidenlab/juicer) is a platform for analyzing bin sized Hi-C data.
 
 ### Call interactions/loops
 
-Chromatin loops (or significant interactions), represent two inter/intra chromosome regions that interact at a high frequency with one another (high reads density in sequence data). Different from HiC, HiCAR data are biased with one ends or both ends in the open chromatin. The [`MAPS`](https://github.com/ijuric/MAPS) are designed to remove the this kind of biases introduced by the ChIP or Tn5-transposition procedure. However, many tools are hesitated to introduce this kind of model-based analysis for interaction analysis since high frequency interactions must happened within the highly opened chromatin regions. Here `nf-core/hicar` provide multiple choices for interactions calling. Available tools are 'MAPS', 'HiC-DC+' and 'peakachu'.
+Chromatin loops (or significant interactions), represent two inter/intra chromosome regions that interact at a high frequency with one another (high reads density in sequence data). Different from HiC, HiCAR data are biased with one ends or both ends in the open chromatin. The [`MAPS`](https://github.com/ijuric/MAPS) are designed to remove the this kind of biases introduced by the ChIP or Tn5-transposition procedure. However, many tools are hesitated to introduce this kind of model-based analysis for interaction analysis since high frequency interactions must happened within the highly opened chromatin regions. Here `nf-core/hicar` provide multiple choices for interactions calling. Available tools are 'MAPS', ['HiC-DC+'](https://doi.org/10.1038/s41467-021-23749-x) and ['peakachu'](https://doi.org/10.1038/s41467-020-17239-9).
+
+In downstream, differential analysis available for called interactions. Available tools are Bioconductor packages such as `edgeR`, and `diffhic`, and [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/). We borrowed capture Hi-C analysis pipeline from HiCExplorer to do the differential analysis. Different from `edgeR` and `diffhic` pipeline, HiCExplorer pipeline does not requre the replicates. A simple differential analysis by set operation are also available.
 
 ### Aggregate peak analysis
 
-Aggregate peak analysis (APA) plots the pileup signals detected by high-resolution interaction data. It is a kind of 2 dimension meta-gene analysis. By providing a list of interested genomic coordinates, the pileup signal will present the enrichment between the interactions and the target interested region. Current available tools for APA are [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) and [`juicer_tools`](https://github.com/aidenlab/juicer)
+Aggregate peak analysis (APA) plots the pileup signals detected by high-resolution interaction data. It is a kind of 2 dimension meta-gene analysis. By providing a list of interested genomic coordinates, the pileup signal will present the enrichment between the interactions and the target interested region. Current available tools for APA are [`cooltools`](https://github.com/open2c/cooltools), [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) and [`juicer_tools`](https://github.com/aidenlab/juicer)
+
+### Virtual 4C
+
+Circularized Chromosome Conformation Capture (4C) is a powerful technique for studying the interactions of a specific genomic region with the rest of the genome.
+Visualize Hi-C data in a virtual 4C (v4c) format can help user to zoom in the interactions within a specific viewpoint. Current available tools for v4c are [`cooltools`](https://github.com/open2c/cooltools), [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) and [`trackViewer`](https://doi.org/10.1038/s41592-019-0430-y).
 
 ### Available tools
 
-| Tools        | A/B compartments | TADs    | Interactions | Differential analysis | APA     | V4C     |
-| :----------- | :--------------- | :------ | :----------- | :-------------------- | :------ | :------ |
-| cooltools    | &#9745;          | &#9745; | &#9744;      | &#9744;               | &#9745; | &#9745; |
-| diffhic      | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
-| edgeR        | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
-| hic-DC+      | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
-| hicExplorer  | &#9745;          | &#9745; | &#9744;      | &#9745;               | &#9745; | &#9745; |
-| homer        | &#9745;          | &#9745; | &#9744;      | &#9744;               | &#9744; | &#9744; |
-| MAPS         | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
-| juicer_tools | &#9745;          | &#9744; | &#9744;      | &#9744;               | &#9745; | &#9744; |
-| peakachu     | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
-| setOperation | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
-| trackViewer  | &#9744;          | &#9744; | &#9744;      | &#9744;               | &#9744; | &#9745; |
+| Tools        | as paramerter| A/B compartments | TADs    | Interactions | Differential analysis | APA     | V4C     |
+| :----------- | :----------- | :--------------- | :------ | :----------- | :-------------------- | :------ | :------ |
+| cooltools    | cooltools    | &#9745;          | &#9745; | &#9744;      | &#9744;               | &#9745; | &#9745; |
+| diffhic      | diffhic      | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
+| edgeR        | edger        | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
+| HiC-DC+      | hicdcplus    | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
+| hicExplorer  | hicexplorer  | &#9745;          | &#9745; | &#9744;      | &#9745;               | &#9745; | &#9745; |
+| homer        | homer        | &#9745;          | &#9745; | &#9744;      | &#9744;               | &#9744; | &#9744; |
+| MAPS         | maps         | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
+| juicer_tools | juicebox     | &#9745;          | &#9744; | &#9744;      | &#9744;               | &#9745; | &#9744; |
+| peakachu     | peakachu     | &#9744;          | &#9744; | &#9745;      | &#9744;               | &#9744; | &#9744; |
+| setOperation | setOperation | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
+| trackViewer  | trackviewer  | &#9744;          | &#9744; | &#9744;      | &#9744;               | &#9744; | &#9745; |
 
 ## Running the pipeline
 

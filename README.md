@@ -32,7 +32,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
 7. Call peaks for ATAC reads (R2 reads) ([`MACS2`](https://macs3-project.github.io/MACS/)).
 8. Call A/B compartments ([`cooltools`](https://cooltools.readthedocs.io/en/latest/index.html), [`homer`](http://homer.ucsd.edu/homer/), etc.)
 9. Call TADs ([`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/index.html), [`homer`](http://homer.ucsd.edu/homer/), etc.)
-10. Find genomic interaction loops ([`MAPS`](https://github.com/ijuric/MAPS), [`HiCDCPlus`](https://doi.org/10.1038/s41467-021-23749-x))
+10. Find genomic interaction loops ([`MAPS`](https://github.com/ijuric/MAPS), [`HiCDCPlus`](https://doi.org/10.1038/s41467-021-23749-x), [Peakachu](https://doi.org/10.1038/s41467-020-17239-9), etc.)
 11. Aggregate peak analysis ([`HiCExploer`](https://hicexplorer.readthedocs.io/en/latest/index.html), [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), etc.)
 12. Call HiPeak (high resolution analysis, time consuming, motif analysis)
 13. Differential analysis ([`diffHic`](https://bioconductor.org/packages/diffHic/), etc.)
@@ -77,7 +77,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
    Then run:
 
    ```bash
-   nextflow run nf-core/hicar --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute>
+   nextflow run nf-core/hicar --input samplesheet.csv --outdir <OUTDIR> --genome GRCh37 -profile <docker/singularity/podman/shifter/charliecloud/conda/institute> -c profile.config
    ```
 
 ## Documentation
@@ -86,7 +86,7 @@ The nf-core/hicar pipeline comes with documentation about the pipeline [usage](h
 
 ## Credits
 
-nf-core/hicar was originally written by Jianhong Ou, [Yu Xiang](https://github.com/yuxuth), and Yarui Diao.
+nf-core/hicar was originally written by [Jianhong Ou](https://github.com/jianhong)), [Yu Xiang](https://github.com/yuxuth), and [Yarui Diao](https://www.diaolab.org/).
 
 We thank the following people for their extensive assistance in the development of this pipeline: Phil Ewels, Mahesh Binzer-Panchal and Friederike Hanssen.
 
