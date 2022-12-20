@@ -15,6 +15,7 @@ process HOMER_RUNHICPCA {
 
     output:
     tuple val(meta), path("$prefix.*")                     , emit: pca
+    tuple val(meta), path("$prefix.*.txt")                 , emit: txt
     path  "versions.yml"                                   , emit: versions
 
     when:

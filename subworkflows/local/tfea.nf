@@ -2,7 +2,7 @@
 // Transcription factor enrichment analysis
 //
 
-include { HOMER_FINDMOTIFSGENOME     } from '../../modules/local/homer/find_motifs_genome'
+include { HOMER_TFEA                 } from './tfea/homer'
 include { BIOC_ATACSEQTFEA           } from '../../modules/local/bioc/atacseqtfea'
 
 workflow TFEA {
@@ -16,15 +16,15 @@ workflow TFEA {
 
     switch(params.tfea_tool){
         case "homer":
-            HOMER_FINDMOTIFSGENOME(bed, additional_param) // additional_param: genome
-            ch_versions = ch_versions.mix(HOMER_FINDMOTIFSGENOME.out.versions.ifEmpty(null))
+            HOMER_TFEA(bed, additional_param) // additional_param: genome
+            ch_versions = ch_versions.mix(HOMER_TFEA.out.versions.ifEmpty(null))
             break
         case "atacseqtfea":
             BIOC_ATACSEQTFEA(bed, additional_param)
             ch_versions = ch_versions.mix(BIOC_ATACSEQTFEA.out.versions.ifEmpty(null))
             break
         default:
-            HOMER_FINDMOTIFSGENOME(bed, additional_param) // additional_param: genome
+            HOMER_TFEA(bed, additional_param) // additional_param: genome
             ch_versions = ch_versions.mix(HOMER_FINDMOTIFSGENOME.out.versions.ifEmpty(null))
             break
     }
