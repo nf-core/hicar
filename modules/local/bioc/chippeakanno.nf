@@ -104,6 +104,11 @@ process BIOC_CHIPPEAKANNO {
         groupName <- sub(".(sig3Dinteractions.pe.txt|csv|bedpe|txt)", "", basename(det))
         # Annotation
         if(length(R2)){
+            ssrR2 <- seqlevelsStyle(R2)
+            ssrDB <- seqlevelsStyle(DB.gr1)
+            if(length(intersect(ssrR2, ssrDB))==0){
+                seqlevelsStyle(R2) <- ssrDB[1]
+            }
             ol1 <- findOverlaps(R2, DB.gr1)
             DB.gr1.R2 <- R2[queryHits(ol1)]
             DB.gr1.R2\$idx <- subjectHits(ol1)
