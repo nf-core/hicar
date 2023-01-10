@@ -178,105 +178,113 @@ process BIOC_CHIPPEAKANNO {
             if(is.list(resList)){
                 resList <- GRangesList(resList[lengths(resList)>0])
             }
-            out <- genomicElementDistribution(resList,
-                                            TxDb = txdb,
-                                            promoterRegion=c(upstream=2000, downstream=500),
-                                            geneDownstream=c(upstream=0, downstream=2000),
-                                            promoterLevel=list(
-                                            # from 5' -> 3', fixed precedence 3' -> 5'
-                                                breaks = c(-2000, -1000, -500, 0, 500),
-                                                labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
-                                                        "upstream <500b", "TSS - 500b"),
-                                                colors = c("#FFE5CC", "#FFCA99",
-                                                        "#FFAD65", "#FF8E32")),
-                                            plot = FALSE)
-            saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".RDS")))
-            ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
-            ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".png")), plot=out\$plot)
-            out <- metagenePlot(resList, txdb)
-            ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".pdf")), plot=out, width=9, height=9)
-            ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".png")), plot=out)
+            if(length(resList)>0){
+                out <- genomicElementDistribution(resList,
+                                                TxDb = txdb,
+                                                promoterRegion=c(upstream=2000, downstream=500),
+                                                geneDownstream=c(upstream=0, downstream=2000),
+                                                promoterLevel=list(
+                                                # from 5' -> 3', fixed precedence 3' -> 5'
+                                                    breaks = c(-2000, -1000, -500, 0, 500),
+                                                    labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
+                                                            "upstream <500b", "TSS - 500b"),
+                                                    colors = c("#FFE5CC", "#FFCA99",
+                                                            "#FFAD65", "#FF8E32")),
+                                                plot = FALSE)
+                saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".RDS")))
+                ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
+                ggsave(file.path(pf, paste0("genomicElementDistribuiton.", bin_size, ".png")), plot=out\$plot)
+                out <- metagenePlot(resList, txdb)
+                ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".pdf")), plot=out, width=9, height=9)
+                ggsave(file.path(pf, paste0("metagenePlotToTSS.", bin_size, ".png")), plot=out)
+            }
         }
         if(length(peaks)>0){
             peaks <- GRangesList(peaks[lengths(peaks)>0])
-            out <- genomicElementDistribution(peaks,
-                                            TxDb = txdb,
-                                            promoterRegion=c(upstream=2000, downstream=500),
-                                            geneDownstream=c(upstream=0, downstream=2000),
-                                            promoterLevel=list(
-                                                # from 5' -> 3', fixed precedence 3' -> 5'
-                                                breaks = c(-2000, -1000, -500, 0, 500),
-                                                labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
-                                                        "upstream <500b", "TSS - 500b"),
-                                                colors = c("#FFE5CC", "#FFCA99",
-                                                        "#FFAD65", "#FF8E32")),
-                                            plot = FALSE)
-            saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".RDS")))
-            ggsave(file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
-            ggsave(file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".png")), plot=out\$plot)
+            if(length(peaks)>0){
+                out <- genomicElementDistribution(peaks,
+                                                TxDb = txdb,
+                                                promoterRegion=c(upstream=2000, downstream=500),
+                                                geneDownstream=c(upstream=0, downstream=2000),
+                                                promoterLevel=list(
+                                                    # from 5' -> 3', fixed precedence 3' -> 5'
+                                                    breaks = c(-2000, -1000, -500, 0, 500),
+                                                    labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
+                                                            "upstream <500b", "TSS - 500b"),
+                                                    colors = c("#FFE5CC", "#FFCA99",
+                                                            "#FFAD65", "#FF8E32")),
+                                                plot = FALSE)
+                saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".RDS")))
+                ggsave(file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
+                ggsave(file.path(pf, paste0("genomicElementDistribuitonOfEachPeakList.", bin_size, ".png")), plot=out\$plot)
 
-            out <- metagenePlot(peaks, txdb)
-            ggsave(file.path(pf, paste0("metagenePlotToTSSOfEachPeakList.", bin_size, ".pdf")), plot=out, width=9, height=9)
-            ggsave(file.path(pf, paste0("metagenePlotToTSSOfEachPeakList.", bin_size, ".png")), plot=out)
+                out <- metagenePlot(peaks, txdb)
+                ggsave(file.path(pf, paste0("metagenePlotToTSSOfEachPeakList.", bin_size, ".pdf")), plot=out, width=9, height=9)
+                ggsave(file.path(pf, paste0("metagenePlotToTSSOfEachPeakList.", bin_size, ".png")), plot=out)
 
-            if(length(peaks)<=5 && length(peaks)>1){
-                ol <- findOverlapsOfPeaks(peaks)
-                png(file.path(pf, paste0("vennDiagram.all.", bin_size, ".png")))
-                vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
-                dev.off()
-                write.csv(vd\$vennCounts, file.path(pf, paste0("vennDiagram.all.", bin_size, ".csv")), row.names=FALSE)
+                if(length(peaks)<=5 && length(peaks)>1){
+                    ol <- findOverlapsOfPeaks(peaks)
+                    png(file.path(pf, paste0("vennDiagram.all.", bin_size, ".png")))
+                    vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
+                    dev.off()
+                    write.csv(vd\$vennCounts, file.path(pf, paste0("vennDiagram.all.", bin_size, ".csv")), row.names=FALSE)
+                }
             }
         }
         if(length(promoterList)>0){
             promoterList <- GRangesList(promoterList[lengths(promoterList)>0])
-            out <- genomicElementDistribution(promoterList,
-                                            TxDb = txdb,
-                                            promoterRegion=c(upstream=2000, downstream=500),
-                                            geneDownstream=c(upstream=0, downstream=2000),
-                                            promoterLevel=list(
-                                                # from 5' -> 3', fixed precedence 3' -> 5'
-                                                breaks = c(-2000, -1000, -500, 0, 500),
-                                                labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
-                                                        "upstream <500b", "TSS - 500b"),
-                                                colors = c("#FFE5CC", "#FFCA99",
-                                                        "#FFAD65", "#FF8E32")),
-                                            plot = FALSE)
-            saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".RDS")))
-            ggsave(file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
-            ggsave(file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".png")), plot=out\$plot)
+            if(length(promoterList)>0){
+                out <- genomicElementDistribution(promoterList,
+                                                TxDb = txdb,
+                                                promoterRegion=c(upstream=2000, downstream=500),
+                                                geneDownstream=c(upstream=0, downstream=2000),
+                                                promoterLevel=list(
+                                                    # from 5' -> 3', fixed precedence 3' -> 5'
+                                                    breaks = c(-2000, -1000, -500, 0, 500),
+                                                    labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
+                                                            "upstream <500b", "TSS - 500b"),
+                                                    colors = c("#FFE5CC", "#FFCA99",
+                                                            "#FFAD65", "#FF8E32")),
+                                                plot = FALSE)
+                saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".RDS")))
+                ggsave(file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
+                ggsave(file.path(pf, paste0("genomicElementDistribuitonOfremoteInteractionPeaks.", bin_size, ".png")), plot=out\$plot)
 
-            if(length(promoterList)<=5 && length(promoterList)>1){
-                ol <- findOverlapsOfPeaks(promoterList)
-                png(file.path(pf, paste0("vennDiagram.remote.interaction.peak.with.promoters.all.", bin_size, ".png")))
-                vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
-                dev.off()
-                write.csv(vd\$vennCounts, file.path(pf, paste0("vennDiagram.remote.interaction.peak.with.promoters.all.", bin_size, ".csv")), row.names=FALSE)
+                if(length(promoterList)<=5 && length(promoterList)>1){
+                    ol <- findOverlapsOfPeaks(promoterList)
+                    png(file.path(pf, paste0("vennDiagram.remote.interaction.peak.with.promoters.all.", bin_size, ".png")))
+                    vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
+                    dev.off()
+                    write.csv(vd\$vennCounts, file.path(pf, paste0("vennDiagram.remote.interaction.peak.with.promoters.all.", bin_size, ".csv")), row.names=FALSE)
+                }
             }
         }
         if(length(R2_peaks)>0){
             R2_peaks <- GRangesList(R2_peaks[lengths(R2_peaks)>0])
-            out <- genomicElementDistribution(R2_peaks,
-                                            TxDb = txdb,
-                                            promoterRegion=c(upstream=2000, downstream=500),
-                                            geneDownstream=c(upstream=0, downstream=2000),
-                                            promoterLevel=list(
-                                                # from 5' -> 3', fixed precedence 3' -> 5'
-                                                breaks = c(-2000, -1000, -500, 0, 500),
-                                                labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
-                                                    "upstream <500b", "TSS - 500b"),
-                                                colors = c("#FFE5CC", "#FFCA99",
-                                                    "#FFAD65", "#FF8E32")),
-                                                plot = FALSE)
-            saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".RDS")))
-            ggsave(file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
-            ggsave(file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".png")), plot=out\$plot)
+            if(length(R2_peaks)>0){
+                out <- genomicElementDistribution(R2_peaks,
+                                                TxDb = txdb,
+                                                promoterRegion=c(upstream=2000, downstream=500),
+                                                geneDownstream=c(upstream=0, downstream=2000),
+                                                promoterLevel=list(
+                                                    # from 5' -> 3', fixed precedence 3' -> 5'
+                                                    breaks = c(-2000, -1000, -500, 0, 500),
+                                                    labels = c("upstream 1-2Kb", "upstream 0.5-1Kb",
+                                                        "upstream <500b", "TSS - 500b"),
+                                                    colors = c("#FFE5CC", "#FFCA99",
+                                                        "#FFAD65", "#FF8E32")),
+                                                    plot = FALSE)
+                saveRDS(out\$peaks, file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".RDS")))
+                ggsave(file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".pdf")), plot=out\$plot, width=9, height=9)
+                ggsave(file.path(pf, paste0("genomicElementDistribuitonOfATACpeakInvolvedInInteractionPeaks.", bin_size, ".png")), plot=out\$plot)
 
-            if(length(R2_peaks)<=5 && length(R2_peaks)>1){
-                ol <- findOverlapsOfPeaks(R2_peaks)
-                png(file.path(pf, paste0("vennDiagram.ATACpeakInvolvedInInteractionPeaks.all.", bin_size, ".png")))
-                vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
-                dev.off()
-                write.csv(vd\$vennCounts, file.path(pf, paste0("vennDiagram.ATACpeakInvolvedInInteractionPeaks.all.", bin_size, ".csv")), row.names=FALSE)
+                if(length(R2_peaks)<=5 && length(R2_peaks)>1){
+                    ol <- findOverlapsOfPeaks(R2_peaks)
+                    png(file.path(pf, paste0("vennDiagram.ATACpeakInvolvedInInteractionPeaks.all.", bin_size, ".png")))
+                    vd <- makeVennDiagram(ol, connectedPeaks="keepAll")
+                    dev.off()
+                    write.csv(vd\$vennCounts, file.path(pf, paste0("vennDiagram.ATACpeakInvolvedInInteractionPeaks.all.", bin_size, ".csv")), row.names=FALSE)
+                }
             }
         }
     }
