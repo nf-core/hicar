@@ -23,10 +23,22 @@ process PEAKACHU_MODEL {
     bin=\$((${meta.bin}/1000))
     reads=\$(cooler info -f sum $cool)
     reads=\$((\$reads/1000000))
-    if [ \$reads -lt 10 ]
-        then reads=10
-    fi
-    echo "${params.peakachu_pretrained_url}\${reads}million.\${bin}kb.pkl"
+    arr=(10 20 30 40 50 60 70 80 90 100 125 150 175 200 225 250 275 300)
+    min=10000
+    roundnum=10
+    for i in \${arr[@]}
+    do
+        cur=\$((\$reads-\$i))
+        cur=\${cur#-}
+        if [ \$cur -lt \$min ]
+        then
+            min=\$cur
+            roundnum=\$i
+        else
+            break
+        fi
+    done
+    echo "${params.peakachu_pretrained_url}\${roundnum}million.\${bin}kb.pkl"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
