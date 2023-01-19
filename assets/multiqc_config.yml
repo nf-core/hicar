@@ -146,10 +146,10 @@ custom_data:
   pairs_peaks_genomic_dist:
     parent_id: "pairs_qc"
     section_name: "Peaks genomic element distribution"
-    description: "The genomic element distribution of the peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defeined as downstream 2000 from TES."
+    description: "The genomic element distribution of the peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defined as downstream 2000 from TES."
     file_format: "png"
   other_side_genomic_dist:
     parent_id: "pairs_qc"
     section_name: "The genomeic element distribution for the peaks interacting with promoters"
-    description: "The genomic element distribution of the other sites of promoter peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defeined as downstream 2000 from TES."
+    description: "The genomic element distribution of the other sites of promoter peaks. Promoter region is defined as upstream 2000 and downstream 500 from TSS. geneDownstream is defined as downstream 2000 from TES."
     file_format: "png"
