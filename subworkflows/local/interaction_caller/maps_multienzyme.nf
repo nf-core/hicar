@@ -1,5 +1,5 @@
 /*
- * Createing Genomic Features Files for MAPS
+ * Creating Genomic Features Files for MAPS
  */
 
 include { BIOC_ENZYMECUT               } from '../../../modules/local/bioc/enzyme_cut'
