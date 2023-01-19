@@ -40,6 +40,10 @@
 
 - [cooltools](https://doi.org/10.5281/zenodo.5214125)
 
+- [diffhic](https://pubmed.ncbi.nlm.nih.gov/26283514/)
+
+  > Lun AT, Smyth GK. diffHic: a Bioconductor package to detect differential genomic interactions in Hi-C data. BMC Bioinformatics. 2015 Aug 19;16:258. doi: 10.1186/s12859-015-0683-0. PMID: 26283514; PMCID: PMC4539688.
+
 - [edgeR](https://pubmed.ncbi.nlm.nih.gov/19910308/)
 
   > Robinson MD, McCarthy DJ, Smyth GK. edgeR: a Bioconductor package for differential expression analysis of digital gene expression data. Bioinformatics. 2010 Jan 1;26(1):139-40. doi: 10.1093/bioinformatics/btp616. Epub 2009 Nov 11. PMID: 19910308; PMCID: PMC2796818.

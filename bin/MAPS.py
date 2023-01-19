@@ -6,6 +6,8 @@
 # Source: https://github.com/ijuric/MAPS/blob/master/bin/MAPS/MAPS.py
 # Source+commit: https://raw.githubusercontent.com/ijuric/MAPS/860f864401b31a085f2a091ba593cf579442ac35/bin/MAPS/MAPS.py
 # Data: 11/08/2021, commit: 860f864
+# Copyright (c)  Ivan Juric ( jurici@ccf.org ) and Ming Hu ( hum@ccf.org )
+# This source code is licensed under the GPL-3.0 license
 # modified by Jianhong:
 # ## 1. reset the python environment.
 # ## 2. Handle the error when MACS2 input is empty

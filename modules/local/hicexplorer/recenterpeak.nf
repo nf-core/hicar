@@ -16,7 +16,7 @@ process RECENTER_PEAK {
 
     script:
     """
-    awk 'BEGIN {OFS="\\t"} {print \$1,int((\$2+\$3)/2),int((\$2+\$3)/2),\$4}' $peak > recentered_peak.bed
+    awk 'BEGIN {OFS="\\t"} {print \$1,int((\$2+\$3)/2),int((\$2+\$3)/2)+1,\$4}' $peak > recentered_peak.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

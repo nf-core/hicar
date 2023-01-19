@@ -86,9 +86,9 @@ The nf-core/hicar pipeline comes with documentation about the pipeline [usage](h
 
 ## Credits
 
-nf-core/hicar was originally written by [Jianhong Ou](https://github.com/jianhong)), [Yu Xiang](https://github.com/yuxuth), and [Yarui Diao](https://www.diaolab.org/).
+nf-core/hicar was originally written by [Jianhong Ou](https://github.com/jianhong), [Yu Xiang](https://github.com/yuxuth), and [Yarui Diao](https://www.diaolab.org/).
 
-We thank the following people for their extensive assistance in the development of this pipeline: Phil Ewels, Mahesh Binzer-Panchal and Friederike Hanssen.
+We thank the following people for their extensive assistance in the development of this pipeline: Luke Zappia, Phil Ewels, Mahesh Binzer-Panchal and Friederike Hanssen.
 
 ## Contributions and Support
 
