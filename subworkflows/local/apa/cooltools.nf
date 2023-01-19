@@ -3,7 +3,7 @@
  */
 
 include { COOLTOOLS_PILEUP                 } from '../../../modules/local/cooltools/pileup'
-include { COOLTOOLS_PLOTNPZ                } from '../../../modules/local/cooltools/plotnpz'
+include { PLOTNPZ_BY_COOLTOOLS                } from '../../../modules/local/cooltools/plotnpz'
 
 workflow COOLTOOLS_APACALLER {
     take:
@@ -11,11 +11,11 @@ workflow COOLTOOLS_APACALLER {
     peaks                  // path(1D peaks)
 
     main:
-    COOLTOOLS_PILEUP(matrix, peaks).npz | COOLTOOLS_PLOTNPZ
+    COOLTOOLS_PILEUP(matrix, peaks).npz | PLOTNPZ_BY_COOLTOOLS
 
     ch_version = COOLTOOLS_PILEUP.out.versions.ifEmpty(null)
 
     emit:
-    png       = COOLTOOLS_PLOTNPZ.out.png                        // channel: [ val(meta), path(pngs)]
+    png       = PLOTNPZ_BY_COOLTOOLS.out.png                        // channel: [ val(meta), path(pngs)]
     versions  = ch_version                                       // channel: [ path(version) ]
 }

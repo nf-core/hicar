@@ -1,4 +1,4 @@
-process COOLTOOLS_PLOTNPZ {
+process PLOTNPZ_BY_COOLTOOLS {
     tag "${meta.id}"
     label 'process_single'
 

@@ -1,4 +1,4 @@
-process COOLTOOLS_VIRTUAL4C {
+process VIRTUAL4C_BY_COOLTOOLS {
     tag "${bin_size}"
     label 'process_medium'
     label 'error_ignore'
