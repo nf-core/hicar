@@ -351,8 +351,6 @@ workflow HICAR {
     // prepare for HiCExplorer
     //
     if(checkToolsUsedInDownstream('hicexplorer', params)){
-        // HICEXPLORER_HICCORRECTMATRIX(COOLER.out.raw) // not work, buggy
-        // ch_versions = ch_versions.mix(HICEXPLORER_HICCORRECTMATRIX.out.versions.ifEmpty(null))
         if(params.compartments_tool == 'hicexplorer'){
             ch_comp_matrix = COOLER.out.cool
             ch_comp_additional = PREPARE_GENOME.out.chrom_sizes
