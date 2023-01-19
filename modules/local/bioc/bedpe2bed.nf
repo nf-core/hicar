@@ -20,6 +20,13 @@ process BEDPE2BED {
     prefix = task.ext.prefix ?: "$meta.id"
     """
     #!/usr/bin/env Rscript
+    #######################################################################
+    #######################################################################
+    ## Created to convert bedpe format to bed format
+    ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
+    #######################################################################
+    #######################################################################
     pkgs <- c("rtracklayer")
     versions <- c("${task.process}:")
     for(pkg in pkgs){

@@ -29,6 +29,7 @@ process BIOC_CHIPPEAKANNO {
     #######################################################################
     ## Created on April. 29, 2021 call ChIPpeakAnno
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     pkgs <- c("ChIPpeakAnno", "rtracklayer", "GenomicFeatures", "ggplot2")

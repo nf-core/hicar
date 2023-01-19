@@ -25,6 +25,7 @@ process CIRCOS_PREPARE {
     #######################################################################
     ## Created on Oct. 16, 2021 prepare data for circos
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     options(scipen=10)

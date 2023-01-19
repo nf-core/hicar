@@ -24,6 +24,7 @@ process PAIR2BAM {
     #######################################################################
     ## Created on Oct. 2021 convert pairs.gz to bam file for visualization
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     pkgs <- c("Rsamtools", "InteractionSet", "rhdf5")

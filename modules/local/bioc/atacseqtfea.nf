@@ -31,6 +31,7 @@ process BIOC_ATACSEQTFEA {
     #######################################################################
     ## Created on Aug. 24, 2021 for ATACseqTFEA
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
 

@@ -25,6 +25,7 @@ process ATACQC {
     #######################################################################
     ## Created on Sept. 10, 2021 stats for ATAC reads
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     pkgs <- c("rtracklayer", "GenomicFeatures", "ATACseqQC")

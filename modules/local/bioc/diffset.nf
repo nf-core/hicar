@@ -25,6 +25,7 @@ process DIFFSET {
     #######################################################################
     ## Created on Nov. 11, 2022 call diffhic
     ## Copyright (c) 2022 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     pkgs <- c("UpSetR")

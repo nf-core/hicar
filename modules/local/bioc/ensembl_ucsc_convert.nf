@@ -19,6 +19,13 @@ process ENSEMBL_UCSC_CONVERT {
     def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
+    #######################################################################
+    #######################################################################
+    ## Created to convert the chromosome levels styles
+    ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
+    #######################################################################
+    #######################################################################
     pkgs <- c("GenomeInfoDb", "rtracklayer")
     versions <- c("${task.process}:")
     for(pkg in pkgs){

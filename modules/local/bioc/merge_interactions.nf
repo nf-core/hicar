@@ -24,6 +24,7 @@ process MERGE_INTERACTIONS {
     #######################################################################
     ## Created on Oct. 12, 2022. Merge all the interaction files into one
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     pkgs <- c("rtracklayer")

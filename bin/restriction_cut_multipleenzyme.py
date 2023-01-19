@@ -8,6 +8,7 @@
 # original file: https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/restriction_cut_multipleenzyme.py
 # original + commit: https://github.com/ijuric/MAPS/blob/d28ff61c2afcb1eb55fa4e6037c95b30603318ee/bin/utils/genomic_features_generator/scripts/restriction_cut_multipleenzyme.py
 # Data: 11/08/2021, commit:d28ff61
+# This source code is licensed under the GPL-3.0 license
 # modified by Jianhong Ou for multiprocessing.
 #########################################
 

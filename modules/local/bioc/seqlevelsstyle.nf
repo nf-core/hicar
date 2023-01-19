@@ -17,6 +17,13 @@ process SEQLEVELS_STYLE {
     script:
     """
     #!/usr/bin/env Rscript
+    #######################################################################
+    #######################################################################
+    ## Created to detect the chromosome levels styles
+    ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
+    #######################################################################
+    #######################################################################
 
     library(GenomeInfoDb)
     versions <- c(

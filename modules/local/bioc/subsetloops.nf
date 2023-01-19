@@ -26,6 +26,7 @@ process BIOC_SUBSETLOOPS {
     #######################################################################
     ## Created on Oct. 26, 2022. Subset the interaction files by 1D peaks
     ## Copyright (c) 2022 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     pkgs <- c("rtracklayer")

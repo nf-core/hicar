@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+# file copied data: https://github.com/tariks/peakachu/commit/adc736627bf43451aa1eee8ece061f3d57bc0c64
+# This source code is licensed under the MIT license
 import struct, io, os, joblib, argparse, sys
 import numpy as np
 from sklearn.isotonic import IsotonicRegression
@@ -9,7 +12,6 @@ from numba import njit
 from collections import defaultdict
 import cooler
 
-# file copied data: https://github.com/tariks/peakachu/commit/adc736627bf43451aa1eee8ece061f3d57bc0c64
 def tocsr(X):
 
     row, col, data = X.row, X.col, X.data

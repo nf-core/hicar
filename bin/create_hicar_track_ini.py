@@ -2,6 +2,7 @@
 
 #########################################
 # Author: Jianhong Ou
+# This source code is licensed under the MIT license
 #########################################
 
 from __future__ import print_function

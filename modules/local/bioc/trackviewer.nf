@@ -31,6 +31,7 @@ process BIOC_TRACKVIEWER {
     #######################################################################
     ## Created on Aug. 24, 2021 for trackViewer parser
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
 

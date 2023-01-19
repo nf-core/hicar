@@ -6,6 +6,7 @@
 # Source: https://github.com/ijuric/MAPS/blob/master/bin/MAPS/MAPS_regression_and_peak_caller.r
 # Source+commit: https://github.com/ijuric/MAPS/blob/e6d5fdee7241b8f9a466cc778be6d0769b984e81/bin/MAPS/MAPS_regression_and_peak_caller.r
 # Data: 11/08/2021, commit: e6d5fde
+# This source code is licensed under the GPL-3.0 license
 # modified by Jianhong:
 # ## 1. set the Rscript environment.
 # ## 2. export the COUNT_CUTOFF, RATIO_CUTOFF and FDR parameters

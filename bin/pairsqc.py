@@ -3,6 +3,7 @@
 ## modified from https://github.com/4dn-dcic/pairsqc #
 ## source+commit: https://github.com/4dn-dcic/pairsqc/blob/3f72de6ecd1af96f34e8ed6f986ff88b6ea6afcc/pairsqc.py
 ## download date: 11/08/2021, commit: 3f72de6
+## This source code is licensed under the MIT license
 ## changes:
 ## handle the errors when allpossible_sumcount==0 in calculate_contact_probability
 ######################################################

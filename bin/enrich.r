@@ -4,6 +4,7 @@
 #######################################################################
 ## Created on Nov. 10, 2020 enrichment analysis
 ## Copyright (c) 2020 Jianhong Ou (jianhong.ou@gmail.com)
+## This source code is licensed under the MIT license
 #######################################################################
 #######################################################################
 c("optparse", "ChIPpeakAnno", "clusterProfiler", "pathview", "biomaRt")

@@ -28,6 +28,7 @@ process BIOC_PAIRS2HDF5 {
     #######################################################################
     ## Created on Dec. 03, 2021 to convert pairs to hdf5
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     ## hdf5 format:
     ## - header, including total reads, chromosome name and sizes, tileWidth
     ##    * header/chrom_sizes COMPOUND
