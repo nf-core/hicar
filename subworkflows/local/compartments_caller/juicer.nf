@@ -16,7 +16,7 @@ workflow JUICER_COMPARTMENTS {
         resolution,
         additional_param
     )
-    ch_version = JUICER_EIGENVECTOR.out.versions.ifEmpty(null)
+    ch_version = JUICER_EIGENVECTOR.out.versions
 
 
     emit:

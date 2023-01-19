@@ -17,7 +17,7 @@ workflow PEAKACHU {
     ch_versions = PEAKACHU_MODEL( cool ).versions
     // call loops
     ch_loop = PEAKACHU_SCORE(cool.combine(PEAKACHU_MODEL.out.model.map{[it[0], file(it[1].trim(), checkIfExists:true)]}, by:0)).interactions
-    ch_versions = ch_versions.mix(PEAKACHU_SCORE.out.versions.ifEmpty([]))
+    ch_versions = ch_versions.mix(PEAKACHU_SCORE.out.versions)
 
     emit:
     interactions = ch_loop                      // channel: [ meta, bin_size, path(bedpe) ]

@@ -52,7 +52,7 @@ workflow PREPARE_GENOME {
             ch_gff = file(params.gff)
         }
         ch_gtf = GFFREAD ( ch_gff ).gtf
-        ch_version = ch_version.mix(GFFREAD.out.versions.ifEmpty(null))
+        ch_version = ch_version.mix(GFFREAD.out.versions)
     }
 
     /*
@@ -68,7 +68,7 @@ workflow PREPARE_GENOME {
         }
     } else {
         ch_gene_bed = GTF2BED ( ch_gtf ).bed
-        ch_version = ch_version.mix(GTF2BED.out.versions.ifEmpty(null))
+        ch_version = ch_version.mix(GTF2BED.out.versions)
     }
 
     /*
@@ -124,7 +124,7 @@ workflow PREPARE_GENOME {
         ch_chrom_sizes,
         ch_blacklist
     ).bed
-    ch_version = ch_version.mix(GENOME_FILTER.out.versions.ifEmpty(null))
+    ch_version = ch_version.mix(GENOME_FILTER.out.versions)
 
     /*
      * Create digest genome file for PAIRTOOLS_PAIRE
@@ -134,13 +134,13 @@ workflow PREPARE_GENOME {
         ch_chrom_sizes,
         params.enzyme
     ).bed
-    ch_version = ch_version.mix(COOLER_DIGEST.out.versions.ifEmpty(null))
+    ch_version = ch_version.mix(COOLER_DIGEST.out.versions)
 
     /*
      * get enzyme cut site and position for function maps:cut or enzyme_cut
      */
     RE_CUTSITE ( params.enzyme )
-    ch_version = ch_version.mix(RE_CUTSITE.out.versions.ifEmpty(null))
+    ch_version = ch_version.mix(RE_CUTSITE.out.versions)
 
     /*
      * mappability

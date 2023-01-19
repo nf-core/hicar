@@ -44,7 +44,7 @@ workflow MAPS {
         additional_param.map{[ it[6] ]},            //make_maps_runfile_source,
         additional_param.map{[ it[1] ]},            //chrom_size
         )
-    ch_versions = ch_versions.mix(MAPS_PEAK.out.versions.ifEmpty(null))
+    ch_versions = ch_versions.mix(MAPS_PEAK.out.versions)
     ch_multiqc_files = MAPS_PEAK.out.stats.collect().ifEmpty(null)
 
     emit:

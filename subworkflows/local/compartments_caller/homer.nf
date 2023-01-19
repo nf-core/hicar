@@ -17,13 +17,13 @@ workflow HOMER_COMPARTMENTS {
         resolution,
         genome
     )
-    ch_version = HOMER_RUNHICPCA.out.versions.ifEmpty(null)
+    ch_version = HOMER_RUNHICPCA.out.versions
 
     HOMER_FINDHICCOMPARTMENTS(
         HOMER_RUNHICPCA.out.txt,
         genome
     )
-    ch_version = ch_version.mix(HOMER_FINDHICCOMPARTMENTS.out.versions.ifEmpty(null))
+    ch_version = ch_version.mix(HOMER_FINDHICCOMPARTMENTS.out.versions)
 
     emit:
     compartments   = HOMER_FINDHICCOMPARTMENTS.out.compartments  // channel: [ val(meta), path(compartments)]

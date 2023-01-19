@@ -17,15 +17,15 @@ workflow TFEA {
     switch(params.tfea_tool){
         case "homer":
             HOMER_TFEA(bed, additional_param) // additional_param: genome
-            ch_versions = ch_versions.mix(HOMER_TFEA.out.versions.ifEmpty(null))
+            ch_versions = ch_versions.mix(HOMER_TFEA.out.versions)
             break
         case "atacseqtfea":
             BIOC_ATACSEQTFEA(bed, additional_param)
-            ch_versions = ch_versions.mix(BIOC_ATACSEQTFEA.out.versions.ifEmpty(null))
+            ch_versions = ch_versions.mix(BIOC_ATACSEQTFEA.out.versions)
             break
         default:
             HOMER_TFEA(bed, additional_param) // additional_param: genome
-            ch_versions = ch_versions.mix(HOMER_FINDMOTIFSGENOME.out.versions.ifEmpty(null))
+            ch_versions = ch_versions.mix(HOMER_FINDMOTIFSGENOME.out.versions)
             break
     }
 

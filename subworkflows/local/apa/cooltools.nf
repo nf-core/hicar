@@ -13,7 +13,7 @@ workflow COOLTOOLS_APACALLER {
     main:
     COOLTOOLS_PILEUP(matrix, peaks).npz | PLOTNPZ_BY_COOLTOOLS
 
-    ch_version = COOLTOOLS_PILEUP.out.versions.ifEmpty(null)
+    ch_version = COOLTOOLS_PILEUP.out.versions
 
     emit:
     png       = PLOTNPZ_BY_COOLTOOLS.out.png                        // channel: [ val(meta), path(pngs)]

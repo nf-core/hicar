@@ -23,13 +23,13 @@ workflow HICEXPLORER_COMPARTMENTS {
     HICEXPLORER_HICPCA(
         cool
     )
-    ch_version = HICEXPLORER_HICPCA.out.versions.ifEmpty(null)
+    ch_version = HICEXPLORER_HICPCA.out.versions
 
     // step2 create intermeidated files for plot
     HICEXPLORER_HICTRANSFORM(
         cool
     )
-    ch_version = ch_version.mix(HICEXPLORER_HICTRANSFORM.out.versions.ifEmpty(null))
+    ch_version = ch_version.mix(HICEXPLORER_HICTRANSFORM.out.versions)
 
     // step3 plot the compartments for pca1 and pca2
     HICEXPLORER_HICPLOTMATRIX_PCA1(
@@ -40,7 +40,7 @@ workflow HICEXPLORER_COMPARTMENTS {
         HICEXPLORER_HICTRANSFORM.out.transformed
             .combine(HICEXPLORER_HICPCA.out.pca2, by: 0)
     )
-    ch_version = ch_version.mix(HICEXPLORER_HICPLOTMATRIX_PCA1.out.versions.ifEmpty(null))
+    ch_version = ch_version.mix(HICEXPLORER_HICPLOTMATRIX_PCA1.out.versions)
 
     emit:
     compartments  = HICEXPLORER_HICPCA.out.pca          // channel: [ val(meta), val(bin), path(domains.bed)]

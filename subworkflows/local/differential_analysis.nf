@@ -38,32 +38,32 @@ workflow DA {
             case "edger":
                 DIFFHICAR(ch_diffhicar, params.long_bedpe_postfix)
                 ch_annotation_files = DIFFHICAR.out.anno
-                ch_versions = ch_versions.mix(DIFFHICAR.out.versions.ifEmpty(null))
+                ch_versions = ch_versions.mix(DIFFHICAR.out.versions)
                 ch_multiqc_files = ch_multiqc_files.mix(DIFFHICAR.out.stats.collect().ifEmpty(null))
                 ch_diff_files = ch_diff_files.mix(DIFFHICAR.out.diff)
                 break
             case "diffhic":
                 DIFFHIC(ch_diffhicar, params.long_bedpe_postfix)
                 ch_annotation_files = DIFFHIC.out.anno
-                ch_versions = ch_versions.mix(DIFFHIC.out.versions.ifEmpty(null))
+                ch_versions = ch_versions.mix(DIFFHIC.out.versions)
                 ch_multiqc_files = ch_multiqc_files.mix(DIFFHIC.out.stats.collect().ifEmpty(null))
                 ch_diff_files = ch_diff_files.mix(DIFFHIC.out.diff)
                 break
             case "setOperation":
                 DIFFSET(ch_diffhicar, params.long_bedpe_postfix)
                 ch_annotation_files = DIFFSET.out.anno
-                ch_versions = ch_versions.mix(DIFFSET.out.versions.ifEmpty(null))
+                ch_versions = ch_versions.mix(DIFFSET.out.versions)
                 ch_diff_files = ch_diff_files.mix(DIFFSET.out.diff)
                 break
             case "hicexplorer":
                 HICEXPLORER_DIFFHIC(ch_diffhicar)
-                ch_versions = ch_versions.mix(HICEXPLORER_DIFFHIC.out.versions.ifEmpty(null))
+                ch_versions = ch_versions.mix(HICEXPLORER_DIFFHIC.out.versions)
                 ch_diff_files = ch_diff_files.mix(HICEXPLORER_DIFFHIC.out.diff)
                 break
             default:
                 DIFFHIC(ch_diffhicar, params.long_bedpe_postfix)
                 ch_annotation_files = DIFFHIC.out.anno
-                ch_versions = ch_versions.mix(DIFFHIC.out.versions.ifEmpty(null))
+                ch_versions = ch_versions.mix(DIFFHIC.out.versions)
                 ch_multiqc_files = ch_multiqc_files.mix(DIFFHIC.out.stats.collect().ifEmpty(null))
                 break
         }

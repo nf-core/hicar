@@ -19,13 +19,13 @@ workflow HICEXPLORER_TADS {
         cool,
         resolution
     )
-    ch_version = HICEXPLORER_HICFINDTADS.out.versions.ifEmpty(null)
+    ch_version = HICEXPLORER_HICFINDTADS.out.versions
 
     HICEXPLORER_HICPLOTTADS(
         cool.join(HICEXPLORER_HICFINDTADS.out.tads),
         chromsizes
     )
-    ch_version = ch_version.mix(HICEXPLORER_HICPLOTTADS.out.versions.ifEmpty(null))
+    ch_version = ch_version.mix(HICEXPLORER_HICPLOTTADS.out.versions)
 
     emit:
     tads      = HICEXPLORER_HICFINDTADS.out.tads     // channel: [ val(meta), val(bin), path(domains.bed)]

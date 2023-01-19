@@ -55,7 +55,7 @@ workflow HI_PEAK {
                                             .collect()
                                             .map{["HiPeak", it]}
                                             .combine(r2_peaks), gtf, maps_3d_ext)
-        ch_version = ch_version.mix(BIOC_CHIPPEAKANNO_HIPEAK.out.versions.ifEmpty(null))
+        ch_version = ch_version.mix(BIOC_CHIPPEAKANNO_HIPEAK.out.versions)
     }
     //differential analysis
     stats = Channel.empty()
@@ -65,7 +65,7 @@ workflow HI_PEAK {
         if(hipeaks){
             DIFF_HIPEAK(hipeaks,
                         peaks.map{it[3]}.collect())
-            ch_version = ch_version.mix(DIFF_HIPEAK.out.versions.ifEmpty(null))
+            ch_version = ch_version.mix(DIFF_HIPEAK.out.versions)
             ch_bed = ch_bed.mix(BEDPE2BED_DIFF(DIFF_HIPEAK.out.bedpe.map{[[id:'hipeak_diff'], it]}).bed.map{[it[0], 'hipeak_diff', it[1]]})
             stats = DIFF_HIPEAK.out.stats
             diff = DIFF_HIPEAK.out.diff

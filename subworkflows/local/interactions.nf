@@ -80,7 +80,7 @@ workflow INTERACTIONS {
             meta, bin_size, interactions -> [bin_size, interactions]
         }.groupTuple()
     )
-    ch_versions = ch_versions.mix(MERGE_INTERACTIONS.out.versions.ifEmpty(null))
+    ch_versions = ch_versions.mix(MERGE_INTERACTIONS.out.versions)
 
     emit:
     loops           = ch_loops                              // channel: [ meta, bin_size, path(bedpe) ]

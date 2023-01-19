@@ -34,7 +34,7 @@ workflow HIPEAK {
         r1_pval_thresh,
         short_bed_postfix
     )
-    ch_versions = ch_versions.mix(R1_PEAK.out.versions.ifEmpty(null))
+    ch_versions = ch_versions.mix(R1_PEAK.out.versions)
     //ch_trackfiles = ch_trackfiles.mix(
     //    R1_PEAK.out.bws.map{[it[0].id+"_R1",
     //        RelativePublishFolder.getPublishedFolder(workflow,
@@ -58,7 +58,7 @@ workflow HIPEAK {
         params.skip_diff_analysis,
         maps_3d_ext
     )
-    ch_versions = ch_versions.mix(HI_PEAK.out.versions.ifEmpty(null))
+    ch_versions = ch_versions.mix(HI_PEAK.out.versions)
     //ch_trackfiles = ch_trackfiles.mix(
     //    HI_PEAK.out.bedpe
     //            .map{[it[0].id+"_HiPeak",

@@ -15,7 +15,7 @@ workflow COOLTOOLS_COMPARTMENTS {
         maxtix.combine(additional_param),
         resolution
     )
-    ch_version = COOLTOOLS_EIGSCIS.out.versions.ifEmpty(null)
+    ch_version = COOLTOOLS_EIGSCIS.out.versions
 
 
     emit:

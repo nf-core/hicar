@@ -23,7 +23,7 @@ workflow JUICER_APACALLER {
         ch_hic_loops,
         additional_param.map{[it[0]]}
     )
-    ch_version = JUICER_APA.out.versions.ifEmpty(null)
+    ch_version = JUICER_APA.out.versions
 
 
     emit:
