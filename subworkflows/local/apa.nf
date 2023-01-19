@@ -9,6 +9,7 @@
 include { HICEXPLORER_HICAGGREGATECONTACTS } from '../../modules/local/hicexplorer/hicaggregatecontacts'
 include { JUICER_APACALLER                 } from './apa/juicer'
 include { COOLTOOLS_APACALLER              } from './apa/cooltools'
+
 workflow APA {
     take:
     matrix            // tuple val(meta), path(cool/hic), signal file

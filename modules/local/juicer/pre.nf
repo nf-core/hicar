@@ -13,7 +13,6 @@ process JUICER_PRE {
     tuple val(meta), path(gi)
     path juicer_tools_jar
     path chromsize
-    val juicer_jvm_params
 
     output:
     tuple val(meta), path("*.hic")               , emit: hic
@@ -22,6 +21,12 @@ process JUICER_PRE {
     script:
     def prefix   = task.ext.prefix ?: "${meta.id}"
     def args = task.ext.args ?: ''
+    def avail_mem = 4
+    if (!task.memory) {
+        log.info 'Available memory not known - defaulting to 4GB. Specify process memory requirements to change this.'
+    } else {
+        avail_mem = task.memory.giga
+    }
     """
     ## thanks https://www.biostars.org/p/360254/
     resolutions=(500 1000 2000 5000 10000 20000 50000 100000 250000 500000 1000000 2000000 5000000)
@@ -61,7 +66,8 @@ process JUICER_PRE {
     # count available chromsomes in the file
     skip_do_norm=\$(awk '{ a[\$2]++; a[\$6]++ } END { if(length(a)==1) print("-n") }' ${gi}.sorted)
 
-    java ${juicer_jvm_params} -jar ${juicer_tools_jar} pre \\
+    java -Xms512m -Xmx${avail_mem}g \\
+        -jar ${juicer_tools_jar} pre \\
         -r \$res \\
         \${skip_do_norm} \\
         $args \\

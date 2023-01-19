@@ -10,7 +10,6 @@ process JUICER_ADDNORM {
 
     input:
     tuple val(meta), path(hic)
-    val juicer_jvm_params
     path juicer_box_jar
 
     output:
@@ -19,11 +18,17 @@ process JUICER_ADDNORM {
 
     script:
     def args = task.ext.args ?: ''
+    def avail_mem = 4
+    if (!task.memory) {
+        log.info 'Available memory not known - defaulting to 4GB. Specify process memory requirements to change this.'
+    } else {
+        avail_mem = task.memory.giga
+    }
     """
     ## add norm just in case there is no normalization data available
     ## the pipeline will using the `-n` parameter when create the .hic if there is only one chromosome
 
-    java ${juicer_jvm_params} \\
+    java -Xms512m -Xmx${avail_mem}g \\
         -jar ${juicer_box_jar} \\
         addNorm \\
         --threads $task.cpus \\

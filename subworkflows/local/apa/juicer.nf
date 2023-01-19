@@ -12,7 +12,6 @@ workflow JUICER_APACALLER {
     additional_param       // values [juicer_box_jar, chromsize, bin, merged_loops]
 
     main:
-    //additional_param.view()
     ch_mergedloops = additional_param.map{[it[2], it[3]]}
     BIOC_SUBSETLOOPS(peaks, ch_mergedloops)
 
@@ -20,13 +19,9 @@ workflow JUICER_APACALLER {
                         .combine(BIOC_SUBSETLOOPS.out.loops, by: 0)
                         .map{[it[1], it[2], it[3]]} // merge by bin
 
-    //ch_hic_loops.view{"loops: $it"}
-    //peaks.view{"peak: $it"}
-    //additional_param.map{[it[0], it[1]]}.view()
     JUICER_APA(
         ch_hic_loops,
-        additional_param.map{[it[0]]},
-        params.juicer_jvm_params
+        additional_param.map{[it[0]]}
     )
     ch_version = JUICER_APA.out.versions.ifEmpty(null)
 

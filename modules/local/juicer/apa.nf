@@ -12,7 +12,6 @@ process JUICER_APA {
     input:
     tuple val(meta), path(hic), path(loops)
     path juicer_tools_jar
-    val juicer_jvm_params
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: results
@@ -22,8 +21,14 @@ process JUICER_APA {
     script:
     prefix   = task.ext.prefix ?: "${meta.id}"
     def args = task.ext.args ?: ''
+    def avail_mem = 4
+    if (!task.memory) {
+        log.info 'Available memory not known - defaulting to 4GB. Specify process memory requirements to change this.'
+    } else {
+        avail_mem = task.memory.giga
+    }
     """
-    java ${juicer_jvm_params} -jar ${juicer_tools_jar} apa \\
+    java -Xms512m -Xmx${avail_mem}g -jar ${juicer_tools_jar} apa \\
         $args \\
         --threads $task.cpus \\
         $hic $loops $prefix

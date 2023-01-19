@@ -40,29 +40,6 @@ if(params.anchor_peaks){
     ch_anchor_peaks = file("${params.anchor_peaks}", checkIfExists: true)
 }
 
-// check the tools
-if (!params.interactions_tool in ['maps', 'hicdcplus', 'peakachu']){
-    exit 1, 'The interactions_tool must be one of maps, hicdcplus or peakachu'
-}
-if (!params.tad_tool in ['cooltools', 'hicexplorer', 'homer']){
-    exit 1, 'The tad_tool must be one of cooltools, hicexplorer or homer'
-}
-if (!params.compartments_tool in ['cooltools', 'hicexplorer', 'homer', 'juicebox']){
-    exit 1, 'The compartments_tool must be one of cooltools, hicexplorer, homer or juicebox'
-}
-if (!params.apa_tool in ['cooltools', 'hicexplorer', 'juicebox']){
-    exit 1, 'The apa_tool must be one of cooltools, hicexplorer or juicebox'
-}
-if (!params.da_tool in ['edger', 'diffhic', 'hicexplorer', 'setOperation']){
-    exit 1, 'The da_tool must be one of edger, diffhic, hicexplorer or setOperation'
-}
-if (!params.v4c_tool in ['cooltools', 'hicexplorer', 'trackviewer']){
-    exit 1, 'The v4c_tool must be one of cooltools, hicexplorer or trackviewer'
-}
-if (!params.tfea_tool in ['atacseqtfea', 'homer']){
-    exit 1, 'The tfea_tool must be one of atacseqtfea, or homer'
-}
-
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     PIPELINE CONTROLER
@@ -279,7 +256,6 @@ workflow HICAR {
                 .groupTuple(by: [0])
                 .map{[it[1][0], it[2].flatten()]}
                 .set{ mapped_bam }
-    //mapped_bam.view()//no branch to multiple and single, need to rename the bam files
     SAMTOOLS_MERGE(mapped_bam, [], [])
     ch_versions = ch_versions.mix(SAMTOOLS_MERGE.out.versions.ifEmpty(null))
 
@@ -312,7 +288,6 @@ workflow HICAR {
     COOLER(
         cool_input,
         PREPARE_GENOME.out.chrom_sizes,
-        params.juicer_jvm_params,
         ch_juicer_tools,
         params.long_bedpe_postfix
     )
@@ -469,7 +444,7 @@ workflow HICAR {
     // prepare for JuicerBox
     //
     if(checkToolsUsedInDownstream('juicebox', params)){
-        ch_norm_hic = JUICER_ADDNORM(COOLER.out.hic, params.juicer_jvm_params, ch_juicer_tools).hic
+        ch_norm_hic = JUICER_ADDNORM(COOLER.out.hic, ch_juicer_tools).hic
         juicebox_additional = ch_juicer_tools.combine(PREPARE_GENOME.out.chrom_sizes).collect()
         if(params.compartments_tool == 'juicebox'){
             ch_comp_matrix = ch_norm_hic
@@ -580,7 +555,6 @@ workflow HICAR {
                 []
             )
         }else{
-            //ch_de_files.view()
             DA(
                 ch_de_files,
                 COOLER.out.samplebedpe
@@ -606,7 +580,6 @@ workflow HICAR {
                                     .combine(PREPARE_GENOME.out.fasta)
                                     .combine(PREPARE_GENOME.out.gtf)
         }
-        //ch_tfea_bed.view()
         TFEA(ch_tfea_bed, ch_tfea_additional)
         ch_versions = ch_versions.mix(TFEA.out.versions.ifEmpty(null))
     }
@@ -630,12 +603,8 @@ workflow HICAR {
                     [],[],[],[]
                 )
                 ch_versions = ch_versions.mix(V4C.out.versions.ifEmpty(null))
-            }else{
-                // NOT applicable
             }
         }else{
-            //ch_v4c_files.view()
-            //COOLER.out.cool.view()
             if(params.v4c_tool=='trackviewer'){
                 ch_cooler_for_v4c = COOLER.out.mcool
             }else{
@@ -653,7 +622,6 @@ workflow HICAR {
                 .map{bin, df -> [bin, df[0], df[1]]} // [bin, cool, bedpe]
                 .combine(ATAC_PEAK.out.mergedpeak)
                 .set{ch_v4c}
-            //ch_v4c.view()
             V4C(
                 ch_v4c,
                 PAIRTOOLS_PAIRE.out.hdf5.collect{it[1]},
@@ -667,7 +635,6 @@ workflow HICAR {
     //
     // visualization: circos
     //
-    //ch_circos_files.groupTuple().view()
     RUN_CIRCOS(
         ch_circos_files.groupTuple(),
         PREPARE_GENOME.out.gtf,
@@ -708,7 +675,6 @@ workflow HICAR {
             storeDir : params.outdir+'/'+RelativePublishFolder.getPublishedFolder(workflow, 'IGV'),
             newLine  : true, sort:{it[0]})
         .set{ igv_track_files }
-    //igv_track_files.view()
     IGV(igv_track_files, PREPARE_GENOME.out.ucscname, RelativePublishFolder.getPublishedFolder(workflow, 'IGV'))
 
     //

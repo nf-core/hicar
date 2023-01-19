@@ -20,7 +20,6 @@ workflow COOLER {
     take:
     valid_pairs               // channel: [ val(meta), val(bin), [pairs], [pairs.px] ]
     chromsizes                // channel: [ path(chromsizes) ]
-    juicer_jvm_params         // values
     juicer_tools_jar          // channel: [ path(juicer_tool jar) ]
     long_bedpe_postfix
 
@@ -47,7 +46,7 @@ workflow COOLER {
     DUMPREADS_PER_GROUP(COOLER_DUMP_PER_GROUP.out.bedpe, long_bedpe_postfix)
     ch_hic = Channel.empty()
     if(juicer_tools_jar){
-        JUICER_PRE(DUMPREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes, juicer_jvm_params)
+        JUICER_PRE(DUMPREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes)
         ch_hic = JUICER_PRE.out.hic
         ch_version = ch_version.mix(JUICER_PRE.out.versions)
     }

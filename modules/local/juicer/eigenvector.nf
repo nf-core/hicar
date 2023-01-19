@@ -12,7 +12,6 @@ process JUICER_EIGENVECTOR {
     tuple val(meta), path(hic)
     val resolution
     tuple path(juicer_box_jar), path(chromsizes)
-    val juicer_jvm_params
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: compartments
@@ -35,9 +34,15 @@ process JUICER_EIGENVECTOR {
     args.removeIf { it.contains('BP') }
     args.removeIf { it.contains('FRAG') }
     args = args.join(' ')
+    def avail_mem = 4
+    if (!task.memory) {
+        log.info 'Available memory not known - defaulting to 4GB. Specify process memory requirements to change this.'
+    } else {
+        avail_mem = task.memory.giga
+    }
     """
     ## add norm just in case there is no normalization data available
-    java ${juicer_jvm_params} \\
+    java -Xms512m -Xmx${avail_mem}g \\
         -jar ${juicer_box_jar} \\
         addNorm \\
         --threads $task.cpus \\
@@ -47,7 +52,7 @@ process JUICER_EIGENVECTOR {
     mkdir -p ${prefix}
     while read -r chrom; do
         chrom=\${chrom%\$'\\t'*}
-        java ${juicer_jvm_params} \\
+        java -Xms512m -Xmx${avail_mem}g \\
             -jar ${juicer_box_jar} \\
             eigenvector \\
             --threads $task.cpus \\
