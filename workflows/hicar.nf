@@ -388,7 +388,7 @@ workflow HICAR {
     //
     if(checkToolsUsedInDownstream('cooltools', params)){
         if(params.compartments_tool == 'cooltools'){
-            ch_comp_matrix = COOLER.out.mcool // colltools ask the resolution match the tiled genome
+            ch_comp_matrix = COOLER.out.mcool // cooltools ask the resolution match the tiled genome
             ch_comp_additional = PREPARE_GENOME.out.fasta.combine(PREPARE_GENOME.out.chrom_sizes)
         }
         if(params.tad_tool == 'cooltools'){
