@@ -56,7 +56,7 @@ custom_data:
     parent_name: "PAIRS QC"
     parent_description: "Pairs QC report"
     section_name: "PAIRS reads stats"
-    description: 'Table of mapped reads stats. The duplication rate should be lower than 50%. 20%~30% is a good level for 60M PE reads for human genome. For shallow seq, <30% duplication rate should be the cutting value for further deep sequence. Too low duplication rate (<5%) may indicate low specific chromatin interacts. Those number is estimated by several hypothesis. We set the actual mappable genome size is 70% of the original genome size. And the open chromatin interacts region is about 2% of the genome. Take human genome as an example, the possible unique reads for 60M will be, (3G * 70% * 2%)/60M, about 70%. That is about 30% duplication rate. Those hypotheses are consistent with real data of ChIP-seq<a href="https://pubmed.ncbi.nlm.nih.gov/24782889/"></a>.'
+    description: 'Table of mapped reads stats. The duplication rate should be lower than 50%. 20%~30% is a good level for 60M PE reads for the human genome. For shallow sequencing, <30% duplication rate should be the cutting value for further deep sequencing. Too low duplication rate (<5%) may indicate low specific chromatin interactions. These numbers are estimated by several hypothesis. We set the actual mappable genome size to 70% of the original genome size. And the open chromatin interacts region is about 2% of the genome. Take the human genome as an example, the possible unique reads for 60M will be, (3G * 70% * 2%)/60M, about 70%. This is about a 30% duplication rate. Those hypotheses are consistent with real data of ChIP-seq<a href="https://pubmed.ncbi.nlm.nih.gov/24782889/"></a>.'
     file_format: "csv"
     plot_type: "table"
     pconfig:
