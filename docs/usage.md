@@ -94,7 +94,7 @@ For annotation, we will use Bioconductor package [`ChIPpeakAnno`](https://biocon
 
 ### Call high resolution interactions
 
-The high resolution interaction caller are also available for confident transcription factor enrichment analysis. However, please note that the high resolution interaction caller are not bin-based but peak based analysis, which ask high computational resources.
+The high resolution interaction caller is also available for confident transcription factor enrichment analysis. However, please note that the high resolution interaction caller are not bin-based but peak based analysis, which uses high computational resources.
 
 ### Aggregate peak analysis
 
