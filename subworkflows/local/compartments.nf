@@ -15,7 +15,7 @@ workflow COMPARTMENTS {
 
     main:
     ch_versions             = Channel.empty()
-    ch_multiqc_files        = Channel.empty()
+    ch_multiqc_files        = Channel.empty() // TODO
     ch_circos_files         = Channel.empty()
     ch_track_files          = Channel.empty()
     ch_annotation_files     = Channel.empty()
