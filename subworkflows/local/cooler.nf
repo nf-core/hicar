@@ -2,10 +2,10 @@
  * pair the proper mapped pairs
  */
 
-include { COOLER_BALANCE } from '../../modules/local/cooler/balance/main'
-include { COOLER_CLOAD   } from '../../modules/local/cooler/cload/main'
-include { COOLER_MERGE   } from '../../modules/local/cooler/merge/main'
-include { COOLER_ZOOMIFY } from '../../modules/local/cooler/zoomify/main'
+include { COOLER_BALANCE } from '../../modules/nf-core/cooler/balance/main'
+include { COOLER_CLOAD   } from '../../modules/nf-core/cooler/cload/main'
+include { COOLER_MERGE   } from '../../modules/nf-core/cooler/merge/main'
+include { COOLER_ZOOMIFY } from '../../modules/nf-core/cooler/zoomify/main'
 include { COOLER_DUMP
     as COOLER_DUMP_PER_GROUP    } from '../../modules/nf-core/cooler/dump/main'
 include { COOLER_DUMP
@@ -25,11 +25,11 @@ workflow COOLER {
 
     main:
     // HiC-like contact matrix
-    ch_version = COOLER_CLOAD(valid_pairs.map{[it[0], it[2], it[3]]}, valid_pairs.map{it[1]}, chromsizes).versions
+    ch_version = COOLER_CLOAD(valid_pairs.map{[it[0], it[2], it[3], it[1]]}, chromsizes).versions
     // Merge contacts
     COOLER_CLOAD.out.cool
                 .map{
-                    meta, bin, cool ->
+                    meta, cool, bin ->
                     [meta.group, bin, cool]
                 }
                 .groupTuple(by:[0, 1])
@@ -37,7 +37,7 @@ workflow COOLER {
                 .set{ch_cooler}
     COOLER_MERGE(ch_cooler)
     // create a balanced matrix for compartment and tad calls, see https://github.com/open2c/cooler/issues/48
-    COOLER_BALANCE(COOLER_MERGE.out.cool)
+    COOLER_BALANCE(COOLER_MERGE.out.cool.map{[it[0], it[1], false]})
     // create mcooler file for visualization
     COOLER_ZOOMIFY(COOLER_BALANCE.out.cool)
     // dump interaction bedpe for each group
@@ -50,7 +50,7 @@ workflow COOLER {
     ch_version = ch_version.mix(JUICER_PRE.out.versions)
 
     // dump long interaction bedpe for each sample
-    COOLER_DUMP_PER_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, bin, cool -> [[id:meta.id, group:meta.group, bin:bin], cool, []]})
+    COOLER_DUMP_PER_SAMPLE(COOLER_CLOAD.out.cool.map{ meta, cool, bin -> [[id:meta.id, group:meta.group, bin:bin], cool, []]})
     DUMPREADS_PER_SAMPLE(COOLER_DUMP_PER_SAMPLE.out.bedpe, long_bedpe_postfix)
     ch_version = ch_version.mix(DUMPREADS_PER_GROUP.out.versions)
 

@@ -9,9 +9,9 @@ include { READS_SUMMARY
 include { MAPS_REFORMAT         } from '../../../modules/local/maps/reformat'
 include { MAPS_RAW2BG2          } from '../../../modules/local/maps/raw2bg2'
 include { COOLER_LOAD           } from '../../../modules/local/cooler/load/main'
-include { COOLER_MERGE          } from '../../../modules/local/cooler/merge/main'
+include { COOLER_MERGE          } from '../../../modules/nf-core/cooler/merge/main'
 include { COOLER_ZOOMIFY
-    as COOLER_ZOOMIFY_MAPS      } from '../../../modules/local/cooler/zoomify/main'
+    as COOLER_ZOOMIFY_MAPS      } from '../../../modules/nf-core/cooler/zoomify/main'
 
 workflow MAPS_PEAK {
     take:
