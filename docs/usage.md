@@ -75,7 +75,7 @@ A topologically associating domain (TAD) is a smaller size genomic region compar
 There are multiple available modules to call A/B compartments and TADs.
 
 - For A/B Compartments calling, available tools are 'cooltools', 'hicExplorer', 'Homer', and 'juicer_tools'.
-- For TADs calling, available tools are 'cooltools', 'hicexploer', and 'Homer'.
+- For TADs calling, available tools are 'cooltools', 'hicexplorer', and 'Homer'.
 
 Here is a short introduction about the tools:
 

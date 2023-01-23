@@ -58,7 +58,7 @@
 
   > Sahin M, Wong W, Zhan Y, Van Deynze K, Koche R, Leslie CS. HiC-DC+ enables systematic 3D interaction calls and differential analysis for Hi-C and HiChIP. Nat Commun. 2021 Jun 7;12(1):3366. doi: 10.1038/s41467-021-23749-x. PMID: 34099725; PMCID: PMC8184932.
 
-- [HiCExploer](https://pubmed.ncbi.nlm.nih.gov/29335486/)
+- [HiCExplorer](https://pubmed.ncbi.nlm.nih.gov/29335486/)
 
   > Ramírez F, Bhardwaj V, Arrigoni L, Lam KC, Grüning BA, Villaveces J, Habermann B, Akhtar A, Manke T. High-resolution TADs reveal DNA sequences underlying genome organization in flies. Nat Commun. 2018 Jan 15;9(1):189. doi: 10.1038/s41467-017-02525-w. PMID: 29335486; PMCID: PMC5768762.
 

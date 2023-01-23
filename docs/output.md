@@ -142,7 +142,7 @@ The hdf5 filtered pairs contains following groups:
 
 - `matrix/mcool/*`: The mcool files for each group.
 - `matrix/hic/*`: The .hic files for each group.
-- `matrix/HiCExploer/*`: The h5 files normalized by HiCExploer for each group.
+- `matrix/HiCExplorer/*`: The h5 files normalized by HiCExplorer for each group.
 
 </details>
 
@@ -185,7 +185,7 @@ By default, the peaks are called by `--no-model` parameter for the R2 reads in B
   - `homer/`
     - `pca/*`: The Principal Component Analysis outputs.
     - `compartments/*`: The called A/B compartments.
-  - `HiCExploer/`
+  - `HiCExplorer/`
     - `*`: By default, all intermediate matrices will be generated: obs_exp-all.h5, pearson_all.h5 and covariance_all.h5.
 
 </details>
@@ -202,7 +202,7 @@ To compute the A/B compartments ask correlation matrix computed by observed/expe
     - `*`: The called TADs.
   - `homer/`
     - `*_tagdir/*`: The called TAD in BED format.
-  - `HiCExploer/`
+  - `HiCExplorer/`
     - `*`: The output form `hicFindTADs`:
       - `*_hicfindtads_tad_score.bam`: the TAD-separation score file
       - `*_hicfindtads_zscore_matrix.cool`: the z-score matrix
@@ -212,7 +212,7 @@ To compute the A/B compartments ask correlation matrix computed by observed/expe
 
 </details>
 
-To call TADs by [HiCExploer](https://hicexplorer.readthedocs.io/en/latest/content/example_usage.html#tad-calling),
+To call TADs by [HiCExplorer](https://hicexplorer.readthedocs.io/en/latest/content/example_usage.html#tad-calling),
 a corrected matrix is needed. The TAD-separation score is based on a Z-score matrix for all bins.
 The TAD-separation score and the matrix will be visualized using [hicPlotTADs](https://hicexplorer.readthedocs.io/en/latest/content/tools/hicPlotTADs.html#hicplottads).
 

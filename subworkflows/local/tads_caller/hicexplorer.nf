@@ -1,5 +1,5 @@
 /*
- * call TADs by HiCExploer
+ * call TADs by HiCExplorer
  */
 
 include { HICEXPLORER_HICFINDTADS } from '../../../modules/local/hicexplorer/hicfindtads'

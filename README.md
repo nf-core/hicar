@@ -33,7 +33,7 @@ On release, automated continuous integration tests run the pipeline on a full-si
 8. Call A/B compartments ([`cooltools`](https://cooltools.readthedocs.io/en/latest/index.html), [`homer`](http://homer.ucsd.edu/homer/), etc.)
 9. Call TADs ([`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/index.html), [`homer`](http://homer.ucsd.edu/homer/), etc.)
 10. Find genomic interaction loops ([`MAPS`](https://github.com/ijuric/MAPS), [`HiCDCPlus`](https://doi.org/10.1038/s41467-021-23749-x), [Peakachu](https://doi.org/10.1038/s41467-020-17239-9), etc.)
-11. Aggregate peak analysis ([`HiCExploer`](https://hicexplorer.readthedocs.io/en/latest/index.html), [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), etc.)
+11. Aggregate peak analysis ([`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/index.html), [`Juicer_tools`](https://github.com/aidenlab/juicer/wiki), etc.)
 12. Call HiPeak (high resolution analysis, time consuming, motif analysis)
 13. Differential analysis ([`diffHic`](https://bioconductor.org/packages/diffHic/), etc.)
 14. Annotate genomic interaction loops ([`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/))
