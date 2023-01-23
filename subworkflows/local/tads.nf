@@ -33,7 +33,7 @@ workflow TADS {
             ch_versions = COOLTOOLS_TADS.out.versions
             ch_circos_files = COOLTOOLS_TADS.out.tads.map{[it[0], it[2]]}
             break
-        case "hicexploer":
+        case "hicexplorer":
             HICEXPLORER_TADS(
                 matrix,
                 resolution,
