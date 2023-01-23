@@ -12,6 +12,7 @@ from numba import njit
 from collections import defaultdict
 import cooler
 
+
 def tocsr(X):
 
     row, col, data = X.row, X.col, X.data
