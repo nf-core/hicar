@@ -2,7 +2,7 @@
 // Call interaction loops
 // input:
 // [[2D signals], [1D peaks], [additional_files]]
-// Ask all the output of each module must contain channel:
+// The output of each module must contain channel:
 // versions: [path]; interactions: [ meta, bin_size, [bedpe] ]
 // optional output: mqc: [path];
 //
