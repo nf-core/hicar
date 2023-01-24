@@ -1,6 +1,6 @@
 //
 // Call TADs
-// Ask all the output of each module must contain channel:
+// All the output of each module must contain channel:
 // versions: [path]; tads: [ meta, bin_size, [bedpe] ]
 // optional output: mqc: [path];
 //
