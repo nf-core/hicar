@@ -97,6 +97,7 @@ include { CHECKSUMS } from '../modules/local/checksums'
 include { HOMER_INSTALL } from '../modules/local/homer/install'
 // include { HICEXPLORER_HICCORRECTMATRIX } from '../modules/local/hicexplorer/hiccorrectmatrix' // NOT WORK, buggy
 include { RECENTER_PEAK } from '../modules/local/hicexplorer/recenterpeak'
+include { HICEXPLORER_CHICQUALITYCONTROL } from '../modules/local/hicexplorer/chicqualitycontrol'
 include { HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL } from '../modules/local/hicexplorer/chicviewpointbackgroundmodel'
 include { HICEXPLORER_CHICVIEWPOINT } from '../modules/local/hicexplorer/chicviewpoint'
 include { JUICER_ADDNORM } from '../modules/local/juicer/addnorm'
@@ -374,10 +375,11 @@ workflow HICAR {
                 .groupTuple()
                 .combine(RECENTER_PEAK.out.peak)
                 .set{ch_chic_explorer}
-            HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL(ch_chic_explorer)
+            HICEXPLORER_CHICQUALITYCONTROL(ch_chic_explorer)
+            HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL(HICEXPLORER_CHICQUALITYCONTROL.out.referencepoints)
 
             // create interaction file, input is [bin_size, [cool], [recentered_peak], [background_model]]
-            HICEXPLORER_CHICVIEWPOINT(ch_chic_explorer.combine(HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL.out.background_model, by: 0))
+            HICEXPLORER_CHICVIEWPOINT(HICEXPLORER_CHICQUALITYCONTROL.out.referencepoints.combine(HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL.out.background_model, by: 0))
         }
     }
 

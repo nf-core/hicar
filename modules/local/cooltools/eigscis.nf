@@ -31,7 +31,7 @@ process COOLTOOLS_EIGSCIS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cooltools: \$(cooltools --version 2>&1 | sed 's/cooletools, version //')
+        cooltools: \$(cooltools --version 2>&1 | sed 's/cooltools, version //')
     END_VERSIONS
     """
 }
