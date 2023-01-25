@@ -16,7 +16,6 @@ workflow HICEXPLORER_COMPARTMENTS {
     chromsizes // channel: [ path(size) ]
 
     main:
-    ch_multiqc_files = Channel.empty()
     ch_versions      = Channel.empty()
 
     // step1 create bigwig files, the input file is balanced by cooler::balance (aka, ICE)
@@ -44,6 +43,5 @@ workflow HICEXPLORER_COMPARTMENTS {
 
     emit:
     compartments  = HICEXPLORER_HICPCA.out.pca          // channel: [ val(meta), val(bin), path(domains.bed)]
-    mqc           = ch_multiqc_files                     // channel: [ path(mqc) ]
     versions      = ch_version                           // channel: [ path(version) ]
 }

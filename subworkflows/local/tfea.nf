@@ -12,7 +12,6 @@ workflow TFEA {
 
     main:
     ch_versions             = Channel.empty()
-    ch_multiqc_files        = Channel.empty() // TODO
 
     switch(params.tfea_tool){
         case "homer":
@@ -31,5 +30,4 @@ workflow TFEA {
 
     emit:
     versions        = ch_versions          // channel: [ versions.yml ]
-    mqc             = ch_multiqc_files
 }

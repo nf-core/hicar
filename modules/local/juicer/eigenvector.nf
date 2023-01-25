@@ -9,16 +9,15 @@ process JUICER_EIGENVECTOR {
         'quay.io/biocontainers/java-jdk:8.0.112--1' }"
 
     input:
-    tuple val(meta), path(hic)
+    tuple val(meta), path(hic), path(juicer_box_jar), path(chromsizes)
     val resolution
-    tuple path(juicer_box_jar), path(chromsizes)
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: compartments
     path "versions.yml"                          , emit: versions
 
     script:
-    prefix   = task.ext.prefix ?: "${meta.id}_${resolution}"
+    prefix   = task.ext.prefix ?: "${meta.id}_${meta.bin}_${resolution}"
     def args = task.ext.args ?: ''
     norm_method = (args.contains('NONE')) ? 'NONE' :
         (args.contains('VC_SQRT')) ? 'VC_SQRT' :

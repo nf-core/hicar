@@ -18,8 +18,7 @@ workflow COMPARTMENTS {
     ch_multiqc_files        = Channel.empty() // TODO
     ch_circos_files         = Channel.empty()
     ch_track_files          = Channel.empty()
-    ch_annotation_files     = Channel.empty()
-    ch_compartments         = Channel.empty() // a bigwig files channel
+    ch_compartments         = Channel.empty() // a compartments files channel
 
     switch(params.compartments_tool){
         case "cooltools":
@@ -79,7 +78,6 @@ workflow COMPARTMENTS {
     compartments    = ch_compartments      // channel: [ meta, [compartments] ]
     circos          = ch_circos_files
     igv             = ch_track_files
-    anno            = ch_annotation_files
     versions        = ch_versions          // channel: [ versions.yml ]
     mqc             = ch_multiqc_files
 }

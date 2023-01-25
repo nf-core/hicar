@@ -96,6 +96,7 @@ process BIOC_ATACSEQTFEA {
         getBSgenome(genome)
     }, error=function(e){
         message("Try to forge a genome")
+        message("It will fail if the BSgenome package is not proper installed, check this thread:https://support.bioconductor.org/p/124169/")
         tmp <- paste0(genome, '.seeds')
         pkgName <- paste0("Package: BSgenome.", genome)
         writeLines(c(

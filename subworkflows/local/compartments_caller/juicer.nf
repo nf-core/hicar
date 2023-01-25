@@ -8,13 +8,12 @@ workflow JUICER_COMPARTMENTS {
     take:
     matrix                 // channel: [ val(meta), [cool] ]
     resolution             // value
-    additional_param       // values [jvm_params, juicer_box_jar]
+    additional_param       // value: [ [juicer_box_jar], [chrom_size] ]
 
     main:
     JUICER_EIGENVECTOR(
-        matrix,
-        resolution,
-        additional_param
+        matrix.combine(additional_param),
+        resolution
     )
     ch_version = JUICER_EIGENVECTOR.out.versions
 

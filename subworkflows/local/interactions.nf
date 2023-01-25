@@ -35,6 +35,7 @@ workflow INTERACTIONS {
             )
             ch_loops = MAPS.out.interactions
             ch_versions = MAPS.out.versions
+            ch_multiqc_files = MAPS.out.mqc
             ch_annotation_files = MAPS.out.interactions.map{
                 meta, bin_size, interactions -> [meta.id+bin_size, interactions]}
             ch_circos_files = MAPS.out.interactions.map{
@@ -51,6 +52,7 @@ workflow INTERACTIONS {
             )
             ch_loops = HICDCPLUS.out.interactions
             ch_versions = HICDCPLUS.out.versions
+            ch_multiqc_files = HICDCPLUS.out.mqc
             ch_annotation_files = HICDCPLUS.out.interactions.map{
                 meta, bin_size, interactions -> [meta.id+bin_size, interactions]}
             ch_circos_files = HICDCPLUS.out.interactions.map{
@@ -65,6 +67,7 @@ workflow INTERACTIONS {
             )
             ch_loops = PEAKACHU.out.interactions
             ch_versions = PEAKACHU.out.versions
+            ch_multiqc_files = PEAKACHU.out.mqc
             ch_annotation_files = PEAKACHU.out.interactions.map{
                 meta, bin_size, interactions -> [meta.id+bin_size, interactions]}
             ch_circos_files = PEAKACHU.out.interactions.map{

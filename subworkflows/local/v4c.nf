@@ -16,7 +16,6 @@ workflow V4C {
 
     main:
     ch_versions             = Channel.empty()
-    ch_multiqc_files        = Channel.empty() // TODO
 
     // use anchor bed as reference points file
     switch(params.v4c_tool){
@@ -57,5 +56,4 @@ workflow V4C {
 
     emit:
     versions        = ch_versions          // channel: [ versions.yml ]
-    mqc             = ch_multiqc_files
 }

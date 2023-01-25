@@ -77,13 +77,13 @@ ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists:
 */
 
 ch_juicer_tools              = Channel.fromPath(params.juicer_tools_jar,
-                                    checkIfExists: true)
+                                    checkIfExists: true).collect()
 ch_merge_map_py_source       = Channel.fromPath(params.merge_map_py_source,
-                                    checkIfExists: true)
+                                    checkIfExists: true).collect()
 ch_feature_frag2bin_source   = Channel.fromPath(params.feature_frag2bin_source,
-                                    checkIfExists: true)
+                                    checkIfExists: true).collect()
 ch_make_maps_runfile_source  = Channel.fromPath(params.make_maps_runfile_source,
-                                    checkIfExists: true)
+                                    checkIfExists: true).collect()
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
@@ -445,17 +445,13 @@ workflow HICAR {
     //
     if(checkToolsUsedInDownstream('juicebox', params)){
         ch_norm_hic = JUICER_ADDNORM(COOLER.out.hic, ch_juicer_tools).hic
-        juicebox_additional = ch_juicer_tools.combine(PREPARE_GENOME.out.chrom_sizes).collect()
         if(params.compartments_tool == 'juicebox'){
             ch_comp_matrix = ch_norm_hic
-            ch_comp_additional  = juicebox_additional
-        }
-        if(params.interactions_tool == 'juicebox'){
-            ch_loop_additional  = juicebox_additional
+            ch_comp_additional  = ch_juicer_tools.combine(PREPARE_GENOME.out.chrom_sizes)
         }
         if(params.apa_tool == 'juicebox'){
             ch_apa_matrix = ch_norm_hic
-            ch_apa_additional = juicebox_additional
+            ch_apa_additional = ch_juicer_tools
         }
     }
 
@@ -509,7 +505,7 @@ workflow HICAR {
     if(!params.skip_apa){
         ch_apa_peak = params.apa_peak ? Channel.fromPath( params.apa_peak, checkIfExists: true ) : ATAC_PEAK.out.mergedpeak
         if(params.apa_tool=='juicebox'){
-            ch_apa_additional = ch_apa_additional.combine(INTERACTIONS.out.mergedloops).unique()
+            ch_apa_additional = INTERACTIONS.out.mergedloops.combine(ch_apa_additional).unique()
         }
         APA(
             ch_apa_matrix,
