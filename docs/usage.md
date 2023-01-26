@@ -82,7 +82,7 @@ Here is a short introduction about the tools:
 - The [`cooltools`](https://github.com/open2c/cooltools) leverages [`cooler`](https://github.com/open2c/cooler/tree/master/cooler) format to enable flexible and reproducible analysis of high-resolution data. `insulation` tool will be used for TADs calling.
 - The [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) is a set of programs to process, normalize, analyze and visualize Hi-C and cHi-C data. The [`hicFindTADs`](https://hicexplorer.readthedocs.io/en/latest/content/tools/hicFindTADs.html) will be used to call TADs.
 - The [`Homer`](http://homer.ucsd.edu/homer/interactions2/HiCpca.html) is a software for motif discovery and next-gen sequencing analysis.
-- The [`juicer_tools`](https://github.com/aidenlab/juicer) is a platform for analyzing bin sized Hi-C data.
+- The [`juicer_tools`](https://github.com/aidenlab/juicer) is a platform for analyzing bin sized Hi-C data. The [HiCTools](https://github.com/aidenlab/HiCTools) will be used to create .hic files, and call compartments. Please note that by default the normalization method for compartment calling was set as `SCALE`. You may want to try different parameters for the normalization method such as `KR`.
 
 ### Call interactions/loops
 
@@ -98,7 +98,7 @@ The high resolution interaction caller is also available for confident transcrip
 
 ### Aggregate peak analysis
 
-Aggregate peak analysis (APA) plots the pileup signals detected by high-resolution interaction data. It is a kind of 2 dimension meta-gene analysis. By providing a list of interested genomic coordinates, the pileup signal will present the enrichment between the interactions and the target interested region. Current available tools for APA are [`cooltools`](https://github.com/open2c/cooltools), [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) and [`juicer_tools`](https://github.com/aidenlab/juicer)
+Aggregate peak analysis (APA) plots the pileup signals detected by high-resolution interaction data. It is a kind of 2 dimension meta-gene analysis. By providing a list of interested genomic coordinates, the pileup signal will present the enrichment between the interactions and the target interested region. Current available tools for APA are [`cooltools`](https://github.com/open2c/cooltools), [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) and [JuicerTools](https://github.com/aidenlab/juicertools).
 
 ### Virtual 4C
 
@@ -365,6 +365,10 @@ The perl-statistics-basic installed in wrong location. Try to reinstall it by
 - `Error in result[[njob]] <- value : attempt to select less than one element in OneIndex`
 
 The error may caused by out of memory (although the error message seems to be unrelated to memory). Try to set `--peak_pair_block` to a smaller number less than 1e9.
+
+- `[CRITICAL] The sample sheet **must** contain these column headers: replicate, group, fastq_2, fastq_1.`
+
+The error may caused by the improper formtated `.csv` file (the file contain header info before the column names) by `Microsoft Excel`. Please use a text editor to reprepare the `.csv` sample files.
 
 ### Known issue with Juicer_tools
 

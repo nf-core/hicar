@@ -19,8 +19,6 @@ workflow MAPS_MULTIENZYME {
     take:
     cool_bin                   // channel: [ val(bin) ]
     genome                     // channel: [ site, [fasta], [chrom_size], [mappability_bw] ]
-    merge_map_py_source        // channel: [ file(merge_map_py_source) ]
-    feature_frag2bin_source    // channel: [ file(feature_frag2bin_source) ]
 
     main:
     chrom_sizes = genome.map{[ it[2] ]}
@@ -54,10 +52,9 @@ workflow MAPS_MULTIENZYME {
         UCSC_BIGWIGAVERAGEOVERBED(MAPS_FEND.out.bed.map{[['id':'background', 'bin_size':it[0]], it[1]]}, mappability)
     }
     ch_version = ch_version.mix(UCSC_BIGWIGAVERAGEOVERBED.out.versions)
-    MAPS_MERGE(ch_digest.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]},
-                merge_map_py_source)
+    MAPS_MERGE(ch_digest.cross(UCSC_BIGWIGAVERAGEOVERBED.out.tab.map{[it[0].bin_size, it[1]]}).map{[it[0][0], it[0][1], it[1][1]]})
 
-    MAPS_FEATURE(MAPS_MERGE.out.map, chrom_sizes, feature_frag2bin_source)
+    MAPS_FEATURE(MAPS_MERGE.out.map, chrom_sizes)
 
     emit:
     bin_feature              = MAPS_FEATURE.out.bin_feature      // channel: [ val(bin_size), path(bin_feature) ]

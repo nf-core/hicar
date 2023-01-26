@@ -11,7 +11,6 @@ process MAPS_FEATURE {
     input:
     tuple val(bin_size), path(map)
     path chrom_sizes
-    path feature_frag2bin_source
 
     output:
     tuple val(bin_size), path("*_el.txt")  , emit: bin_feature
@@ -19,7 +18,7 @@ process MAPS_FEATURE {
 
     script:
     """
-    python ${feature_frag2bin_source} \\
+    feature_frag2bin.py \\
         -i $map \\
         -o F_GC_M_${map.getSimpleName()}_${bin_size}_el.txt \\
         -b $bin_size \\

@@ -8,7 +8,7 @@ workflow JUICER_COMPARTMENTS {
     take:
     matrix                 // channel: [ val(meta), [cool] ]
     resolution             // value
-    additional_param       // value: [ [juicer_box_jar], [chrom_size] ]
+    additional_param       // value: [ [juicer_tools_jar], [chrom_size] ]
 
     main:
     JUICER_EIGENVECTOR(

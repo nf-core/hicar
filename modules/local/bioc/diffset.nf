@@ -58,7 +58,7 @@ process DIFFSET {
         }
         .ele
     }, SIMPLIFY = FALSE)
-    names(peaks) <- gsub(".interactions.bedpe", "", basename(pf))
+    names(peaks) <- sub(".bedpe", "", gsub(".interactions.bedpe", "", basename(pf)))
 
     bedpe.ss <- lapply(peaks, function(.ele){
         with(.ele, paste(chr1, start1, end1, chr2, start2, end2, sep="\\t"))

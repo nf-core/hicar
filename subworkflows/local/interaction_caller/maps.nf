@@ -10,22 +10,17 @@ workflow MAPS {
     bedpe                           // 2D: [ val(meta), [bedpe] ] merged intra_chromosome reads for group
     reads                           // 1D: [ meta, [group_reads_count_bedgraph], [merged_peaks_bed] ]
     additional_param                // [
-                                    //    0 values: cuting_site,
-                                    //    1 [ genome fa ],
-                                    //    2 [ chrom_size ],
-                                    //    3 [ mappability bigwig ],
-                                    //    4 scripts: merge_map_py_source,
-                                    //    5 scripts: feature_frag2bin_source
-                                    //    6 scripts: make_maps_runfile_source
+                                    //    0 values: cuting_site, output of prepare genome
+                                    //    1 [ genome fa ], output of prepare genome
+                                    //    2 [ chrom_size ], output of prepare genome
+                                    //    3 [ mappability bigwig ], output of prepare genome
                                     // ]
 
     main:
     // generate features
     background = MAPS_MULTIENZYME(
         bedpe.map{ [ it[0].bin ] }.unique(),                   // bin_size
-        additional_param.map{[ it[0], it[1], it[2], it[3] ]},  // site, fasta, chrom_size, mappability_bw
-        additional_param.map{[ it[4] ]},                       // merge_map_py_source
-        additional_param.map{[ it[5] ]}                        // feature_frag2bin_source
+        additional_param.map{[ it[0], it[1], it[2], it[3] ]}   // site, fasta, chrom_size, mappability_bw
         ).bin_feature
     ch_versions = MAPS_MULTIENZYME.out.versions
 
@@ -41,7 +36,6 @@ workflow MAPS {
                 .set{ maps_input }
     MAPS_PEAK(
         maps_input,
-        additional_param.map{[ it[6] ]},            //make_maps_runfile_source,
         additional_param.map{[ it[1] ]},            //chrom_size
         )
     ch_versions = ch_versions.mix(MAPS_PEAK.out.versions)

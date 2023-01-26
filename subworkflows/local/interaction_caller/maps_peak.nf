@@ -16,14 +16,13 @@ include { COOLER_ZOOMIFY
 workflow MAPS_PEAK {
     take:
     reads                     // channel: [ meta, bin_size, path(macs2), path(long_bedpe), path(short_bed), path(background) ]
-    make_maps_runfile_source  // channel: [ file make_maps_runfile_source ]
     chromsizes                // channel: [ path(chromsizes) ]
 
     main:
     //create parameter table
     //input=val(meta), val(bin_size), path(macs2), path(long_bedpe), path(short_bed), path(background)
     //maps from bedpe
-    ch_version = MAPS_MAPS(reads, make_maps_runfile_source, params.long_bedpe_postfix, params.short_bed_postfix).versions
+    ch_version = MAPS_MAPS(reads, params.long_bedpe_postfix, params.short_bed_postfix).versions
     //regression and peak calling
     peak = MAPS_CALLPEAK(MAPS_MAPS.out.maps).peak
     ch_version = ch_version.mix(MAPS_CALLPEAK.out.versions)

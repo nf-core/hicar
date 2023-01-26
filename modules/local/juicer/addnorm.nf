@@ -10,7 +10,7 @@ process JUICER_ADDNORM {
 
     input:
     tuple val(meta), path(hic)
-    path juicer_box_jar
+    path hic_tools_jar
 
     output:
     tuple val(meta), path(hic, includeInputs: true) , emit: hic
@@ -29,7 +29,7 @@ process JUICER_ADDNORM {
     ## the pipeline will using the `-n` parameter when create the .hic if there is only one chromosome
 
     java -Xms512m -Xmx${avail_mem}g \\
-        -jar ${juicer_box_jar} \\
+        -jar ${hic_tools_jar} \\
         addNorm \\
         --threads $task.cpus \\
         -w ${meta.bin} \\
@@ -38,7 +38,7 @@ process JUICER_ADDNORM {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        java: \$(echo \$(java -jar ${juicer_box_jar} --version 2>&1) | sed 's/^.*Version //; s/Usage.*\$//')
+        java: \$(echo \$(java -jar ${hic_tools_jar} --version 2>&1) | sed 's/^.*Version //; s/Usage.*\$//')
     END_VERSIONS
     """
 }

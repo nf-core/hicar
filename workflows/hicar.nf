@@ -78,11 +78,7 @@ ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists:
 
 ch_juicer_tools              = Channel.fromPath(params.juicer_tools_jar,
                                     checkIfExists: true).collect()
-ch_merge_map_py_source       = Channel.fromPath(params.merge_map_py_source,
-                                    checkIfExists: true).collect()
-ch_feature_frag2bin_source   = Channel.fromPath(params.feature_frag2bin_source,
-                                    checkIfExists: true).collect()
-ch_make_maps_runfile_source  = Channel.fromPath(params.make_maps_runfile_source,
+ch_hic_tools                 = Channel.fromPath(params.hic_tools_jar,
                                     checkIfExists: true).collect()
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -289,7 +285,7 @@ workflow HICAR {
     COOLER(
         cool_input,
         PREPARE_GENOME.out.chrom_sizes,
-        ch_juicer_tools,
+        ch_hic_tools,
         params.long_bedpe_postfix
     )
     ch_versions = ch_versions.mix(COOLER.out.versions.ifEmpty(null))
@@ -323,9 +319,6 @@ workflow HICAR {
                                 .combine(PREPARE_GENOME.out.fasta)
                                 .combine(PREPARE_GENOME.out.chrom_sizes)
                                 .combine(PREPARE_GENOME.out.mappability)
-                                .combine(ch_merge_map_py_source)
-                                .combine(ch_feature_frag2bin_source)
-                                .combine(ch_make_maps_runfile_source)
                                 .collect()
     }
 
@@ -444,10 +437,10 @@ workflow HICAR {
     // prepare for JuicerBox
     //
     if(checkToolsUsedInDownstream('juicebox', params)){
-        ch_norm_hic = JUICER_ADDNORM(COOLER.out.hic, ch_juicer_tools).hic
+        ch_norm_hic = JUICER_ADDNORM(COOLER.out.hic, ch_hic_tools).hic
         if(params.compartments_tool == 'juicebox'){
             ch_comp_matrix = ch_norm_hic
-            ch_comp_additional  = ch_juicer_tools.combine(PREPARE_GENOME.out.chrom_sizes)
+            ch_comp_additional  = ch_hic_tools.combine(PREPARE_GENOME.out.chrom_sizes)
         }
         if(params.apa_tool == 'juicebox'){
             ch_apa_matrix = ch_norm_hic

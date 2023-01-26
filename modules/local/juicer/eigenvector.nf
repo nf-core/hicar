@@ -9,7 +9,7 @@ process JUICER_EIGENVECTOR {
         'quay.io/biocontainers/java-jdk:8.0.112--1' }"
 
     input:
-    tuple val(meta), path(hic), path(juicer_box_jar), path(chromsizes)
+    tuple val(meta), path(hic), path(hic_tools_jar), path(chromsizes)
     val resolution
 
     output:
@@ -22,7 +22,8 @@ process JUICER_EIGENVECTOR {
     norm_method = (args.contains('NONE')) ? 'NONE' :
         (args.contains('VC_SQRT')) ? 'VC_SQRT' :
         (args.contains('VC')) ? 'VC' :
-        (args.contains('KR')) ? 'KR' : 'NONE'
+        (args.contains('KR')) ? 'KR' :
+        (args.contains('SCALE')) ? 'SCALE' : 'NONE'
     data_slot = (args.contains('BP')) ? 'BP' :
         (args.contains('FRAG')) ? 'FRAG' : 'BP'
     args = args.tokenize()
@@ -30,6 +31,7 @@ process JUICER_EIGENVECTOR {
     args.removeIf { it.contains('VC_SQRT') }
     args.removeIf { it.contains('VC') }
     args.removeIf { it.contains('KR') }
+    args.removeIf { it.contains('SCALE') }
     args.removeIf { it.contains('BP') }
     args.removeIf { it.contains('FRAG') }
     args = args.join(' ')
@@ -40,19 +42,11 @@ process JUICER_EIGENVECTOR {
         avail_mem = task.memory.giga
     }
     """
-    ## add norm just in case there is no normalization data available
-    java -Xms512m -Xmx${avail_mem}g \\
-        -jar ${juicer_box_jar} \\
-        addNorm \\
-        --threads $task.cpus \\
-        -w ${meta.bin} \\
-        -k $norm_method \\
-        $hic
     mkdir -p ${prefix}
     while read -r chrom; do
         chrom=\${chrom%\$'\\t'*}
         java -Xms512m -Xmx${avail_mem}g \\
-            -jar ${juicer_box_jar} \\
+            -jar ${hic_tools_jar} \\
             eigenvector \\
             --threads $task.cpus \\
             $args \\
@@ -64,10 +58,9 @@ process JUICER_EIGENVECTOR {
             ${prefix}/${prefix}_\${chrom}.eigen.txt
     done < $chromsizes
 
-
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        java: \$(echo \$(java -jar ${juicer_box_jar} --version 2>&1) | sed 's/^.*Version //; s/Usage.*\$//')
+        java: \$(echo \$(java -jar ${hic_tools_jar} --version 2>&1) | sed 's/^.*Version //; s/Usage.*\$//')
     END_VERSIONS
     """
 }

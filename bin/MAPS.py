@@ -208,7 +208,7 @@ def init(p):
             print("doing chromosome ", CHR1, " and ", CHR2, "\n")
             # handling MACS2 peaks
             print("-- handling MACS2 peaks")
-            peak_skip2, MACS2_peak_ranges_list_2 = get_peaks_range(MACS2_full, CHR1, params)
+            peak_skip2, MACS2_peak_ranges_list_2 = get_peaks_range(MACS2_full, CHR2, params)
             if peak_skip2:
                 continue
             print("-- handling short.bed\n")

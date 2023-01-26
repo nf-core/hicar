@@ -68,6 +68,7 @@ if (length(args) < 3 || length(args) > 8) {
     SET <- paste0(SET, ".", ceiling(RESOLUTION/1e3), "k")
     chroms <- dir(INFDIR, "reg_raw.*")
     chroms <- unique(sub("reg_raw\\.(.*?)\\..*$", "\\1", chroms))
+    chroms <- unique(unlist(strsplit(chroms, "_")))
     if(length(args)>3){
         COUNT_CUTOFF = as.numeric(args[4])
         RATIO_CUTOFF = as.numeric(args[5])
@@ -108,6 +109,7 @@ for (i in chroms) {
                 outf_names = c(outf_names, paste(inf_name,j,'.MAPS2_',REG_TYPE,sep = ''))
                 mm = read.table(paste(inf_name,j,sep=''),header=T)
                 mm$chr = rep(i, nrow(mm))
+                mm$chr2 = rep(k, nrow(mm))
                 mm = subset( mm, dist > 1) # removing adjacent bins
                 mm = subset(mm, !(mm$chr %in% fltr$chr & (mm$bin1_mid %in% fltr$bin | mm$bin2_mid %in% fltr$bin ))) ## filtering out bad bins
                 if (j == '.and') {

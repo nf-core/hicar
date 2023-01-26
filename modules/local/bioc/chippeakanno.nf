@@ -102,7 +102,7 @@ process BIOC_CHIPPEAKANNO {
         rownames(DB) <- paste0("p", seq.int(nrow(DB)))
         DB.gr1 <- with(DB, GRanges(chr1, IRanges(start1, end1, name=rownames(DB))))
         DB.gr2 <- with(DB, GRanges(chr2, IRanges(start2, end2, name=rownames(DB))))
-        groupName <- sub(".(sig3Dinteractions.pe.txt|csv|bedpe|txt)", "", basename(det))
+        groupName <- gsub(".(sig3Dinteractions.pe.txt|csv|bedpe|txt)", "", basename(det))
         # Annotation
         if(length(R2)){
             ssrR2 <- seqlevelsStyle(R2)
@@ -168,7 +168,7 @@ process BIOC_CHIPPEAKANNO {
                         suffixes = c(".anchor1",".anchor2"),
                         all = TRUE)
         DB <- cbind(DB[DB.anno\$peak, ], DB.anno)
-        pff <- file.path(pf, sub(".(csv|bedpe|peaks|txt)", ".anno.csv", det))
+        pff <- file.path(pf, sub(".(csv|bedpe|peaks|txt)\$", ".anno.csv", det))
         dir.create(dirname(pff), recursive = TRUE, showWarnings = FALSE)
         write.csv(DB, pff, row.names = FALSE)
     }

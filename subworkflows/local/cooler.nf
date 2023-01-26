@@ -20,7 +20,7 @@ workflow COOLER {
     take:
     valid_pairs               // channel: [ val(meta), val(bin), [pairs], [pairs.px] ]
     chromsizes                // channel: [ path(chromsizes) ]
-    juicer_tools_jar          // channel: [ path(juicer_tool jar) ]
+    hic_tools_jar             // channel: [ path(HiCTools jar for Pre) ]
     long_bedpe_postfix
 
     main:
@@ -45,7 +45,7 @@ workflow COOLER {
     // dump long interaction bedpe for each group for MAPS to call peaks
     DUMPREADS_PER_GROUP(COOLER_DUMP_PER_GROUP.out.bedpe, long_bedpe_postfix)
     ch_hic = Channel.empty()
-    JUICER_PRE(DUMPREADS_PER_GROUP.out.gi, juicer_tools_jar, chromsizes)
+    JUICER_PRE(DUMPREADS_PER_GROUP.out.gi, hic_tools_jar, chromsizes)
     ch_hic = JUICER_PRE.out.hic
     ch_version = ch_version.mix(JUICER_PRE.out.versions)
 

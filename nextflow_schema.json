@@ -303,30 +303,6 @@
                     "default": "pospoisson",
                     "enum": ["pospoisson", "negbinom"]
                 },
-                "merge_map_py_source": {
-                    "type": "string",
-                    "description": "source code path for merge_map.py",
-                    "fa_icon": "fab fa-github",
-                    "hidden": true,
-                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/merge_map.py",
-                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/91c9c360092b25a217d91b9ea07eba5dd2ac72f4/bin/utils/genomic_features_generator/scripts/merge_map.py"
-                },
-                "feature_frag2bin_source": {
-                    "type": "string",
-                    "description": "feature_frag2bin source path",
-                    "fa_icon": "fab fa-github",
-                    "hidden": true,
-                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py",
-                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/91c9c360092b25a217d91b9ea07eba5dd2ac72f4/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py"
-                },
-                "make_maps_runfile_source": {
-                    "type": "string",
-                    "description": "make_maps_runfile source path",
-                    "fa_icon": "fab fa-github",
-                    "hidden": true,
-                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/MAPS/make_maps_runfile.py",
-                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/18c1a337f222130d7c5735d051614e2a253d5319/bin/MAPS/make_maps_runfile.py"
-                },
                 "remove_dup": {
                     "type": "boolean",
                     "description": "remove duplicates for high resolution peaks or not",
@@ -457,11 +433,11 @@
                     "description": "Transcription Factor Enrichment Analysis tool, available choices: 'atacseqtfea', and 'homer'",
                     "enum": ["atacseqtfea", "homer"]
                 },
-                "juicer_box_jar": {
+                "juicer_tools_jar": {
                     "type": "string",
-                    "default": "https://github.com/aidenlab/Juicebox/releases/download/v2.16.00/juicebox_2.16.00.jar",
-                    "description": "juicer_box jar file url",
-                    "help_text": "The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/juicer/wiki/Download)",
+                    "default": "https://github.com/aidenlab/JuicerTools/releases/download/v3.0.0/juicer_tools.3.0.0.jar",
+                    "description": "juicer_tools jar file url",
+                    "help_text": "The juicer_tools is ued for downstream analysis such as apa/arrowhead/hiccups. The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/JuicerTools/releases/)",
                     "fa_icon": "fab fa-java"
                 },
                 "peak_interactions_threshold": {
@@ -494,7 +470,7 @@
             }
         },
         "Visualization_options": {
-            "title": "Options related to tracks, juicer_tools, and circos",
+            "title": "Options related to tracks, HiCTools, and circos",
             "type": "object",
             "fa_icon": "fab fa-wpforms",
             "description": "Options for tracks viewed by igv, ucsc genome browser and virtual 4c plot tools",
@@ -506,13 +482,13 @@
                     "hidden": false,
                     "default": 25
                 },
-                "juicer_tools_jar": {
+                "hic_tools_jar": {
                     "type": "string",
-                    "description": "The juicer_tools path",
-                    "default": "https://s3.amazonaws.com/hicfiles.tc4ga.com/public/juicer/juicer_tools_1.22.01.jar",
+                    "description": "The HiCTools path",
+                    "default": "https://github.com/aidenlab/HiCTools/releases/download/v3.30.00/hic_tools.3.30.00.jar",
                     "fa_icon": "far fa-java",
                     "hidden": false,
-                    "help_text": "The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/juicer/wiki/Download)"
+                    "help_text": "This tool is used for pre/addNorm/eigenvector/pearsons/sum. Pre is the tool to create .hic file; eigenvector is used for compartment caller. The hic_tools can be downloaded from [HiCTools download page](https://github.com/aidenlab/HiCTools/releases)"
                 }
             }
         },

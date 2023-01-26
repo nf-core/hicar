@@ -11,7 +11,7 @@ process JUICER_PRE {
 
     input:
     tuple val(meta), path(gi)
-    path juicer_tools_jar
+    path hic_tools_jar
     path chromsize
 
     output:
@@ -67,7 +67,7 @@ process JUICER_PRE {
     skip_do_norm=\$(awk '{ a[\$2]++; a[\$6]++ } END { if(length(a)==1) print("-n") }' ${gi}.sorted)
 
     java -Xms512m -Xmx${avail_mem}g \\
-        -jar ${juicer_tools_jar} pre \\
+        -jar ${hic_tools_jar} pre \\
         -r \$res \\
         \${skip_do_norm} \\
         $args \\
@@ -76,7 +76,7 @@ process JUICER_PRE {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        java: \$(echo \$(java -jar ${juicer_tools_jar} --version 2>&1) | sed 's/^.*Version //; s/Usage.*\$//')
+        java: \$(echo \$(java -jar ${hic_tools_jar} --version 2>&1) | sed 's/^.*Version //; s/Usage.*\$//')
     END_VERSIONS
     """
 }
