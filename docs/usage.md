@@ -379,7 +379,10 @@ Take SLURM workload manager system as an example for the minimal test, this can 
 
 ```nextflow
 process.executor = 'slurm' // the workload manager name
-process.queueSize = 10 // the job queue size
+executor {// the job queue size
+    name = 'slurm'
+    queueSize = 10
+}
 process.clusterOptions = "-J nextFlowHiCAR -p scavenger" // the options, here -p request a specific partition for the resource allocation. It will be different in your cluster.
 ```
 
