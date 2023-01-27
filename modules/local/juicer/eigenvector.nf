@@ -55,7 +55,7 @@ process JUICER_EIGENVECTOR {
             \$chrom \\
             $data_slot \\
             $resolution \\
-            ${prefix}/${prefix}_\${chrom}.eigen.txt
+            ${prefix}/${prefix}_\${chrom}.eigen.txt || continue
     done < $chromsizes
 
     cat <<-END_VERSIONS > versions.yml
