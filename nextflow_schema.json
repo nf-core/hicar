@@ -440,6 +440,14 @@
                     "help_text": "The juicer_tools is ued for downstream analysis such as apa/arrowhead/hiccups. The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/JuicerTools/releases/)",
                     "fa_icon": "fab fa-java"
                 },
+                "juicer_norm_method": {
+                    "type": "string",
+                    "default": "KR",
+                    "description": "Normalization methods",
+                    "help_text": "See more details at [addNorm](https://github.com/aidenlab/juicer/wiki/AddNorm). Avaiable selection are limited by APA and Eigenvector normalization methods.",
+                    "fa_icon": "fab fa-java",
+                    "enum": ["VC", "VC_SQRT", "KR", "SCALE", "NONE"]
+                },
                 "peak_interactions_threshold": {
                     "type": "integer",
                     "default": 2,

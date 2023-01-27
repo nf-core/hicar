@@ -14,6 +14,7 @@ process JUICER_EIGENVECTOR {
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: compartments
+    tuple val(meta), path("${prefix}/${prefix}.eigen.wig"), emit: wig
     path "versions.yml"                          , emit: versions
 
     script:
@@ -56,7 +57,13 @@ process JUICER_EIGENVECTOR {
             $data_slot \\
             $resolution \\
             ${prefix}/${prefix}_\${chrom}.eigen.txt || continue
+        echo "fixedStep chrom=\${chrom} start=1 step=${resolution}" > \\
+            ${prefix}/${prefix}_\${chrom}.eigen.wig
+        n=\$(wc -l < ${prefix}/${prefix}_\${chrom}.eigen.txt)
+        head -n \$((\$n - 1)) ${prefix}/${prefix}_\${chrom}.eigen.txt >> \\
+            ${prefix}/${prefix}_\${chrom}.eigen.wig
     done < $chromsizes
+    cat ${prefix}/${prefix}_*.eigen.wig > ${prefix}/${prefix}.eigen.wig
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

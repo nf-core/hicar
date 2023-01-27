@@ -225,7 +225,8 @@ The TAD-separation score and the matrix will be visualized using [hicPlotTADs](h
   - `hicdcplus/`
     - `merged/*`: The merged loops for each resolution.
     - `*`: The tables of chromatin interactions with p-value and fdr.
-  - `MAPSpeak/`
+  - `maps/`
+    - `merged/*`: The merged loops for each resolution.
     - `*`: The tables of chromatin interactions with p-value and fdr.
   - `peakachu/`
     - `merged/*`: The merged loops for each resolution.
