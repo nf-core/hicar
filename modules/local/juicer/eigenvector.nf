@@ -14,11 +14,13 @@ process JUICER_EIGENVECTOR {
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: compartments
-    tuple val(meta), path("${prefix}/${prefix}.eigen.wig"), emit: wig
+    tuple val(new_meta), path("${prefix}/${prefix}.eigen.wig"), emit: wig
     path "versions.yml"                          , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "${meta.id}_${meta.bin}_${resolution}"
+    new_meta = meta.clone()
+    new_meta.id = prefix
     def args = task.ext.args ?: ''
     norm_method = (args.contains('NONE')) ? 'NONE' :
         (args.contains('VC_SQRT')) ? 'VC_SQRT' :
@@ -64,6 +66,7 @@ process JUICER_EIGENVECTOR {
             ${prefix}/${prefix}_\${chrom}.eigen.wig
     done < $chromsizes
     cat ${prefix}/${prefix}_*.eigen.wig > ${prefix}/${prefix}.eigen.wig
+    rm ${prefix}/${prefix}_*.eigen.wig
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

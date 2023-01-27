@@ -14,6 +14,7 @@ process HOMER_FINDHICCOMPARTMENTS {
 
     output:
     tuple val(meta), path("${prefix}.*")                   , emit: compartments
+    tuple val(meta), path("${prefix}.*.bedgraph")          , emit: bedgraph
     path  "versions.yml"                                   , emit: versions
 
     when:
@@ -27,6 +28,7 @@ process HOMER_FINDHICCOMPARTMENTS {
     findHiCCompartments.pl \\
         $pc \\
         $args > ${prefix}.compartments.txt
+    awk '{print \$2,\$3,\$4,\$6}' ${prefix}.compartments.txt > ${prefix}.compartments.bedgraph
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

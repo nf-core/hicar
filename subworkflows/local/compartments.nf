@@ -35,7 +35,7 @@ workflow COMPARTMENTS {
             HOMER_COMPARTMENTS(
                 matrix,
                 resolution,
-                additional_param  //genome
+                additional_param  //genome, chrom_size
             )
             ch_compartments = HOMER_COMPARTMENTS.out.compartments
             ch_versions = HOMER_COMPARTMENTS.out.versions

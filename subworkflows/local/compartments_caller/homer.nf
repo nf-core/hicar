@@ -4,6 +4,10 @@
 
 include { HOMER_RUNHICPCA } from '../../../modules/local/homer/run_hic_pca'
 include { HOMER_FINDHICCOMPARTMENTS } from '../../../modules/local/homer/find_hic_compartments'
+include {
+    UCSC_BEDGRAPHTOBIGWIG
+        as UCSC_BEDGRAPHTOBIGWIG_HOMER_COMPARTMENTS } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
+
 
 workflow HOMER_COMPARTMENTS {
     take:
@@ -15,17 +19,23 @@ workflow HOMER_COMPARTMENTS {
     HOMER_RUNHICPCA(
         tagdir,
         resolution,
-        genome
+        genome.map{it[0]}.collect()
     )
     ch_version = HOMER_RUNHICPCA.out.versions
 
     HOMER_FINDHICCOMPARTMENTS(
         HOMER_RUNHICPCA.out.txt,
-        genome
+        genome.map{it[0]}.collect()
     )
     ch_version = ch_version.mix(HOMER_FINDHICCOMPARTMENTS.out.versions)
 
+    UCSC_BEDGRAPHTOBIGWIG_HOMER_COMPARTMENTS(
+        HOMER_FINDHICCOMPARTMENTS.out.bedgraph,
+        genome.map{it[1]}.collect()
+    )
+    ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_HOMER_COMPARTMENTS.out.versions)
+
     emit:
-    compartments   = HOMER_FINDHICCOMPARTMENTS.out.compartments  // channel: [ val(meta), path(compartments)]
-    versions  = ch_version                                       // channel: [ path(version) ]
+    compartments = UCSC_BEDGRAPHTOBIGWIG_HOMER_COMPARTMENTS.out.bigwig  // channel: [ val(meta), path(compartments)]
+    versions     = ch_version                                           // channel: [ path(version) ]
 }

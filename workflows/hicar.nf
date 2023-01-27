@@ -421,7 +421,7 @@ workflow HICAR {
             }
             if(params.compartments_tool == 'homer'){
                 ch_comp_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
-                ch_comp_additional = homer_genome
+                ch_comp_additional = homer_genome.combine(PREPARE_GENOME.out.chrom_sizes)
             }
             if(params.apa_tool == 'homer'){
                 ch_apa_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
