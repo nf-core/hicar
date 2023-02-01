@@ -3,10 +3,28 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.0dev - [12/12/2022]
+## v1.1.0dev - [02/01/2023]
 
+- update to nf-core-template-2.7.2
 - add support for MseI.
-- add TAD, AB compartments, APA analysis
+- add TAD, AB compartments, APA analysis (see available tools in usage documentation)
+- add additional methods for interaction caller
+- adjust default resource requirement
+- update the CITAIONS
+- re-arrange the output folder to meet the requirements of multiple analysis tools
+- updated multipe documentations
+- remove the parameter for java resources requirements
+- update annotations from 5k,10k bins to nearest R2 peaks
+- removed local_modules tests
+- fix multiple bugs:
+  * the sorting method for huge bed file;
+  * the post count for hipeak when there is empty Interactions;
+  * add totalLinks parameter for prepare_circos;
+  * the issue if bplapply does not work in differential analysis for hipeak;
+  * fix the space issue for enzyme_cut.nf;
+  * fix the chromosome style for homer TFEA analysis and annotation by ChIPpeakAnno;
+  * fix the duplicated imported modules;
+  * fix multiple typos.
 
 ## v1.0.0 - [05/03/2022]
 
