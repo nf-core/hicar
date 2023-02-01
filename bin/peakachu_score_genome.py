@@ -14,7 +14,6 @@ import cooler
 
 
 def tocsr(X):
-
     row, col, data = X.row, X.col, X.data
     M = sparse.csr_matrix((data, (row, col)), shape=X.shape, dtype=float)
 
@@ -22,7 +21,6 @@ def tocsr(X):
 
 
 def calculate_expected(M, maxdis, raw=False):
-
     n = M.shape[0]
     R, C = M.nonzero()
     valid_pixels = np.isfinite(M.data)
@@ -65,7 +63,6 @@ def calculate_expected(M, maxdis, raw=False):
 
 @njit
 def distance_normaize_core(sub, exp_bychrom, x, y, w):
-
     # calculate x and y indices
     x_arr = np.arange(x - w, x + w + 1).reshape((2 * w + 1, 1))
     y_arr = np.arange(y - w, y + w + 1)
@@ -90,7 +87,6 @@ def distance_normaize_core(sub, exp_bychrom, x, y, w):
 
 @njit
 def image_normalize(arr_2d):
-
     arr_2d = (arr_2d - arr_2d.min()) / (arr_2d.max() - arr_2d.min())  # value range: [0,1]
 
     return arr_2d
@@ -98,7 +94,6 @@ def image_normalize(arr_2d):
 
 @njit
 def distance_normalize(arr_pool, exp_bychrom, xi, yi, w):
-
     clist = []
     fea = []
     for i in range(xi.size):
@@ -127,7 +122,6 @@ def distance_normalize(arr_pool, exp_bychrom, xi, yi, w):
 
 class Chromosome:
     def __init__(self, M, model, raw_M=None, weights=None, lower=6, upper=300, cname="chrm", res=10000, width=5):
-
         lower = max(lower, width + 1)
         upper = min(upper, M.shape[0] - 2 * width)
         # calculate expected values
@@ -156,7 +150,6 @@ class Chromosome:
         self.model = model
 
     def get_candidate(self, lower, upper):
-
         x_arr = np.array([], dtype=int)
         y_arr = np.array([], dtype=int)
         p_arr = np.array([], dtype=float)
@@ -186,7 +179,6 @@ class Chromosome:
         self.ridx, self.cidx = x_arr[mask], y_arr[mask]
 
     def getwindow(self, coords):
-
         w = self.w
         coords = np.r_[coords]
         xi, yi = coords[:, 0], coords[:, 1]
@@ -211,7 +203,6 @@ class Chromosome:
         return fea, clist
 
     def score(self, thre=0.5):
-
         print("scoring matrix {}".format(self.chromname))
         print("number of candidates {}".format(self.ridx.size))
         total_coords = [(r, c) for r, c in zip(self.ridx, self.cidx)]
@@ -249,7 +240,6 @@ class Chromosome:
         return result, self.M
 
     def writeBed(self, outfil, prob_csr, raw_csr):
-
         with open(outfil, "a") as out:
             r, c = prob_csr.nonzero()
             for i in range(r.size):
@@ -419,13 +409,11 @@ def main(args=None):
 
     queue = []
     for key in chromosomes:
-
         chromlabel = key.lstrip("chr")
         if (not args.chroms) or (chromlabel.isdigit() and "#" in args.chroms) or (chromlabel in args.chroms):
             queue.append(key)
 
     for key in queue:
-
         if key.startswith("chr"):
             cname = key
         else:

@@ -342,7 +342,6 @@ def distance_histogram(
 
 
 if __name__ == "__main__":
-
     import argparse
 
     parser = argparse.ArgumentParser(description="QC for Pairs")
