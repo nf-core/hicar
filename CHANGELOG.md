@@ -17,14 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update annotations from 5k,10k bins to nearest R2 peaks
 - removed local_modules tests
 - fix multiple bugs:
-  * the sorting method for huge bed file;
-  * the post count for hipeak when there is empty Interactions;
-  * add totalLinks parameter for prepare_circos;
-  * the issue if bplapply does not work in differential analysis for hipeak;
-  * fix the space issue for enzyme_cut.nf;
-  * fix the chromosome style for homer TFEA analysis and annotation by ChIPpeakAnno;
-  * fix the duplicated imported modules;
-  * fix multiple typos.
+  - the sorting method for huge bed file;
+  - the post count for hipeak when there is empty Interactions;
+  - add totalLinks parameter for prepare_circos;
+  - the issue if bplapply does not work in differential analysis for hipeak;
+  - fix the space issue for enzyme_cut.nf;
+  - fix the chromosome style for homer TFEA analysis and annotation by ChIPpeakAnno;
+  - fix the duplicated imported modules;
+  - fix multiple typos.
 
 ## v1.0.0 - [05/03/2022]
 
