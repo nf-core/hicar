@@ -61,8 +61,7 @@ process JUICER_EIGENVECTOR {
             ${prefix}/${prefix}_\${chrom}.eigen.txt || continue
         echo "fixedStep chrom=\${chrom} start=1 step=${resolution}" > \\
             ${prefix}/${prefix}_\${chrom}.eigen.wig
-        n=\$(wc -l < ${prefix}/${prefix}_\${chrom}.eigen.txt)
-        head -n \$((\$n - 1)) ${prefix}/${prefix}_\${chrom}.eigen.txt >> \\
+        cat ${prefix}/${prefix}_\${chrom}.eigen.txt >> \\
             ${prefix}/${prefix}_\${chrom}.eigen.wig
     done < $chromsizes
     cat ${prefix}/${prefix}_*.eigen.wig > ${prefix}/${prefix}.eigen.wig

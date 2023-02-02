@@ -3,8 +3,10 @@
  */
 
 include { JUICER_EIGENVECTOR      } from '../../../modules/local/juicer/eigenvector'
-include { UCSC_WIGTOBIGWIG
-    as COMPARTMENTS_WIGTOBIGWIG   } from '../../../modules/nf-core/ucsc/wigtobigwig/main'
+include { BEDGRAPH_TRIM
+    as WIG_TRIM } from '../../../modules/local/bioc/trimbedgraph'
+include { UCSC_BEDGRAPHTOBIGWIG
+    as UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR   } from '../../../modules/nf-core/ucsc/bedgraphtobigwig/main'
 
 
 workflow JUICER_COMPARTMENTS {
@@ -20,14 +22,20 @@ workflow JUICER_COMPARTMENTS {
     )
     ch_version = JUICER_EIGENVECTOR.out.versions
 
-    COMPARTMENTS_WIGTOBIGWIG(
+    WIG_TRIM(
         JUICER_EIGENVECTOR.out.wig,
         additional_param.map{it[1]}.collect()
     )
-    ch_version = ch_version.mix(COMPARTMENTS_WIGTOBIGWIG.out.versions)
+    ch_version = ch_version.mix(WIG_TRIM.out.versions)
+
+    UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR(
+        WIG_TRIM.out.bedgraph,
+        additional_param.map{it[1]}.collect()
+    )
+    ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR.out.versions)
 
     emit:
     eigenvectors   = JUICER_EIGENVECTOR.out.compartments         // channel: [ val(meta), path(bigwig)]
-    compartments   = COMPARTMENTS_WIGTOBIGWIG.out.bw             // channel: [ val(meta), path(bigwig)]
+    compartments   = UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR.out.bigwig             // channel: [ val(meta), path(bigwig)]
     versions  = ch_version                                       // channel: [ path(version) ]
 }
