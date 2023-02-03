@@ -28,7 +28,7 @@ process HOMER_FINDHICCOMPARTMENTS {
     findHiCCompartments.pl \\
         $pc \\
         $args > ${prefix}.compartments.txt
-    awk '{print \$2,\$3,\$4,\$6}' ${prefix}.compartments.txt > ${prefix}.compartments.bedgraph
+    awk -vOFS="\t" '{print \$2,\$3,\$4,\$6}' ${prefix}.compartments.txt > ${prefix}.compartments.bedgraph
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
