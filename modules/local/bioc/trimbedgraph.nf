@@ -51,14 +51,14 @@ process BEDGRAPH_TRIM {
                 w <- c(w, max(w, na.rm=TRUE))
                 width(d) <- w
             }
-            sl <- width(genome)
-            names(sl) <- as.character(seqnames(genome))
-            seqlengths(d) <- sl
-            d <- trim(d)
         }
         if(length(mcols(d)[, "score"])){
             d <- d[!is.na(mcols(d)[, "score"])]
         }
+        sl <- width(genome)
+        names(sl) <- as.character(seqnames(genome))
+        seqlengths(d) <- sl
+        d <- trim(d)
         n <- sub("\\\\..*?\$", ".trimmed.bedgraph", f)
         export(d, n, format='bedGraph')
     }
