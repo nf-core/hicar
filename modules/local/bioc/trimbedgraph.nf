@@ -57,7 +57,7 @@ process BEDGRAPH_TRIM {
         }
         sl <- width(genome)
         names(sl) <- as.character(seqnames(genome))
-        seqlengths(d) <- sl
+        seqlengths(d) <- sl[seqlevels(d)]
         d <- trim(d)
         n <- sub("\\\\..*?\$", ".trimmed.bedgraph", f)
         export(d, n, format='bedGraph')
