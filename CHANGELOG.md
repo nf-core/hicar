@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - remove the parameter for java resources requirements
 - update annotations from 5k,10k bins to nearest R2 peaks
 - removed local_modules tests
+- add scale factor to atac reads coverage calculation
 - fix multiple bugs:
   - the sorting method for huge bed file;
   - the post count for hipeak when there is empty Interactions;
