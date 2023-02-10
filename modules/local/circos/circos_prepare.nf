@@ -10,7 +10,10 @@ process CIRCOS_PREPARE {
         'quay.io/biocontainers/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' }"
 
     input:
-    tuple val(meta), path(bedpe), val(ucscname), path(gtf), path(chromsize)
+    tuple val(meta), path(bedpe)
+    val ucscname
+    path gtf
+    path chromsize
 
     output:
     tuple val(meta), path("${meta.id}/*")           , emit: circos

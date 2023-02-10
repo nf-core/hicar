@@ -20,7 +20,7 @@ process JUICER_EIGENVECTOR {
     script:
     prefix   = task.ext.prefix ?: "${meta.id}_${meta.bin}_${resolution}"
     new_meta = meta.clone()
-    new_meta.id = prefix
+    new_meta.id = prefix //new id is used for downstream wigtobigwig
     def args = task.ext.args ?: ''
     norm_method = (args.contains('NONE')) ? 'NONE' :
         (args.contains('VC_SQRT')) ? 'VC_SQRT' :

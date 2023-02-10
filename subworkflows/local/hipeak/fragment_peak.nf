@@ -12,6 +12,7 @@ include {
         as DUMP_R1_READS_PER_SAMPLE    } from '../../../modules/local/atacreads/dumpreads'
 include { MERGE_PEAK
     as MERGE_R1PEAK           } from '../../../modules/local/atacreads/mergepeak'
+include { COVERAGE_SCALE                    } from './coveragescale'
 include { BEDTOOLS_GENOMECOV
     as BEDTOOLS_GENOMECOV_PER_R1_SAMPLE } from '../../../modules/nf-core/bedtools/genomecov/main'
 include { BEDFILES_SORT
@@ -60,7 +61,7 @@ workflow R1_PEAK {
     UCSC_BEDCLIP(BEDFILES_SORT_PER_GROUP.out.sorted, chromsizes)
     UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP(UCSC_BEDCLIP.out.bedgraph, chromsizes)
 
-    // dump ATAC reads for each samples for differential analysis
+    // dump R1 reads for each samples for differential analysis
     DUMP_R1_READS_PER_SAMPLE(R1READS.out.bed, short_bed_postfix)
     ch_version = ch_version.mix(DUMP_R1_READS_PER_SAMPLE.out.versions)
     BEDTOOLS_GENOMECOV_PER_R1_SAMPLE(R1READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")

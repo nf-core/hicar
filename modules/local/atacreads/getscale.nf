@@ -1,6 +1,6 @@
-process DUMP_READS {
+process GET_SCALE {
     tag "${meta.id}"
-    label 'process_medium'
+    label 'process_low'
 
     conda "anaconda::gawk=5.1.0"
     container "${ workflow.containerEngine == 'singularity' &&
@@ -9,22 +9,19 @@ process DUMP_READS {
         'quay.io/biocontainers/gawk:5.1.0' }"
 
     input:
-    tuple val(meta), path(bed)
-    val short_bed_postfix
+    tuple val(meta), val(counts)
+    val min_counts
 
     output:
-    tuple val(meta), path("*.${short_bed_postfix}")   , emit: peak
-    tuple val(meta), stdout                           , emit: counts
+    tuple val(meta), val(scale)  , emit: scale
     path "versions.yml"                               , emit: versions
 
     script:
     def software = "awk"
+    scale = min_counts/counts.toInteger()
     def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
     """
-    gunzip -c $bed | \\
-        awk -F "\t" 'BEGIN { OFS=FS } {print \$1,\$2,\$3 \\
-        > "${prefix}."\$1".${short_bed_postfix}"}'
-    echo \$(wc -l < *.${short_bed_postfix})
+    awk 'BEGIN { print $min_counts/$counts }'
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

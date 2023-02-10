@@ -459,7 +459,7 @@ workflow HICAR {
         )
         ch_versions = ch_versions.mix(COMPARTMENTS.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect().ifEmpty([]))
-        //ch_circos_files = ch_circos_files.mix(COMPARTMENTS.out.circos)
+        ch_circos_files = ch_circos_files.mix(COMPARTMENTS.out.circos)
     }
 
     //

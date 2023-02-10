@@ -13,8 +13,8 @@ process JUICER_ADDNORM {
     path hic_tools_jar
 
     output:
-    tuple val(meta), path(hic, includeInputs: true) , emit: hic
-    path "versions.yml"                             , emit: versions
+    tuple val(meta), path("*.hic")    , emit: hic
+    path "versions.yml"               , emit: versions
 
     script:
     def args = task.ext.args ?: ''
@@ -27,14 +27,16 @@ process JUICER_ADDNORM {
     """
     ## add norm just in case there is no normalization data available
     ## the pipeline will using the `-n` parameter when create the .hic if there is only one chromosome
-
+    normhic="$hic"
+    normhic=\${normhic//.hic/.addNorm.hic}
+    cp $hic \$normhic
     java -Xms512m -Xmx${avail_mem}g \\
         -jar ${hic_tools_jar} \\
         addNorm \\
         --threads $task.cpus \\
         -w ${meta.bin} \\
         $args \\
-        $hic
+        \$normhic
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

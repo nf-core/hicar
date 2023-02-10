@@ -13,6 +13,7 @@ include {
         as DUMP_READS_PER_SAMPLE            } from '../../modules/local/atacreads/dumpreads'
 include { MERGE_PEAK                        } from '../../modules/local/atacreads/mergepeak'
 include { ATACQC                            } from '../../modules/local/atacreads/atacqc'
+include { COVERAGE_SCALE                    } from './coveragescale'
 include {
     BEDTOOLS_GENOMECOV
         as BEDTOOLS_GENOMECOV_PER_SAMPLE;
@@ -89,7 +90,11 @@ workflow ATAC_PEAK {
 
     // dump ATAC reads for each samples for differential analysis
     DUMP_READS_PER_SAMPLE(SHIFT_READS.out.bed, short_bed_postfix)
-    BEDTOOLS_GENOMECOV_PER_SAMPLE(SHIFT_READS.out.bed.map{[it[0], it[1], "1"]}, chromsizes, "bedgraph")
+    COVERAGE_SCALE(DUMP_READS_PER_SAMPLE.out.counts)
+    BEDTOOLS_GENOMECOV_PER_SAMPLE(
+        DUMP_READS_PER_SAMPLE.out.peak.join(COVERAGE_SCALE.out.scale),
+        chromsizes,
+        "bedgraph")
     BEDFILES_SORT_PER_SAMPLE(BEDTOOLS_GENOMECOV_PER_SAMPLE.out.genomecov, "bedgraph")
     ch_version = ch_version.mix(BEDTOOLS_GENOMECOV_PER_SAMPLE.out.versions)
     UCSC_BEDGRAPHTOBIGWIG_PER_SAMPLE(BEDFILES_SORT_PER_SAMPLE.out.sorted, chromsizes)

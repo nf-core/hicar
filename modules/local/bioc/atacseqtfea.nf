@@ -105,7 +105,7 @@ process BIOC_ATACSEQTFEA {
             "Description: Full genome sequences for TFEA",
             "Version: 0.0.1",
             paste("BSgenomeObjname:", genome),
-            "SrcDataFiles: chr22.fa",
+            "SrcDataFiles: $fasta",
             "seqs_srcdir: .",
             paste("genome:", genome),
             paste("organism:", genome),
@@ -115,9 +115,19 @@ process BIOC_ATACSEQTFEA {
             paste("release_date:", Sys.Date()),
             paste0("seqnames: c('", paste(seqlevels(gtf), collapse = "','"), "')")
         ), tmp)
+        # try to touch the inst/extdata folder in the template
+        tryCatch({
+            bsgenome_path <- system.file(package="BSgenome")
+            dir.create(file.path(bsgenome_path, 'pkgtemplates', 'BSgenome_datapkg', 'inst', 'extdata'), recursive=TRUE)
+        }, error = function(.e){
+            message(.e)
+        })
         forgeBSgenomeDataPkg(tmp)
-        install.packages(pkgName, repos = NULL, type="source", lib=".")
-        library(pkgName, character.only = TRUE, lib.loc=".")
+        pkgName <- paste0("BSgenome.", genome)
+        libpath <- 'localLib'
+        dir.create(libpath)
+        install.packages(pkgName, repos = NULL, type="source", lib=libpath)
+        library(pkgName, character.only = TRUE, lib.loc=libpath)
         get(pkgName)
     })
     bindingSites <-

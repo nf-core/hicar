@@ -32,10 +32,18 @@ workflow JUICER_COMPARTMENTS {
         WIG_TRIM.out.bedgraph,
         additional_param.map{it[1]}.collect()
     )
+    ch_compartments = UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR.out.bigwig
+        .map{
+            meta,bw ->
+                smeta = meta.clone()
+                smeta.id = smeta.id.replaceAll("_${meta.bin}_${resolution}", "")
+                [smeta, bw]
+
+        }
     ch_version = ch_version.mix(UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR.out.versions)
 
     emit:
-    eigenvectors   = JUICER_EIGENVECTOR.out.compartments         // channel: [ val(meta), path(bigwig)]
-    compartments   = UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR.out.bigwig             // channel: [ val(meta), path(bigwig)]
+    eigenvectors   = JUICER_EIGENVECTOR.out.compartments         // channel: [ val(meta), path(files)]
+    compartments   = ch_compartments                             // channel: [ val(meta), path(bigwig)]
     versions  = ch_version                                       // channel: [ path(version) ]
 }
