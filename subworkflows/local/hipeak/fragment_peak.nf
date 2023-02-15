@@ -12,7 +12,6 @@ include {
         as DUMP_R1_READS_PER_SAMPLE    } from '../../../modules/local/atacreads/dumpreads'
 include { MERGE_PEAK
     as MERGE_R1PEAK           } from '../../../modules/local/atacreads/mergepeak'
-include { COVERAGE_SCALE                    } from './coveragescale'
 include { BEDTOOLS_GENOMECOV
     as BEDTOOLS_GENOMECOV_PER_R1_SAMPLE } from '../../../modules/nf-core/bedtools/genomecov/main'
 include { BEDFILES_SORT

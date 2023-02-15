@@ -1,6 +1,7 @@
 process MAPS_CALLPEAK {
     tag "$meta.id"
     label 'process_high'
+    label 'process_long'
 
     conda "bioconda::bioconductor-monocle=2.20.0"
     container "${ workflow.containerEngine == 'singularity' &&
