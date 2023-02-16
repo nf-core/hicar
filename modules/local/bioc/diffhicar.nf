@@ -65,6 +65,16 @@ process DIFFHICAR {
     sizeFactor <- vapply(cnts, FUN=function(.ele) sum(.ele[, 7], na.rm = TRUE),
                         FUN.VALUE = numeric(1))
 
+    ## check coordinates style
+    ### bedpe, [start, end)
+    checkStyle <- function(x, y){
+      if(sum((x[, 2]+1) %in% y[, 2]) > sum(x[, 2] %in% y[, 2])) return(1)
+      if(sum((y[, 2]+1) %in% x[, 2]) > sum(y[, 2] %in% x[, 2])) return(-1)
+      return(0)
+    }
+    offset <- checkStyle(peaks, do.call(rbind, cnts))
+    peaks\$start1 <- peaks\$start1 + offset
+    peaks\$start2 <- peaks\$start2 + offset
     getID <- function(mat) gsub("\\\\s+", "", apply(mat[, seq.int(6)], 1, paste, collapse="_"))
     getID1 <- function(mat) gsub("\\\\s+", "", apply(mat[, seq.int(3)], 1, paste, collapse="_"))
     getID2 <- function(mat) gsub("\\\\s+", "", apply(mat[, 4:6], 1, paste, collapse="_"))
