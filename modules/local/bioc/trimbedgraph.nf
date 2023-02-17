@@ -47,7 +47,6 @@ process BEDGRAPH_TRIM {
     names(sl) <- as.character(seqnames(genome))
     for(f in fn){
         d <- import(f, format=format, which=genome)
-        seqlevels(d) <- sort(seqlevels(d))
         if(tolower(format)=="wig"){
             w <- diff(end(d))
             if(length(w)){
@@ -60,6 +59,7 @@ process BEDGRAPH_TRIM {
         }
         seqlengths(d) <- sl[seqlevels(d)]
         d <- trim(d)
+        d <- sortSeqlevels(d)
         d <- sort(d)
         n <- sub("\\\\..*?\$", ".trimmed.bedgraph", f)
         export(d, n, format='bedGraph')

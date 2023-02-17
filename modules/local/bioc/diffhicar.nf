@@ -68,9 +68,9 @@ process DIFFHICAR {
     ## check coordinates style
     ### bedpe, [start, end)
     checkStyle <- function(x, y){
-      if(sum((x[, 2]+1) %in% y[, 2]) > sum(x[, 2] %in% y[, 2])) return(1)
-      if(sum((y[, 2]+1) %in% x[, 2]) > sum(y[, 2] %in% x[, 2])) return(-1)
-      return(0)
+        if(sum((x[, 2]+1) %in% y[, 2]) > sum(x[, 2] %in% y[, 2])) return(1)
+        if(sum((y[, 2]+1) %in% x[, 2]) > sum(y[, 2] %in% x[, 2])) return(-1)
+        return(0)
     }
     offset <- checkStyle(peaks, do.call(rbind, cnts))
     peaks\$start1 <- peaks\$start1 + offset
