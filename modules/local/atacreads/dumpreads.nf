@@ -24,7 +24,7 @@ process DUMP_READS {
     gunzip -c $bed | \\
         awk -F "\t" 'BEGIN { OFS=FS } {print \$1,\$2,\$3 \\
         > "${prefix}."\$1".${short_bed_postfix}"}'
-    echo \$(wc -l < *.${short_bed_postfix})
+    echo \$(cat *.${short_bed_postfix} | wc -l)
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
