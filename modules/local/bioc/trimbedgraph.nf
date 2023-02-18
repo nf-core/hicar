@@ -59,7 +59,7 @@ process BEDGRAPH_TRIM {
         }
         seqlengths(d) <- sl[seqlevels(d)]
         d <- trim(d)
-        d <- sortSeqlevels(d)
+        seqlevels(d) <- sort(seqlevels(d), method='radix')
         d <- sort(d)
         n <- sub("\\\\..*?\$", ".trimmed.bedgraph", f)
         export(d, n, format='bedGraph')
