@@ -28,7 +28,7 @@ process SHIFT_READS {
         sort -k1,1 -k2,2n | \\
         uniq | \\
         gzip -nc > ${prefix}.R2.ATAC.bed.gz
-    echo \$(cat *.${short_bed_postfix} | wc -l)
+    echo \$(cat $pair | wc -l)
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
