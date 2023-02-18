@@ -14,7 +14,8 @@ process SHIFT_READS {
 
     output:
     tuple val(meta), path("*.bed.gz"), emit: bed
-    path "versions.yml"           , emit: versions
+    tuple val(meta), stdout          , emit: counts
+    path "versions.yml"              , emit: versions
 
     script:
     def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
@@ -27,6 +28,7 @@ process SHIFT_READS {
         sort -k1,1 -k2,2n | \\
         uniq | \\
         gzip -nc > ${prefix}.R2.ATAC.bed.gz
+    echo \$(cat *.${short_bed_postfix} | wc -l)
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

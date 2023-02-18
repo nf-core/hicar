@@ -90,9 +90,9 @@ workflow ATAC_PEAK {
 
     // dump ATAC reads for each samples for differential analysis
     DUMP_READS_PER_SAMPLE(SHIFT_READS.out.bed, short_bed_postfix)
-    COVERAGE_SCALE(DUMP_READS_PER_SAMPLE.out.counts)
+    COVERAGE_SCALE(SHIFT_READS.out.counts)
     BEDTOOLS_GENOMECOV_PER_SAMPLE(
-        DUMP_READS_PER_SAMPLE.out.peak.join(COVERAGE_SCALE.out.scale),
+        SHIFT_READS.out.bed.join(COVERAGE_SCALE.out.scale),
         chromsizes,
         "bedgraph")
     BEDFILES_SORT_PER_SAMPLE(BEDTOOLS_GENOMECOV_PER_SAMPLE.out.genomecov, "bedgraph")
