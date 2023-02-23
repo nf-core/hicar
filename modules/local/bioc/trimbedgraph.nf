@@ -48,11 +48,16 @@ process BEDGRAPH_TRIM {
     for(f in fn){
         d <- import(f, format=format, which=genome)
         if(tolower(format)=="wig"){
-            w <- diff(end(d))
-            if(length(w)){
-                w <- c(w, max(w, na.rm=TRUE))
-                width(d) <- w
-            }
+            d <- split(d, seqnames(d))
+            d <- lapply(d, function(.d){
+                w <- diff(end(.d))
+                if(length(w)){
+                    w <- c(w, max(w, na.rm=TRUE))
+                    width(.d) <- w
+                }
+                .d
+            })
+            d <- unlist(GRangesList(d))
         }
         if(length(mcols(d)[, "score"])){
             d <- d[!is.na(mcols(d)[, "score"])]
