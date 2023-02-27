@@ -39,10 +39,6 @@ process CIRCOS_PREPARE {
     writeLines(versions, "versions.yml")
 
     ## Options
-    ## make_option(c("-i", "--interactions"), type="character", default=NULL, help="interaction bedpe file", metavar="string")
-    ## make_option(c("-g", "--gtf"), type="character", default=NULL, help="annotation gtf file", metavar="string")
-    ## make_option(c("-c", "--chromsize"), type="character", default=NULL, help="filename of chromosome size", metavar="string")
-    ## make_option(c("-u", "--ucscname"), type="character", default=NULL, help="ucsc annotation name", metavar="string")
     chromsize <- "$chromsize"
     gtf <- "$gtf"
     ucscname <- "$ucscname"
@@ -84,8 +80,17 @@ process CIRCOS_PREPARE {
         gtile\$score <- unlist(vm, use.names = FALSE)
         gtile
     }
+    filterSeqnames <- function(x){
+      	seqlevelsStyle(x) <- "UCSC"
+      	x <- x[seqnames(x) %in% standardChromosomes(x)]
+      	x <- keepStandardChromosomes(x)
+      	x
+    }
     dir.create(outfolder, showWarnings = FALSE)
-    interaction <- dir(".", pattern = ".bedpe", ignore.case = TRUE)
+    (interaction <- dir(".", pattern = ".bedpe", ignore.case = TRUE))
+    (compartment <- dir(".", pattern = ".bigWig|bw\$", ignore.case = TRUE))
+    (tad <- dir(".", pattern = ".bed\$", ignore.case = TRUE))
+    writeLines(character(0L), file.path(outfolder, "link.txt"))
     try({
         headerline <- readLines(interaction[1], n=1)
         if(grepl("start1", headerline[1])){
@@ -98,19 +103,14 @@ process CIRCOS_PREPARE {
             pe <- import(interaction, format="BEDPE")
         }
         seqlevelsStyle(first(pe)) <- seqlevelsStyle(second(pe)) <- "UCSC"
+        keep <- seqnames(first(pe)) %in% standardChromosomes(first(pe)) &
+      		  seqnames(second(pe)) %in% standardChromosomes(second(pe))
+      	pe <- pe[keep]
         pes <- unique(pe[order(mcols(pe)\$score, decreasing=TRUE)])
-        pes_cis <- pes[seqnames(first(pe))==seqnames(second(pe))]
-        pes_trans <- pes[seqnames(first(pe))!=seqnames(second(pe))]
-        if(length(pes_cis)>0){ # keep top events for plot, default 24K
-            pes <- pes_cis[seq.int(min(totalLinks, length(pes_cis)))]
-        }else{
-            stop("No data available for plot")
-        }
-        if(length(pes_trans)>0){
-            ## keep top 24K links only. otherwise hard to plot.
-            pes <- sort(c(pes[seq.int(min(floor(totalLinks/2), length(pes_trans)))],
-                        pes_trans[seq.int(min(floor(totalLinks/2), length(pes_trans)))]))
-        }
+        if(length(pes)>totalLinks){
+        		## keep top 24K links only. otherwise hard to plot.
+        		pes <- pes[seq.int(min(totalLinks, length(pes)))]
+      	}
         out <- as.data.frame(pes)
         scores <- sqrt(range(mcols(pe)\$score)/10)
         scores <- c(floor(scores[1]), ceiling(scores[2]))
@@ -124,26 +124,49 @@ process CIRCOS_PREPARE {
             quote=FALSE, col.names=FALSE, row.names=FALSE,
             sep=" ") ## output cis- and trans- interactions
     })
-    bedfile <- dir(".", pattern = ".(bed|txt)\$", ignore.case = TRUE)
-    labelAname <- "TBD"
+
+    ##tads
+    labelAname <- "TAD"
+    writeLines(character(0L), file.path(outfolder, "tad.txt"))
     try({
-        labelAname <- sub(".(bed|txt)\$", "", basename(bedfile)[1], ignore.case = TRUE)
-        rg <- import(bedfile[1], format='bed')
-        seqlevelsStyle(rg) <- "UCSC"
-        rg <- as.data.frame(rg)
-        if(all(rg\$score<0)){
-            rg\$score <- -1*rg\$score
-        }
-        rg <- rg[, c("seqnames", "start", "end", "score"), drop=FALSE]
-        write.table(rg, file.path(outfolder, "hist.link.txt"),
-                    quote=FALSE, col.names=FALSE, row.names=FALSE,
-                    sep=" ")
+      	rg <- import(tad[1], format='bed')
+      	rg <- filterSeqnames(rg)
+      	rg <- as.data.frame(rg)
+      	if(all(rg\$score<0)){
+      		  rg\$score <- -1*rg\$score
+      	}
+      	rg <- rg[, c("seqnames", "start", "end", "score"), drop=FALSE]
+      	write.table(rg, file.path(outfolder, "tad.txt"),
+            				quote=FALSE, col.names=FALSE, row.names=FALSE,
+            				sep=" ")
+    })
+    ## Compartment
+    labelBname <- "compartments"
+    writeLines(character(0L), file.path(outfolder, "compartment.txt"))
+    try({
+      	cp <- import(compartment[1], format="bigWig")
+      	cp <- filterSeqnames(cp)
+      	cp\$score[is.na(cp\$score)] <- 0
+      	if(all(cp\$score==0)){
+      		  cp\$score <- rep(c(-1, 1), length(cp))[seq_along(cp)]
+      	}
+        cp\$score <- ifelse(cp\$score==0, 0, ifelse(cp\$score<0, -1, 1))
+      	cvg <- coverage(cp, weight=cp\$score)
+      	cp <- as(cvg, "GRanges")
+      	cp <- cp[cp\$score!=0]
+      	cp <- as.data.frame(cp)
+      	cp <- cp[, c("seqnames", "start", "end", "score"), drop=FALSE]
+      	write.table(cp, file.path(outfolder, "compartment.txt"),
+            				quote=FALSE, col.names = FALSE, row.names = FALSE,
+            				sep=" ")
     })
 
+    gtf <- import(gtf)
     ## create karyotype file
     chromsize <- read.delim(chromsize, header=FALSE)
     chromsize[, 1] <- as.character(chromsize[, 1])
     seqlevelsStyle(chromsize[, 1]) <- "UCSC"
+    chromsize <- chromsize[chromsize[, 1] %in% standardChromosomes(gtf), , drop=FALSE]
     chromsize <- cbind("chr", "-", chromsize[, c(1, 1)], 0, chromsize[, 2],
                         paste0("chr", sub("^chr", "", chromsize[, 1])))
     colnames(chromsize) <- c("chr", "-", "chrname", "chrlabel",
@@ -159,21 +182,11 @@ process CIRCOS_PREPARE {
     names(seql) <- chromsize\$chrname
     labelA <- labelB <- c(seqn, 0, 5000)
     labelA <- c(labelA, labelAname)
-    labelB <- c(labelB, "exon-density")
+    labelB <- c(labelB, labelBname)
     writeLines(labelA, file.path(outfolder, "labelA.txt"), sep=" ")
     writeLines(labelB, file.path(outfolder, "labelB.txt"), sep=" ")
 
-    ## create exon desity file
-    gtf <- import(gtf)
-    gtf <- gtf[gtf\$type %in% "exon"]
-    seqlevelsStyle(gtf) <- "UCSC"
-    rg <- coverage(gtf)
-    gtile <- getScore(seql, rg)
-    rg <- as.data.frame(gtile)
-    rg <- rg[rg\$score>0, c("seqnames", "start", "end", "score"), drop=FALSE]
-    write.table(rg, file.path(outfolder, "hist.exon.txt"),
-                quote=FALSE, col.names=FALSE, row.names=FALSE,
-                sep=" ")
+    ## create exon karyotype file again
     try_res <- try({
         session <- browserSession()
         genome(session) <- ucscname
