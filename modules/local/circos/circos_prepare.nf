@@ -81,10 +81,10 @@ process CIRCOS_PREPARE {
         gtile
     }
     filterSeqnames <- function(x){
-      	seqlevelsStyle(x) <- "UCSC"
-      	x <- x[seqnames(x) %in% standardChromosomes(x)]
-      	x <- keepStandardChromosomes(x)
-      	x
+        seqlevelsStyle(x) <- "UCSC"
+        x <- x[seqnames(x) %in% standardChromosomes(x)]
+        x <- keepStandardChromosomes(x)
+        x
     }
     dir.create(outfolder, showWarnings = FALSE)
     (interaction <- dir(".", pattern = ".bedpe", ignore.case = TRUE))
@@ -104,13 +104,13 @@ process CIRCOS_PREPARE {
         }
         seqlevelsStyle(first(pe)) <- seqlevelsStyle(second(pe)) <- "UCSC"
         keep <- seqnames(first(pe)) %in% standardChromosomes(first(pe)) &
-      		  seqnames(second(pe)) %in% standardChromosomes(second(pe))
-      	pe <- pe[keep]
+            seqnames(second(pe)) %in% standardChromosomes(second(pe))
+        pe <- pe[keep]
         pes <- unique(pe[order(mcols(pe)\$score, decreasing=TRUE)])
         if(length(pes)>totalLinks){
-        		## keep top 24K links only. otherwise hard to plot.
-        		pes <- pes[seq.int(min(totalLinks, length(pes)))]
-      	}
+            ## keep top 24K links only. otherwise hard to plot.
+            pes <- pes[seq.int(min(totalLinks, length(pes)))]
+        }
         out <- as.data.frame(pes)
         scores <- sqrt(range(mcols(pe)\$score)/10)
         scores <- c(floor(scores[1]), ceiling(scores[2]))
@@ -129,36 +129,36 @@ process CIRCOS_PREPARE {
     labelAname <- "TAD"
     writeLines(character(0L), file.path(outfolder, "tad.txt"))
     try({
-      	rg <- import(tad[1], format='bed')
-      	rg <- filterSeqnames(rg)
-      	rg <- as.data.frame(rg)
-      	if(all(rg\$score<0)){
-      		  rg\$score <- -1*rg\$score
-      	}
-      	rg <- rg[, c("seqnames", "start", "end", "score"), drop=FALSE]
-      	write.table(rg, file.path(outfolder, "tad.txt"),
-            				quote=FALSE, col.names=FALSE, row.names=FALSE,
-            				sep=" ")
+        rg <- import(tad[1], format='bed')
+        rg <- filterSeqnames(rg)
+        rg <- as.data.frame(rg)
+        if(all(rg\$score<0)){
+            rg\$score <- -1*rg\$score
+        }
+        rg <- rg[, c("seqnames", "start", "end", "score"), drop=FALSE]
+        write.table(rg, file.path(outfolder, "tad.txt"),
+                    quote=FALSE, col.names=FALSE, row.names=FALSE,
+                    sep=" ")
     })
     ## Compartment
     labelBname <- "compartments"
     writeLines(character(0L), file.path(outfolder, "compartment.txt"))
     try({
-      	cp <- import(compartment[1], format="bigWig")
-      	cp <- filterSeqnames(cp)
-      	cp\$score[is.na(cp\$score)] <- 0
-      	if(all(cp\$score==0)){
-      		  cp\$score <- rep(c(-1, 1), length(cp))[seq_along(cp)]
-      	}
+        cp <- import(compartment[1], format="bigWig")
+        cp <- filterSeqnames(cp)
+        cp\$score[is.na(cp\$score)] <- 0
+        if(all(cp\$score==0)){
+            cp\$score <- rep(c(-1, 1), length(cp))[seq_along(cp)]
+        }
         cp\$score <- ifelse(cp\$score==0, 0, ifelse(cp\$score<0, -1, 1))
-      	cvg <- coverage(cp, weight=cp\$score)
-      	cp <- as(cvg, "GRanges")
-      	cp <- cp[cp\$score!=0]
-      	cp <- as.data.frame(cp)
-      	cp <- cp[, c("seqnames", "start", "end", "score"), drop=FALSE]
-      	write.table(cp, file.path(outfolder, "compartment.txt"),
-            				quote=FALSE, col.names = FALSE, row.names = FALSE,
-            				sep=" ")
+        cvg <- coverage(cp, weight=cp\$score)
+        cp <- as(cvg, "GRanges")
+        cp <- cp[cp\$score!=0]
+        cp <- as.data.frame(cp)
+        cp <- cp[, c("seqnames", "start", "end", "score"), drop=FALSE]
+        write.table(cp, file.path(outfolder, "compartment.txt"),
+                    quote=FALSE, col.names = FALSE, row.names = FALSE,
+                    sep=" ")
     })
 
     gtf <- import(gtf)
