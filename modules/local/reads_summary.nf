@@ -24,6 +24,15 @@ process READS_SUMMARY {
     fs <- dir(".", "*.reads_stats.csv")
     if(length(fs)>0){
         df <- do.call(rbind, lapply(fs, read.csv))
+        if(all(c("total", "duplicate", "non_duplicated", "trans", "cis", "longRange") %in% colnames(df))){
+            df[, "shortRange"] <- df[, "cis"] - df[, "longRange"]
+            df[, "unmapped_multimapped"] <- df[, "total"] - df[, "duplicate"] - df[, "non_duplicated"]
+            df[, "unmapped_multimapped_rate"] <- 100*df[, "unmapped_multimapped"]/df[, "total"]
+            df[, "trans_rate"] <- 100*df[, "trans"]/df[, "total"]
+            df[, "longRange_rate"] <- 100*df[, "longRange"]/df[, "total"]
+            df[, "shortRange_rate"] <- 100*df[, "shortRange"]/df[, "total"]
+            write.csv(df[, grepl("_rate|sample", colnames(df))], "reads_summary_rate.csv", row.names=FALSE)
+        }
         con <- file("reads_summary.csv", open="wt")
         write.csv(df, con, row.names=FALSE)
         close(con)
