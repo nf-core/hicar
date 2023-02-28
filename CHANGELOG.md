@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v1.1.0dev - [02/01/2023]
+## v1.1.0dev - [03/01/2023]
 
 - update to nf-core-template-2.7.2
 - add support for MseI.
@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update annotations from 5k,10k bins to nearest R2 peaks
 - removed local_modules tests
 - add scale factor to atac reads coverage calculation
+- change the circos plot style
 - fix multiple bugs:
   - the sorting method for huge bed file;
   - the post count for hipeak when there is empty Interactions;

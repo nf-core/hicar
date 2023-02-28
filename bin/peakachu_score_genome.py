@@ -450,7 +450,7 @@ def main(args=None):
 
         result, R = X.score(thre=args.minimum_prob)
         X.writeBed(args.output, result, R)
-        return 0
+    return 0
 
 
 if __name__ == "__main__":
