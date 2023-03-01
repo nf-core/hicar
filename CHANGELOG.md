@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add scale factor to atac reads coverage calculation
 - change the circos plot style
 - update reads_summary table to include unmapped/multiple mapped info
+- add the possibility to subsample to balance the input reads
+- add parameter to let user input the 5 end sequence to cutadapt step
 - fix multiple bugs:
   - the sorting method for huge bed file;
   - the post count for hipeak when there is empty Interactions;

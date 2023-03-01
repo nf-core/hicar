@@ -12,7 +12,7 @@ process HICEXPLORER_HICPLOTMATRIX {
     tuple val(meta), path(cool), path(additional_files)
 
     output:
-    tuple val(meta), path("*.bw")               , emit:corrected
+    tuple val(meta), path("*.{png,jpg,jpeg}")   , emit:plots
     path("versions.yml")                        , emit:versions
 
     script:

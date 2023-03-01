@@ -734,7 +734,19 @@
             "properties": {
                 "skip_cutadapt": {
                     "type": "boolean",
-                    "description": "skip trim 5'end TAC",
+                    "description": "skip trim 5'end",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false
+                },
+                "cutadapt_5end": {
+                    "type": "string",
+                    "description": "trim 5' end with the string if not skip_cutadapt",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false
+                },
+                "resample_pairs": {
+                    "type": "boolean",
+                    "description": "resample the pairs by pairtools",
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false
                 },

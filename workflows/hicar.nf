@@ -271,7 +271,8 @@ workflow HICAR {
     PAIRTOOLS_PAIRE(
         SAMTOOLS_MERGE.out.bam,
         PREPARE_GENOME.out.chrom_sizes,
-        PREPARE_GENOME.out.digest_genome
+        PREPARE_GENOME.out.digest_genome,
+        params.resample_pairs
     )
     ch_versions = ch_versions.mix(PAIRTOOLS_PAIRE.out.versions.ifEmpty(null))
     ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))

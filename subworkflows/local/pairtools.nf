@@ -6,6 +6,9 @@ include { PAIRTOOLS_DEDUP        } from '../../modules/nf-core/pairtools/dedup/m
 include { PAIRTOOLS_FLIP         } from '../../modules/nf-core/pairtools/flip/main'
 include { PAIRTOOLS_PARSE        } from '../../modules/nf-core/pairtools/parse/main'
 include { PAIRTOOLS_RESTRICT     } from '../../modules/nf-core/pairtools/restrict/main'
+include { PAIRTOOLS_STATS        } from '../../modules/local/pairtools/stats'
+include { COVERAGE_SCALE         } from './coveragescale'
+include { PAIRTOOLS_SAMPLE       } from '../../modules/local/pairtools/sample'
 include {
     PAIRTOOLS_SELECT
         as PAIRTOOLS_SELECT_VP;
@@ -25,12 +28,30 @@ workflow PAIRTOOLS_PAIRE {
     ch_bam      // channel: [ val(meta), [bam] ]
     chromsizes  // channel: [ path(chromsizes) ]
     frag        // channel: [ path(fragment) ]
+    sub_sample  // value
 
     main:
     //raw pairs, output raw.pairsam
     PAIRTOOLS_PARSE(ch_bam, chromsizes)
+    if(sub_sample){
+        counts = PAIRTOOLS_PARSE.out.stat.map{
+            count = it[1].readLines()
+                .findAll{it.contains('cis_20kb+')}
+                .first().replaceAll(/cis_20kb.\s+/, '')
+            [it[0], count]
+        }
+        COVERAGE_SCALE(counts)
+        rawsam = PAIRTOOLS_SAMPLE(
+            PAIRTOOLS_PARSE.out.pairsam
+            .join(COVERAGE_SCALE.out.scale)
+        ).pairsam
+        rawstat = PAIRTOOLS_STATS(rawsam).stat
+    }else{
+        rawsam  = PAIRTOOLS_PARSE.out.pairsam
+        rawstat = PAIRTOOLS_PARSE.out.stat
+    }
     // select valid pairs
-    PAIRTOOLS_SELECT_VP(PAIRTOOLS_PARSE.out.pairsam)
+    PAIRTOOLS_SELECT_VP(rawsam)
     // remove same fragment pairs, output samefrag.pairs, valid.pairs <- like HiC pairs
     PAIRTOOLS_RESTRICT(PAIRTOOLS_SELECT_VP.out.selected, frag)
     PAIRTOOLS_SELECT_LONG(PAIRTOOLS_RESTRICT.out.restrict)
@@ -46,11 +67,10 @@ workflow PAIRTOOLS_PAIRE {
     // make index for valid.pairs
     PAIRIX(PAIRTOOLS_DEDUP.out.pairs)
     //reads information
-    PAIRTOOLS_PARSE.out.stat
-                        .map{meta, stat -> [meta.id, meta, stat]}
-                        .join(PAIRTOOLS_DEDUP.out.stat.map{meta, stat -> [meta.id, stat]})
-                        .map{id, meta, raw, dedup -> [meta, raw, dedup ]}
-                        .set{ reads_stat }
+    rawstat.map{meta, stat -> [meta.id, meta, stat]}
+        .join(PAIRTOOLS_DEDUP.out.stat.map{meta, stat -> [meta.id, stat]})
+        .map{id, meta, raw, dedup -> [meta, raw, dedup ]}
+        .set{ reads_stat }
     READS_STAT(reads_stat)
     PAIRSQC(PAIRIX.out.index, chromsizes)
     PAIRSPLOT(PAIRSQC.out.qc)
