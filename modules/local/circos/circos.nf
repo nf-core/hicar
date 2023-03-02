@@ -18,9 +18,10 @@ process CIRCOS {
     path "versions.yml"           , emit: versions
 
     script:
+    def prefix   = task.ext.prefix ?: "${meta.id}_${meta.bin}"
     """
     circos
-    mv circos.png ${meta.id}_${meta.bin}.png
+    mv circos.png ${prefix}.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

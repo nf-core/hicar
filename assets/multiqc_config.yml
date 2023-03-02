@@ -68,16 +68,12 @@ custom_data:
   pairs_reads_plot:
     parent_id: "pairs_qc"
     section_name: "PAIRS reads stats barplot"
-    description: "Barplot for the reads stats."
+    description: "Barplot for the reads stats. If the longRange rate is unbalanced for each group, it may affect the directly comparison the number of interactions/loops."
     file_format: "csv"
     plot_type: "bargraph"
     pconfig:
       id: "pairs_reads_stats_bar"
       title: "Pairs reads stats bar plot"
-      ylab: "Percentage"
-      ymax: 100
-      ymin: 0
-      suffix: "%"
   pairs_reads_detailed_summary:
     parent_id: "pairs_qc"
     section_name: "PAIRS reads detailed summary"

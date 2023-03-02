@@ -129,12 +129,17 @@ process CIRCOS_PREPARE {
     labelAname <- "TAD"
     writeLines(character(0L), file.path(outfolder, "tad.txt"))
     try({
-        rg <- import(tad[1], format='bed')
+        tryCatch({
+            rg <- import(tad[1], format="BED")
+        }, error=function(.e){
+            rg <- read.table(tad[1])
+            rg <- rg[, c(seq.int(3), 8)]
+            colnames(rg) <- c("seqnames", "start", "end", "score")
+            rg <- GRanges(rg)
+        })
         rg <- filterSeqnames(rg)
+        rg <- sort(rg)
         rg <- as.data.frame(rg)
-        if(all(rg\$score<0)){
-            rg\$score <- -1*rg\$score
-        }
         rg <- rg[, c("seqnames", "start", "end", "score"), drop=FALSE]
         write.table(rg, file.path(outfolder, "tad.txt"),
                     quote=FALSE, col.names=FALSE, row.names=FALSE,
@@ -186,7 +191,7 @@ process CIRCOS_PREPARE {
     writeLines(labelA, file.path(outfolder, "labelA.txt"), sep=" ")
     writeLines(labelB, file.path(outfolder, "labelB.txt"), sep=" ")
 
-    ## create exon karyotype file again
+    ## create karyotype file again
     try_res <- try({
         session <- browserSession()
         genome(session) <- ucscname

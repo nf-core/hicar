@@ -26,14 +26,26 @@ process HICEXPLORER_HICPLOTTADS {
         --matrix $cool \\
         --tads $tads \\
         --out ${prefix}_hicar_track.ini
+    #step 2, plot the TADs for each 10M
     while read chr seqlength; do
-        #step 2, plot the TADs
-        hicPlotTADs \\
-            ${args} \\
-            --tracks ${prefix}_hicar_track.ini \\
-            -o ${prefix}_track_\${chr}.png \\
-            --region \${chr}:1-\$seqlength
-
+        if [ \$seqlength -lt 10000000 ]
+        then
+            hicPlotTADs \\
+                ${args} \\
+                --tracks ${prefix}_hicar_track.ini \\
+                -o ${prefix}_track_\${chr}_1_\$seqlength.png \\
+                --region \${chr}:1-\$seqlength
+        else
+        for i in \$(seq -f %1.0f 10000000 10000000 \$seqlength)
+            do
+                region=\$((\$i - 9999999))-\$i
+                hicPlotTADs \\
+                    ${args} \\
+                    --tracks ${prefix}_hicar_track.ini \\
+                    -o ${prefix}_track_\${chr}_\$region.png \\
+                    --region \${chr}:\$region
+            done
+        fi
     done < ${chrom_sizes}
 
     cat <<-END_VERSIONS > versions.yml
