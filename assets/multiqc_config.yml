@@ -68,7 +68,7 @@ custom_data:
   pairs_reads_plot:
     parent_id: "pairs_qc"
     section_name: "PAIRS reads stats barplot"
-    description: "Barplot for the reads stats. If the longRange rate is unbalanced for each group, it may affect the directly comparison the number of interactions/loops."
+    description: "Barplot for the reads stats. If the longRange rate is unbalanced for each group, it may affect the directly comparison the number of interactions/loops. In this case, you may want to try to set resample_pairs = true"
     file_format: "csv"
     plot_type: "bargraph"
     pconfig:

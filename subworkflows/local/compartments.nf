@@ -12,6 +12,7 @@ workflow COMPARTMENTS {
     matrix                                       // tuple val(meta), path(cool/tagdir)
     resolution
     additional_param
+    cool_bin
 
     main:
     ch_versions             = Channel.empty()
@@ -39,7 +40,7 @@ workflow COMPARTMENTS {
             )
             ch_compartments = HOMER_COMPARTMENTS.out.compartments
             ch_versions = HOMER_COMPARTMENTS.out.versions
-            ch_circos_files = HOMER_COMPARTMENTS.out.compartments
+            ch_circos_files = HOMER_COMPARTMENTS.out.compartments.combine(cool_bin).map{[[id:it[0].id, bin:it[2]], it[1]]}
             break
         case "juicebox":
             JUICER_COMPARTMENTS(

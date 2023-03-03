@@ -16,11 +16,12 @@ process CIRCOS_PREPARE {
     path chromsize
 
     output:
-    tuple val(meta), path("${meta.id}/*")           , emit: circos
+    tuple val(meta), path("${prefix}/*")           , emit: circos
     path "versions.yml"                             , emit: versions
 
     script:
     def args = task.ext.args ?: ''
+    prefix = task.ext.prefix ?: "${meta.id}_${meta.bin}"
     """
     #!/usr/bin/env Rscript
 
@@ -42,7 +43,7 @@ process CIRCOS_PREPARE {
     chromsize <- "$chromsize"
     gtf <- "$gtf"
     ucscname <- "$ucscname"
-    outfolder <- "${meta.id}"
+    outfolder <- "${prefix}"
     totalLinks <- 1e4
 
     args <- strsplit("${args}", "\\\\s+")[[1]]
@@ -87,6 +88,32 @@ process CIRCOS_PREPARE {
         x
     }
     dir.create(outfolder, showWarnings = FALSE)
+    gtf <- import(gtf)
+    ## create karyotype file
+    chromsize <- read.delim(chromsize, header=FALSE)
+    chromsize[, 1] <- as.character(chromsize[, 1])
+    seqlevelsStyle(chromsize[, 1]) <- "UCSC"
+    chromsize <- chromsize[chromsize[, 1] %in% standardChromosomes(gtf), , drop=FALSE]
+    emptyTADfile <- c(paste(chromsize[, 1], 1, 1, 0), paste(chromsize[, 1], 2, 2, 1))
+    chromsize <- cbind("chr", "-", chromsize[, c(1, 1)], 0, chromsize[, 2],
+                        paste0("chr", sub("^chr", "", chromsize[, 1])))
+    colnames(chromsize) <- c("chr", "-", "chrname", "chrlabel",
+                            0, "chrlen", "chrcolor")
+    chromsize <- chromsize[order(as.numeric(sub("chr", "", chromsize[, "chrname"])),
+                            chromsize[, "chrname"]), , drop=FALSE]
+    write.table(chromsize, file.path(outfolder, "karyotype.tab"),
+                quote=FALSE, col.names=FALSE, row.names=FALSE, sep=" ")
+
+    ## create label file
+    seqn <- sort(as.character(unique(chromsize\$chrname)))[1]
+    seql <- chromsize\$chrlen
+    names(seql) <- chromsize\$chrname
+    labelA <- labelB <- c(seqn, 0, 5000)
+    labelA <- c(labelA, "TAD")
+    labelB <- c(labelB, "compartments")
+    writeLines(labelA, file.path(outfolder, "labelA.txt"), sep=" ")
+    writeLines(labelB, file.path(outfolder, "labelB.txt"), sep=" ")
+
     (interaction <- dir(".", pattern = ".bedpe", ignore.case = TRUE))
     (compartment <- dir(".", pattern = ".bigWig|bw\$", ignore.case = TRUE))
     (tad <- dir(".", pattern = ".bed\$", ignore.case = TRUE))
@@ -126,10 +153,9 @@ process CIRCOS_PREPARE {
     })
 
     ##tads
-    labelAname <- "TAD"
-    writeLines(character(0L), file.path(outfolder, "tad.txt"))
+    writeLines(emptyTADfile, file.path(outfolder, "tad.txt"))
     try({
-        tryCatch({
+        rg <- tryCatch({
             rg <- import(tad[1], format="BED")
         }, error=function(.e){
             rg <- read.table(tad[1])
@@ -146,7 +172,6 @@ process CIRCOS_PREPARE {
                     sep=" ")
     })
     ## Compartment
-    labelBname <- "compartments"
     writeLines(character(0L), file.path(outfolder, "compartment.txt"))
     try({
         cp <- import(compartment[1], format="bigWig")
@@ -156,6 +181,15 @@ process CIRCOS_PREPARE {
             cp\$score <- rep(c(-1, 1), length(cp))[seq_along(cp)]
         }
         cp\$score <- ifelse(cp\$score==0, 0, ifelse(cp\$score<0, -1, 1))
+        if(sum(cp\$score==-1)==0){
+            cp\$score[cp\$score==0] <- -1
+        }
+        if(sum(cp\$score==-1)==0){
+            gaps <- gaps(cp)
+            gaps <- gaps[strand(gaps)=="*"]
+            gaps\$score <- -1
+            cp <- sort(c(cp, gaps))
+        }
         cvg <- coverage(cp, weight=cp\$score)
         cp <- as(cvg, "GRanges")
         cp <- cp[cp\$score!=0]
@@ -165,31 +199,6 @@ process CIRCOS_PREPARE {
                     quote=FALSE, col.names = FALSE, row.names = FALSE,
                     sep=" ")
     })
-
-    gtf <- import(gtf)
-    ## create karyotype file
-    chromsize <- read.delim(chromsize, header=FALSE)
-    chromsize[, 1] <- as.character(chromsize[, 1])
-    seqlevelsStyle(chromsize[, 1]) <- "UCSC"
-    chromsize <- chromsize[chromsize[, 1] %in% standardChromosomes(gtf), , drop=FALSE]
-    chromsize <- cbind("chr", "-", chromsize[, c(1, 1)], 0, chromsize[, 2],
-                        paste0("chr", sub("^chr", "", chromsize[, 1])))
-    colnames(chromsize) <- c("chr", "-", "chrname", "chrlabel",
-                            0, "chrlen", "chrcolor")
-    chromsize <- chromsize[order(as.numeric(sub("chr", "", chromsize[, "chrname"])),
-                            chromsize[, "chrname"]), , drop=FALSE]
-    write.table(chromsize, file.path(outfolder, "karyotype.tab"),
-                quote=FALSE, col.names=FALSE, row.names=FALSE, sep=" ")
-
-    ## create link desity file
-    seqn <- sort(as.character(unique(chromsize\$chrname)))[1]
-    seql <- chromsize\$chrlen
-    names(seql) <- chromsize\$chrname
-    labelA <- labelB <- c(seqn, 0, 5000)
-    labelA <- c(labelA, labelAname)
-    labelB <- c(labelB, labelBname)
-    writeLines(labelA, file.path(outfolder, "labelA.txt"), sep=" ")
-    writeLines(labelB, file.path(outfolder, "labelB.txt"), sep=" ")
 
     ## create karyotype file again
     try_res <- try({

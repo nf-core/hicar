@@ -16,10 +16,11 @@ workflow HOMER_TADS {
     ch_versions = Channel.empty()
 
     // call tads
-    tag = tagdir.combine(Channel.of(bin_size)).map{
-        meta, tag, bin -> [ meta, bin, tag ]
-    }
-    ch_tads = HOMER_FINDTADSANDLOOPS_TADS(tag, genome).tads
+    ch_tads = HOMER_FINDTADSANDLOOPS_TADS(
+        tagdir.map{
+            meta, tag -> [ meta, bin_size, tag ]
+        },
+        genome).tads
     ch_versions = HOMER_FINDTADSANDLOOPS_TADS.out.versions
 
 

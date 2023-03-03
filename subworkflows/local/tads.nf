@@ -14,6 +14,7 @@ workflow TADS {
     matrix                                       // tuple val(meta), path(cool/tagdir)
     resolution                                   // resolution for TADs calling
     additional_param                             // additional parameters
+    cool_bin                                     // parameter for methods that does not using cool output
 
     main:
     ch_versions             = Channel.empty()
@@ -54,7 +55,7 @@ workflow TADS {
             ch_tads = HOMER_TADS.out.tads
             ch_versions = HOMER_TADS.out.versions
             ch_multiqc_files = HOMER_TADS.out.mqc
-            ch_circos_files = HOMER_TADS.out.tads.map{[it[0], it[2]]}
+            ch_circos_files = HOMER_TADS.out.tads.combine(cool_bin).map{[[id:it[0].id, bin:it[3]], it[2]]}
             break
         default:
             HICEXPLORER_TADS(

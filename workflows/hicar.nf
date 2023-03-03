@@ -121,7 +121,6 @@ include { V4C } from '../subworkflows/local/v4c'
 include { TFEA } from '../subworkflows/local/tfea'
 
 include { RUN_CIRCOS } from '../subworkflows/local/circos'
-include { RUN_CIRCOS as MAPS_CIRCOS } from '../subworkflows/local/circos'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -135,6 +134,7 @@ include { BWA_MEM                     } from '../modules/nf-core/bwa/mem/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { CUTADAPT                    } from '../modules/nf-core/cutadapt/main'
 include { FASTQC                      } from '../modules/nf-core/fastqc/main'
+include { CAT_CAT                     } from '../modules/nf-core/cat/cat/main'
 include { HOMER_MAKETAGDIRECTORY      } from '../modules/nf-core/homer/maketagdirectory/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { SAMTOOLS_MERGE              } from '../modules/nf-core/samtools/merge/main'
@@ -409,13 +409,16 @@ workflow HICAR {
         }
 
         if(homer_done){// force wait Homer install done
+            CAT_CAT(
+                PAIRTOOLS_PAIRE.out.homerpair.map{
+                    meta, pairs ->
+                    [[id:meta.group], pairs]
+                }.groupTuple(by:0)
+            )
             HOMER_MAKETAGDIRECTORY(
-                PAIRTOOLS_PAIRE.out.homerpair,
+                CAT_CAT.out.file_out,
                 PREPARE_GENOME.out.fasta
             )
-            if(params.interactions_tool == 'homer'){
-                ch_loop_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
-            }
             if(params.tad_tool == 'homer'){
                 ch_tad_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
                 ch_tad_additional = homer_genome
@@ -424,12 +427,10 @@ workflow HICAR {
                 ch_comp_matrix = HOMER_MAKETAGDIRECTORY.out.tagdir
                 ch_comp_additional = homer_genome.combine(PREPARE_GENOME.out.chrom_sizes)
             }
-            if(params.apa_tool == 'homer'){
-                ch_apa_additional = HOMER_MAKETAGDIRECTORY.out.tagdir
-            }
             if(params.tfea_tool == 'homer'){
                 ch_tfea_additional = homer_genome
             }
+            ch_versions = ch_versions.mix(CAT_CAT.out.versions.ifEmpty(null))
             ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
         }
     }
@@ -456,7 +457,8 @@ workflow HICAR {
         COMPARTMENTS(
             ch_comp_matrix,
             params.res_compartments,
-            ch_comp_additional
+            ch_comp_additional,
+            cool_bin
         )
         ch_versions = ch_versions.mix(COMPARTMENTS.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect().ifEmpty([]))
@@ -470,7 +472,8 @@ workflow HICAR {
         TADS(
             ch_tad_matrix,
             params.res_tads,
-            ch_tad_additional
+            ch_tad_additional,
+            cool_bin
         )
         ch_versions = ch_versions.mix(TADS.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(TADS.out.mqc.collect().ifEmpty([]))
