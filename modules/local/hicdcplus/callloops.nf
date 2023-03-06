@@ -86,8 +86,11 @@ process HICDCPLUS_CALLLOOPS {
             dplyr::mutate(start = floor(as.numeric(.data\$start)/1000) *
                 1000, end = as.numeric(.data\$end))
     seql <- read.delim("$chromsize", header=FALSE, row.names=1)
-    seqlen <- seql[, 1]
-    names(seqlen) <- rownames(seql)
+    seql <- GRanges(rownames(seql), IRanges(1, seql[, 1]))
+    seql <- seql[seqnames(seql) %in% standardChromosomes(seql)]
+    seql <- keepStandardChromosomes(seql)
+    seqlen <- end(seql)
+    names(seqlen) <- seqnames(seql)
     generate_binned_gi_list <- function(binsize, chrs = NULL, Dthreshold = 2e+06, seqlens) {
         gi_list <- list()
         for (chrom in chrs) {
