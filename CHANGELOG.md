@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update reads_summary table to include unmapped/multiple mapped info
 - add the possibility to subsample to balance the input reads
 - add parameter to let user input the 5 end sequence to cutadapt step
+- change the cutadapt error tolerance from 0 to 0.15
 - fix multiple bugs:
   - the sorting method for huge bed file;
   - the post count for hipeak when there is empty Interactions;
