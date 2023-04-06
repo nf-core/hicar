@@ -25,41 +25,45 @@ workflow APA {
         case "hicexplorer":
             HICEXPLORER_HICAGGREGATECONTACTS(
                 matrix,
-                peaks
+                peaks,
+                params.apa_format
             )
-            ch_apa = HICEXPLORER_HICAGGREGATECONTACTS.out.png
+            ch_apa = HICEXPLORER_HICAGGREGATECONTACTS.out.plot
             ch_versions = HICEXPLORER_HICAGGREGATECONTACTS.out.versions
             break
         case "juicebox":
             JUICER_APACALLER(
                 matrix,
                 peaks,
-                additional_param
+                additional_param,
+                params.apa_format
             )
-            ch_apa = JUICER_APACALLER.out.png
+            ch_apa = JUICER_APACALLER.out.plot
             ch_versions = JUICER_APACALLER.out.versions
             break
         case "cooltools":
             COOLTOOLS_APACALLER(
                 matrix,
-                peaks
+                peaks,
+                params.apa_format
             )
-            ch_apa = COOLTOOLS_APACALLER.out.png
+            ch_apa = COOLTOOLS_APACALLER.out.plot
             ch_versions = COOLTOOLS_APACALLER.out.versions
             break
         default:
             HICEXPLORER_HICAGGREGATECONTACTS(
                 matrix,
-                peaks
+                peaks,
+                params.apa_format
             )
-            ch_apa = HICEXPLORER_HICAGGREGATECONTACTS.out.png
+            ch_apa = HICEXPLORER_HICAGGREGATECONTACTS.out.plot
             ch_versions = HICEXPLORER_HICAGGREGATECONTACTS.out.versions
             break
     }
 
 
     emit:
-    apa             = ch_apa               // channel: [ meta, [png] ]
+    apa             = ch_apa               // channel: [ meta, [plot] ]
     versions        = ch_versions          // channel: [ versions.yml ]
     mqc             = ch_multiqc_files
 }

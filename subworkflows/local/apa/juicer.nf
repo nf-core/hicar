@@ -10,6 +10,7 @@ workflow JUICER_APACALLER {
     matrix                 // channel: [ val(meta), [cool] ]
     peaks                  // path(1D peaks)
     additional_param       // values [bin, merged_loops, juicer_tools_jar]
+    format                 // output plot format
 
     main:
     ch_mergedloops = additional_param.map{[it[0], it[1]]}
@@ -27,6 +28,6 @@ workflow JUICER_APACALLER {
 
 
     emit:
-    png       = JUICER_APA.out.png                               // channel: [ val(meta), path(pngs)]
+    plot      = JUICER_APA.out.plot                              // channel: [ val(meta), path(pngs)]
     versions  = ch_version                                       // channel: [ path(version) ]
 }

@@ -191,6 +191,13 @@
                     "help_text": "Default is 0.5. It is the average over just covered bases.",
                     "hidden": false,
                     "default": 0.5
+                },
+                "cutadapt_5end": {
+                    "type": "string",
+                    "description": "trim 5' end with the string if not skip_cutadapt",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": "^TAC"
                 }
             }
         },
@@ -397,6 +404,13 @@
                     "description": "APA tool, available choices: 'cooltools', 'hicexplorer', and 'juicebox'",
                     "fa_icon": "fab fa-adn",
                     "enum": ["cooltools", "hicexplorer", "juicebox"]
+                },
+                "apa_format": {
+                    "type": "string",
+                    "description": "The APA output figure format. Currently this parameter will not affect the Juicer output format (always png format).",
+                    "default": "png",
+                    "hidden": false,
+                    "fa_icon": "fas fa-caret-up"
                 },
                 "compartments_tool": {
                     "type": "string",
@@ -735,12 +749,6 @@
                 "skip_cutadapt": {
                     "type": "boolean",
                     "description": "skip trim 5'end",
-                    "fa_icon": "fas fa-remove-format",
-                    "hidden": false
-                },
-                "cutadapt_5end": {
-                    "type": "string",
-                    "description": "trim 5' end with the string if not skip_cutadapt",
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false
                 },

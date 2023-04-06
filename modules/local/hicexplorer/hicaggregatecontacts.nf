@@ -10,21 +10,22 @@ process HICEXPLORER_HICAGGREGATECONTACTS {
     input:
     tuple val(meta), path(cool)
     path anchor
+    val format
 
     output:
     tuple val(meta), path("*apa*")              , emit:results
-    tuple val(meta), path("*.png")              , emit:png
+    tuple val(meta), path("*.${format}")        , emit:plot
     path("versions.yml")                        , emit:versions
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}_${meta.bin}"
+    def prefix = task.ext.prefix ?: "${meta.id}_${meta.bin}_apa.${format}"
     """
     hicAggregateContacts \\
         ${args} \\
         --matrix ${cool} \\
         --BED ${anchor} \\
-        --outFileName ${prefix}_apa
+        --outFileName ${prefix}
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

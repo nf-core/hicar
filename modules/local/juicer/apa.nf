@@ -15,7 +15,7 @@ process JUICER_APA {
 
     output:
     tuple val(meta), path("$prefix/*")           , emit: results
-    tuple val(meta), path("$prefix/**.png")      , emit: png
+    tuple val(meta), path("$prefix/**.png")      , emit: plot
     path "versions.yml"                          , emit: versions
 
     script:

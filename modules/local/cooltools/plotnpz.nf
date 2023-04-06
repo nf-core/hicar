@@ -10,9 +10,10 @@ process PLOTNPZ_BY_COOLTOOLS {
 
     input:
     tuple val(meta), path(npz)
+    val format
 
     output:
-    tuple val(meta), path("*.png")              , emit:png
+    tuple val(meta), path("*.${format}")        , emit:plot
     path("versions.yml")                        , emit:versions
 
     script:
@@ -59,6 +60,6 @@ process PLOTNPZ_BY_COOLTOOLS {
 
     plt.colorbar(im, label='obs/exp', pad=0.025, shrink=0.7);
 
-    plt.savefig("${prefix}.png")
+    plt.savefig("${prefix}.${format}")
     """
 }

@@ -9,13 +9,16 @@ workflow COOLTOOLS_APACALLER {
     take:
     matrix                 // channel: [ val(meta), [cool] ]
     peaks                  // path(1D peaks)
+    format                 // output plot format
 
     main:
-    COOLTOOLS_PILEUP(matrix, peaks).npz | PLOTNPZ_BY_COOLTOOLS
-
+    COOLTOOLS_PILEUP(matrix, peaks)
     ch_version = COOLTOOLS_PILEUP.out.versions
 
+    PLOTNPZ_BY_COOLTOOLS(COOLTOOLS_PILEUP.out.npz, format)
+
+
     emit:
-    png       = PLOTNPZ_BY_COOLTOOLS.out.png                        // channel: [ val(meta), path(pngs)]
+    plot      = PLOTNPZ_BY_COOLTOOLS.out.plot                    // channel: [ val(meta), path(plot)]
     versions  = ch_version                                       // channel: [ path(version) ]
 }
