@@ -31,6 +31,8 @@ CONTROL,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
 CONTROL,1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
 ```
 
+Please Note that the dots ('.') and space (' ') in the group names will be replaced by '_'  to avoid the potential issues of python scripts. In the pipeline, the group names will be used as prefix of filenames. Many tools developed in python will consider the first dot as the sign of file extension and this will throw errors when the program does not expected the extra dots in the filenames. If you want to keep consistent of file naming system with the group names, please consider to replace all the dots and space in the samplesheet.
+
 ### Full samplesheet
 
 HiCAR requires paired-end sequencing. Both fastq_1 and fastq_2 must be provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 4 columns to match those defined in the table below.

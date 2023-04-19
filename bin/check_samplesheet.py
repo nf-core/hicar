@@ -92,7 +92,7 @@ class RowChecker:
         if len(row[self._sample_col]) <= 0:
             raise AssertionError("Sample input is required.")
         # Sanitize samples slightly.
-        row[self._sample_col] = row[self._sample_col].replace(" ", "_")
+        row[self._sample_col] = row[self._sample_col].replace(" ", "_").replace(".", "_")
 
     def _validate_first(self, row):
         """Assert that the first FASTQ entry is non-empty and has the right format."""
