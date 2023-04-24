@@ -84,7 +84,7 @@ Here is a short introduction about the tools:
 - The [`cooltools`](https://github.com/open2c/cooltools) leverages [`cooler`](https://github.com/open2c/cooler/tree/master/cooler) format to enable flexible and reproducible analysis of high-resolution data. `insulation` tool will be used for TADs calling.
 - The [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/) is a set of programs to process, normalize, analyze and visualize Hi-C and cHi-C data. The [`hicFindTADs`](https://hicexplorer.readthedocs.io/en/latest/content/tools/hicFindTADs.html) will be used to call TADs.
 - The [`Homer`](http://homer.ucsd.edu/homer/interactions2/HiCpca.html) is a software for motif discovery and next-gen sequencing analysis.
-- The [`juicer_tools`](https://github.com/aidenlab/juicer) is a platform for analyzing bin sized Hi-C data. The [HiCTools](https://github.com/aidenlab/HiCTools) will be used to create .hic files, and call compartments. Please note that by default the normalization method for compartment calling was set as `KR`. You may want to try different parameters for the normalization method such as `SCALE`.
+- The [`juicer_tools`](https://github.com/aidenlab/juicer) is a platform for analyzing bin sized Hi-C data. The [HiCTools](https://github.com/aidenlab/HiCTools) will be used to create .hic files, and call compartments. Please note that by default the normalization method for compartment calling was set as `SCALE`. You may want to try different parameters for the normalization method such as `KR`.
 
 ### Call interactions/loops
 

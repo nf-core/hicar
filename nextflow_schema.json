@@ -456,7 +456,7 @@
                 },
                 "juicer_norm_method": {
                     "type": "string",
-                    "default": "KR",
+                    "default": "SCALE",
                     "description": "Normalization methods",
                     "help_text": "See more details at [addNorm](https://github.com/aidenlab/juicer/wiki/AddNorm). Avaiable selection are limited by APA and Eigenvector normalization methods.",
                     "fa_icon": "fab fa-java",
