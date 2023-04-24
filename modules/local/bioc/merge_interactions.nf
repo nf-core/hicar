@@ -40,12 +40,18 @@ process MERGE_INTERACTIONS {
 
     inf = strsplit("$fname", "\\\\s+")[[1]]
     ext = "${prefix}.bedpe"
-    data <- lapply(inf, import, format="BEDPE")
-    data <- do.call(c, data)
-    data <- unique(data)
-    data <- sort(data)
-    mcols(data)[, "name"] <- "*"
-    mcols(data)[, "score"] <- 0
+    data <- lapply(inf, readLines, n=1)
+    inf <- inf[lengths(data)>0]
+    if(length(inf)==0){
+        data=GRanges()
+    }else{
+        data <- lapply(inf, import, format="BEDPE")
+        data <- do.call(c, data)
+        data <- unique(data)
+        data <- sort(data)
+        mcols(data)[, "name"] <- "*"
+        mcols(data)[, "score"] <- 0
+    }
     export(data, ext)
     """
 }
