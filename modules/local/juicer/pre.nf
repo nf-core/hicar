@@ -62,7 +62,7 @@ process JUICER_PRE {
     seqlev=\$(join_by '|' \${seqlev[@]})
     tail -n +2 $gi | \\
         awk -v seqlev=\$seqlev 'match(\$2, seqlev) && match(\$6, seqlev) {print}' | \\
-        sort -k2,2d -k6,6d > ${gi}.sorted
+        sort -k2,2d -k6,6d -k3,3n -k7,7n > ${gi}.sorted
     # count available chromsomes in the file
     skip_do_norm=\$(awk '{ a[\$2]++; a[\$6]++ } END { if(length(a)==1) print("-n") }' ${gi}.sorted)
 
