@@ -3,11 +3,11 @@ process VIRTUAL4C_BY_COOLTOOLS {
     label 'process_medium'
     label 'error_ignore'
 
-    conda "bioconda::cooltools=0.5.2"
+    conda "bioconda::cooltools=0.5.4"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/cooltools:0.5.2--py39h5371cbf_1' :
-        'quay.io/biocontainers/cooltools:0.5.2--py39h5371cbf_1' }"
+        'https://depot.galaxyproject.org/singularity/cooltools:0.5.4--py39hbf8eff0_0' :
+        'quay.io/biocontainers/cooltools:0.5.4--py39hbf8eff0_0' }"
 
     input:
     tuple val(bin_size), path(cool), path(viewpoint)

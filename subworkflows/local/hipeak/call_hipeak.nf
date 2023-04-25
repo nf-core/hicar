@@ -32,7 +32,7 @@ workflow HI_PEAK {
     //create count table
     //input=val(meta), path(r2peak), path(r1peak), path(distalpair), val(chrom1)
     r2_peaks = peaks.map{it[1]}
-    chrom1 = chrom_size.splitCsv(sep:"\t", header: false, strip: true).filter{ it[0] !=~ /[_M]/ }.map{it[0]}
+    chrom1 = chrom_size.splitCsv(sep:"\t", header: false, strip: true).filter{ !(it[0] =~ /[_M]/) }.map{it[0]}
     ch_version = PREPARE_COUNTS(peaks.combine(chrom1)).versions
     counts = PREPARE_COUNTS.out.counts.map{[it[0].id, it[1]]}
                             .groupTuple()

@@ -1,7 +1,6 @@
 process COOLTOOLS_INSULATION {
     tag "${meta.id}"
     label 'process_high'
-    label 'process_single'
 
     conda "bioconda::cooltools=0.5.1 bioconda::ucsc-bedgraphtobigwig=377"
     container "${ workflow.containerEngine == 'singularity' &&
@@ -26,7 +25,9 @@ process COOLTOOLS_INSULATION {
                 10*resolution,
                 25*resolution].join(' ').trim()
     """
+    nproc=\$(python -c "import cooltools;import sys;from packaging import version; print('-p '+sys.argv[1]) if version.parse(cooltools.__version__) >= version.parse('0.5.4') else print('')" $task.cpus)
     cooltools insulation \\
+        \$nproc \\
         $args \\
         -o ${prefix}_insulation.tsv \\
         $cool \\
