@@ -61,7 +61,7 @@ process CIRCOS_PREPARE {
             }
         })
     }
-    option_list <- list("pattern"=c("--totalLinks", "-n", "numeric"))
+    option_list <- list("totalLinks"=c("--totalLinks", "-n", "numeric"))
     opt <- parse_args(option_list, args)
     if(!is.null(opt[["totalLinks"]])){
         totalLinks <- opt[["totalLinks"]]
