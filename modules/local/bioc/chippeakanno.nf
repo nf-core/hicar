@@ -154,46 +154,46 @@ process BIOC_CHIPPEAKANNO {
         ## unique annotation plots
         ## only take the nearest annotation
         DB.anno1.srt <- DB.anno1[order(abs(DB.anno1\$distancetoFeature))]
-	      DB.anno2.srt <- DB.anno2[order(abs(DB.anno2\$distancetoFeature))]
-      	DB.anno1.srt <- unique(DB.anno1.srt)
-      	DB.anno2.srt <- unique(DB.anno2.srt)
-      	DB.anno1.srt <- DB.anno1.srt[order(as.numeric(sub('p', '', names(DB.anno1.srt))))]
-      	DB.anno2.srt <- DB.anno2.srt[order(as.numeric(sub('p', '', names(DB.anno2.srt))))]
-      	intersect_names <- intersect(names(DB.anno1.srt), names(DB.anno2.srt))
-      	DB.anno1.srt <- DB.anno1.srt[intersect_names]
-      	DB.anno2.srt <- DB.anno2.srt[intersect_names]
-      	pff <- file.path(pf, sub(".(csv|bedpe|peaks|txt)\$", "", det))
-      	dir.create(dirname(pff), recursive = TRUE, showWarnings = FALSE)
-      	plotdata <- data.frame(
-      		  distance1=DB.anno1.srt\$distancetoFeature,
-      		  distance2=DB.anno2.srt\$distancetoFeature)
-      	plotdata\$r <- sqrt(plotdata\$distance1^2+plotdata\$distance2^2)
-      	plotdata\$type1 <- ifelse(abs(plotdata\$distance1) <= 2000, "promoter (2K)", "remote element")
-      	plotdata\$type2 <- ifelse(abs(plotdata\$distance2) <= 2000, "promoter (2K)", "remote element")
-      	type12 <- apply(plotdata[, c("type1", "type2")], 1, sort, simplify = FALSE)
-      	plotdata\$ChromosomeRegion <- vapply(type12, FUN=function(.ele) paste(.ele, collapse=" / "), FUN.VALUE = character(1L))
-      	log10transform <- function(x){
-      		  ifelse(x==0, 0, sign(x)*log10(abs(x)))
-      	}
-      	plotdata\$log10_transformed_distance1 <- log10transform(plotdata\$distance1)
-      	plotdata\$log10_transformed_distance2 <- log10transform(plotdata\$distance2)
-      	plot <- ggplot(plotdata, aes(x=log10_transformed_distance1, y=log10_transformed_distance2, color=ChromosomeRegion)) +
-      		  geom_point() + coord_fixed() + theme_bw()
-      	ggsave(paste0(pff, ".anno.distanceToTSS.xyscatter.pdf"), plot=plot, width=7, height=7)
-      	plot <- ggplot(plotdata, aes(x=ChromosomeRegion, fill=ChromosomeRegion)) +
-      		  geom_bar(stat="count") + theme_bw() + theme(axis.text.x = element_blank())
-      	ggsave(paste0(pff, ".anno.distanceToTSS.barplot.pdf"), plot=plot, width=5, height=4)
-      	if(length(id2symbol)>0) DB.anno1.srt\$symbol[!is.na(DB.anno1.srt\$feature)] <- id2symbol[DB.anno1.srt\$feature[!is.na(DB.anno1.srt\$feature)]]
-      	if(length(id2symbol)>0) DB.anno2.srt\$symbol[!is.na(DB.anno2.srt\$feature)] <- id2symbol[DB.anno2.srt\$feature[!is.na(DB.anno2.srt\$feature)]]
-      	DB.anno1.srt <- mcols(DB.anno1.srt)
-      	DB.anno2.srt <- mcols(DB.anno2.srt)
-      	DB.anno.srt <- merge(DB.anno1.srt, DB.anno2.srt, by="peak",
+        DB.anno2.srt <- DB.anno2[order(abs(DB.anno2\$distancetoFeature))]
+        DB.anno1.srt <- unique(DB.anno1.srt)
+        DB.anno2.srt <- unique(DB.anno2.srt)
+        DB.anno1.srt <- DB.anno1.srt[order(as.numeric(sub('p', '', names(DB.anno1.srt))))]
+        DB.anno2.srt <- DB.anno2.srt[order(as.numeric(sub('p', '', names(DB.anno2.srt))))]
+        intersect_names <- intersect(names(DB.anno1.srt), names(DB.anno2.srt))
+        DB.anno1.srt <- DB.anno1.srt[intersect_names]
+        DB.anno2.srt <- DB.anno2.srt[intersect_names]
+        pff <- file.path(pf, sub(".(csv|bedpe|peaks|txt)\$", "", det))
+        dir.create(dirname(pff), recursive = TRUE, showWarnings = FALSE)
+        plotdata <- data.frame(
+            distance1=DB.anno1.srt\$distancetoFeature,
+            distance2=DB.anno2.srt\$distancetoFeature)
+        plotdata\$r <- sqrt(plotdata\$distance1^2+plotdata\$distance2^2)
+        plotdata\$type1 <- ifelse(abs(plotdata\$distance1) <= 2000, "promoter (2K)", "remote element")
+        plotdata\$type2 <- ifelse(abs(plotdata\$distance2) <= 2000, "promoter (2K)", "remote element")
+        type12 <- apply(plotdata[, c("type1", "type2")], 1, sort, simplify = FALSE)
+        plotdata\$ChromosomeRegion <- vapply(type12, FUN=function(.ele) paste(.ele, collapse=" / "), FUN.VALUE = character(1L))
+        log10transform <- function(x){
+            ifelse(x==0, 0, sign(x)*log10(abs(x)))
+        }
+        plotdata\$log10_transformed_distance1 <- log10transform(plotdata\$distance1)
+        plotdata\$log10_transformed_distance2 <- log10transform(plotdata\$distance2)
+        plot <- ggplot(plotdata, aes(x=log10_transformed_distance1, y=log10_transformed_distance2, color=ChromosomeRegion)) +
+            geom_point() + coord_fixed() + theme_bw()
+        ggsave(paste0(pff, ".anno.distanceToTSS.xyscatter.pdf"), plot=plot, width=7, height=7)
+        plot <- ggplot(plotdata, aes(x=ChromosomeRegion, fill=ChromosomeRegion)) +
+            geom_bar(stat="count") + theme_bw() + theme(axis.text.x = element_blank())
+        ggsave(paste0(pff, ".anno.distanceToTSS.barplot.pdf"), plot=plot, width=5, height=4)
+        if(length(id2symbol)>0) DB.anno1.srt\$symbol[!is.na(DB.anno1.srt\$feature)] <- id2symbol[DB.anno1.srt\$feature[!is.na(DB.anno1.srt\$feature)]]
+        if(length(id2symbol)>0) DB.anno2.srt\$symbol[!is.na(DB.anno2.srt\$feature)] <- id2symbol[DB.anno2.srt\$feature[!is.na(DB.anno2.srt\$feature)]]
+        DB.anno1.srt <- mcols(DB.anno1.srt)
+        DB.anno2.srt <- mcols(DB.anno2.srt)
+        DB.anno.srt <- merge(DB.anno1.srt, DB.anno2.srt, by="peak",
             suffixes = c(".anchor1",".anchor2"),
             all = TRUE)
-      	DB.anno.srt <- cbind(DB[DB.anno.srt\$peak, , drop=FALSE], DB.anno.srt)
-      	DB.anno.srt <- DB.anno.srt[order(as.numeric(sub('p', '', DB.anno.srt\$peak))), , drop=FALSE]
-      	pff <- file.path(pf, sub(".(csv|bedpe|peaks|txt)\$", ".unique.anno.csv", det))
-      	write.csv(DB.anno.srt, pff, row.names = FALSE)
+        DB.anno.srt <- cbind(DB[DB.anno.srt\$peak, , drop=FALSE], DB.anno.srt)
+        DB.anno.srt <- DB.anno.srt[order(as.numeric(sub('p', '', DB.anno.srt\$peak))), , drop=FALSE]
+        pff <- file.path(pf, sub(".(csv|bedpe|peaks|txt)\$", ".unique.anno.csv", det))
+        write.csv(DB.anno.srt, pff, row.names = FALSE)
 
         if(length(id2symbol)>0) DB.anno1\$symbol[!is.na(DB.anno1\$feature)] <- id2symbol[DB.anno1\$feature[!is.na(DB.anno1\$feature)]]
         if(length(id2symbol)>0) DB.anno2\$symbol[!is.na(DB.anno2\$feature)] <- id2symbol[DB.anno2\$feature[!is.na(DB.anno2\$feature)]]
