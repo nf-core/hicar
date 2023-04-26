@@ -92,8 +92,8 @@ process CIRCOS_PREPARE {
     ## create karyotype file
     chromsize <- read.delim(chromsize, header=FALSE)
     chromsize[, 1] <- as.character(chromsize[, 1])
-    seqlevelsStyle(chromsize[, 1]) <- "UCSC"
     chromsize <- chromsize[chromsize[, 1] %in% standardChromosomes(gtf), , drop=FALSE]
+    seqlevelsStyle(chromsize[, 1]) <- "UCSC"
     emptyTADfile <- c(paste(chromsize[, 1], 1, 1, 0), paste(chromsize[, 1], 2, 2, 1))
     chromsize <- cbind("chr", "-", chromsize[, c(1, 1)], 0, chromsize[, 2],
                         paste0("chr", sub("^chr", "", chromsize[, 1])))
