@@ -1,5 +1,5 @@
 process BIOC_ATACSEQTFEA {
-    label 'process_high'
+    label 'process_high_memory'
     label 'process_long'
     label 'process_single'
     label 'error_ignore'

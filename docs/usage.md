@@ -372,6 +372,10 @@ The error may caused by out of memory (although the error message seems to be un
 
 The error may caused by the improper formtated `.csv` file (the file contain header info before the column names) by `Microsoft Excel`. Please use a text editor to reprepare the `.csv` sample files.
 
+- `.command.sh: line 2: gtf2bed: command not found` or `.command.sh: line 1: check_samplesheet.py: command not found`.
+
+When you are using container and your nextflow home folder is a symlink, the bin folder in the source code will be not available in the container.
+
 ### Known issue with Juicer_tools
 
 If you are using [Juicer_tools](https://github.com/aidenlab/juicer/wiki/) with GPU supported, it is not supported by the containers. We are using [Juicer Tools Pre](https://github.com/aidenlab/juicer/wiki/Pre) to create the [hic files](https://doi.org/10.1016/j.cels.2016.07.002) from aligned HiCAR reads.

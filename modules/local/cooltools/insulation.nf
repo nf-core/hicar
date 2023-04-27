@@ -13,9 +13,9 @@ process COOLTOOLS_INSULATION {
     val resolution
 
     output:
-    tuple val(meta), path("*tsv")             , emit:results
-    tuple val(meta), path("*.bed")            , emit:tads
-    path("versions.yml")                      , emit:versions
+    tuple val(meta), path("*tsv")                , emit:results
+    tuple val(meta), path("*.bed"), optional:true, emit:tads
+    path("versions.yml")                         , emit:versions
 
     script:
     def args = task.ext.args ?: ''
