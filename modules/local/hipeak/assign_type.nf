@@ -47,7 +47,7 @@ process ASSIGN_TYPE {
 
     OUTPUT = "."
     GROUP_ID = "$meta.id"
-    COUNT_CUTOFF = 12
+    COUNT_CUTOFF = 3
     RATIO_CUTOFF = 2.0
     FDR = 2
     parse_args <- function(options, args){

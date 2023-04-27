@@ -301,7 +301,6 @@ The fragment reads will be more noisy compare to ATAC (R2) reads and the p value
 <summary>Output files</summary>
 
 - `high_peak`
-  - `distalpair_in_peak_bams_4_igv/*`: The psuedo-bam file for visualization.
   - `*/`: The high resolution interactions in bedpe format and tab delimited format.
 
 </details>
