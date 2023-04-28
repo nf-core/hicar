@@ -187,7 +187,6 @@ process DIFFHIC {
                                 '"}')
                 })
                 .ele <- paste(.ele, collapse=", ")
-                .ele <- paste("[", .ele, "]")
             })
             json <- paste0('"', names(json), '" :', json)
             json <- c(

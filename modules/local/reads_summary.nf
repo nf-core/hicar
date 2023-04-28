@@ -88,9 +88,7 @@ process READS_SUMMARY {
                 y <- .e
                 .e <- paste('{ "x":', x, ', "y":', y, ', "color":"', .color, '"', "}")
                 .e <- paste(.e, collapse=", ")
-                paste("[", .e, "]")
             })
-            .ele <- paste0('"', names(.ele), '" : ', .ele)
             .ele <- paste(.ele, collapse=", ")
         })
         json <- c(
