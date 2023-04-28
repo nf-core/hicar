@@ -121,8 +121,8 @@ custom_data:
       [ENCODE ATAC-seq QC](https://www.encodeproject.org/atac-seq/).
       For HiCAR, only R2 reads is used in TSSE score calculation and reads enrichment is following
       exponential ratio, we adjusted the TSSE score range.
-      TSSEscore < 2.5: concerning;
-      TSSEscore 2.5-3.5: acceptable;
+      TSSEscore < 1.5: concerning;
+      TSSEscore 1.5-3.5: acceptable;
       TSSEscore > 3.5: Ideal.
 
       Promoter/Transcript body proportions is test for the R2 reads enriched in promoters or in transcript body.
