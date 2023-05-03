@@ -2,11 +2,11 @@ process DIFFHICAR {
     tag "$bin_size"
     label 'process_medium'
 
-    conda "bioconda::bioconductor-edger=3.32.1"
+    conda "bioconda::bioconductor-edger=3.36.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bioconductor-edger:3.32.1--r40h399db7b_0' :
-        'quay.io/biocontainers/bioconductor-edger:3.32.1--r40h399db7b_0' }"
+        'https://depot.galaxyproject.org/singularity/bioconductor-edger:3.36.0--r41hc247a5b_2' :
+        'quay.io/biocontainers/bioconductor-edger:3.36.0--r41hc247a5b_2' }"
 
     input:
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")
@@ -146,7 +146,7 @@ process DIFFHICAR {
         ## PCA for multiQC
         try_res <- try({ ## try to output PCA results for multiQC
             json <- data.frame(x=mds\$x, y=mds\$y)
-            rownames(json) <- names(mds\$x)
+            rownames(json) <- colnames(y)
             json <- split(json, coldata[rownames(json), "condition"])
             json <- mapply(json, rainbow(n=length(json)), FUN=function(.ele, .color){
                 .ele <- cbind(.ele, "name"=rownames(.ele))
@@ -160,9 +160,7 @@ process DIFFHICAR {
                                 '"}')
                 })
                 .ele <- paste(.ele, collapse=", ")
-                .ele <- paste("[", .ele, "]")
             })
-            json <- paste0('"', names(json), '" :', json)
             json <- c(
                     "{",
                     '"id":"sample_pca",',

@@ -51,10 +51,10 @@ def checkToolsUsedInDownstream(tool, params){
         (params.interactions_tool == tool && !params.skip_interactions) ||
         (params.tad_tool == tool && !params.skip_tads) ||
         (params.compartments_tool == tool && !params.skip_compartments) ||
-        (params.apa_tool == tool && !params.skip_apa) ||
+        (params.apa_tool == tool && params.do_apa) ||
         (params.da_tool == tool && !params.skip_diff_analysis) ||
-        (params.v4c_tool == tool && !params.skip_virtual_4c) ||
-        (params.tfea_tool == tool && !params.skip_tfea)
+        (params.v4c_tool == tool && params.create_virtual_4c) ||
+        (params.tfea_tool == tool && params.do_tfea)
     )
 }
 
@@ -358,7 +358,7 @@ workflow HICAR {
             ch_apa_matrix = COOLER.out.cool
         }
         if((params.da_tool == 'hicexplorer' && !params.skip_diff_analysis)||
-            (params.v4c_tool == 'hicexplorer' && !params.skip_virtual_4c)){
+            (params.v4c_tool == 'hicexplorer' && params.create_virtual_4c)){
             // get viewpoint, input is the merged peaks, [bed]
             RECENTER_PEAK(ATAC_PEAK.out.mergedpeak)
 
@@ -499,7 +499,7 @@ workflow HICAR {
     //
     // aggregate peak analysis
     //
-    if(!params.skip_apa){
+    if(params.do_apa){
         ch_apa_peak = params.apa_peak ? Channel.fromPath( params.apa_peak, checkIfExists: true ) : ATAC_PEAK.out.mergedpeak
         if(params.apa_tool=='juicebox'){
             ch_apa_additional = INTERACTIONS.out.mergedloops.combine(ch_apa_additional).unique()
@@ -518,7 +518,7 @@ workflow HICAR {
     // calling high resolution fragments peaks and then call loops
     // this process is time comsuming step
     //
-    if(!params.skip_high_peak && params.method.toLowerCase()=="hicar"){
+    if(params.call_high_peak && params.method.toLowerCase()=="hicar"){
         HIPEAK(
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.chrom_sizes,
@@ -562,7 +562,7 @@ workflow HICAR {
     //
     // Motif analysis: for R2 reads and R1 reads
     //
-    if(!params.skip_tfea){
+    if(params.do_tfea){
         if(params.tfea_tool=='atacseqtfea'){
             ch_tfea_bed = ch_tfea_bed.map{[[id:it[1]], it[2]]}.groupTuple(by:0)
                             .combine(
@@ -588,7 +588,7 @@ workflow HICAR {
     //
     // visualization: virtual_4c
     //
-    if(!params.skip_virtual_4c){
+    if(params.create_virtual_4c){
         if(params.v4c_tool == 'hicexplorer'){
             if(params.da_tool == 'hicexplorer'){
                 V4C(

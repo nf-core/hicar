@@ -173,7 +173,7 @@ process DIFFHIC {
         ## PCA for multiQC
         try_res <- try({ ## try to output PCA results for multiQC
             json <- data.frame(x=mds\$x, y=mds\$y)
-            rownames(json) <- names(mds\$x)
+            rownames(json) <- colnames(y)
             json <- split(json, coldata[rownames(json), "condition"])
             json <- mapply(json, rainbow(n=length(json)), FUN=function(.ele, .color){
                 .ele <- cbind(.ele, "name"=rownames(.ele))
@@ -188,7 +188,6 @@ process DIFFHIC {
                 })
                 .ele <- paste(.ele, collapse=", ")
             })
-            json <- paste0('"', names(json), '" :', json)
             json <- c(
                     "{",
                     '"id":"sample_pca",',

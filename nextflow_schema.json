@@ -230,20 +230,6 @@
                     "hidden": false,
                     "help_text": "The minimum FDR cutoff to call significant peak for R2 reads. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
                     "default": 0.01
-                },
-                "skip_high_peak": {
-                    "type": "boolean",
-                    "description": "read peak calling for fragment (R1) reads by MACS2",
-                    "fa_icon": "fas fa-mountain",
-                    "hidden": false
-                },
-                "r1_pval_thresh": {
-                    "type": "number",
-                    "description": "cutoff pvalue for fragment (R1)",
-                    "fa_icon": "fas fa-filter",
-                    "hidden": false,
-                    "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noisy compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
-                    "default": 0.1
                 }
             }
         },
@@ -361,6 +347,20 @@
                     "hidden": false,
                     "help_text": "This method is only available for HiCAR data.",
                     "default": "http://3dgenome.fsm.northwestern.edu/peakachu/HiCAR-models/HiCAR-peakachu-pretrained."
+                },
+                "call_high_peak": {
+                    "type": "boolean",
+                    "description": "Call high resolution peaks or not",
+                    "fa_icon": "fas fa-mountain",
+                    "hidden": false
+                },
+                "r1_pval_thresh": {
+                    "type": "number",
+                    "description": "cutoff pvalue for fragment (R1)",
+                    "fa_icon": "fas fa-filter",
+                    "hidden": false,
+                    "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noisy compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps.",
+                    "default": 0.1
                 }
             }
         },
@@ -770,13 +770,6 @@
                     "fa_icon": "fas fa-comment-slash",
                     "hidden": false
                 },
-                "skip_enrichment": {
-                    "type": "boolean",
-                    "description": "skip enrichment or not",
-                    "fa_icon": "fas fa-comment-slash",
-                    "hidden": false,
-                    "default": true
-                },
                 "skip_diff_analysis": {
                     "type": "boolean",
                     "description": "skip differential analysis or not",
@@ -789,9 +782,9 @@
                     "fa_icon": "far fa-calendar-times",
                     "hidden": false
                 },
-                "skip_apa": {
+                "do_apa": {
                     "type": "boolean",
-                    "description": "skip APA or not",
+                    "description": "run APA or not",
                     "fa_icon": "far fa-times-circle"
                 },
                 "skip_compartments": {
@@ -811,12 +804,12 @@
                     "description": "skip call interactions/loops",
                     "fa_icon": "far fa-times-circle"
                 },
-                "skip_tfea": {
+                "do_tfea": {
                     "type": "boolean",
                     "fa_icon": "far fa-times-circle",
-                    "description": "skip Transcription Factor Enrichment Analysis"
+                    "description": "Do Transcription Factor Enrichment Analysis or not"
                 },
-                "skip_virtual_4c": {
+                "create_virtual_4c": {
                     "type": "boolean",
                     "description": "create track files for virtual 4c or not",
                     "fa_icon": "fas fa-align-left",

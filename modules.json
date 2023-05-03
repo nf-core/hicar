@@ -92,7 +92,7 @@
                     },
                     "gunzip": {
                         "branch": "master",
-                        "git_sha": "0f8a77ff00e65eaeebc509b8156eaa983192474b",
+                        "git_sha": "38b16706fa3a9d4ee2bf46fa5805e7397e275cdd",
                         "installed_by": ["modules"]
                     },
                     "homer/maketagdirectory": {

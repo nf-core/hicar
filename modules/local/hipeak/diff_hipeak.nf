@@ -214,7 +214,7 @@ process DIFF_HIPEAK {
         ## PCA for multiQC
         try_res <- try({
         json <- data.frame(x=mds\$x, y=mds\$y)
-        rownames(json) <- rownames(mds\$distance.matrix.squared)
+        rownames(json) <- colnames(y)
         json <- split(json, coldata[rownames(json), "condition"])
         json <- mapply(json, rainbow(n=length(json)), FUN=function(.ele, .color){
             .ele <- cbind(.ele, "name"=rownames(.ele))
@@ -228,9 +228,7 @@ process DIFF_HIPEAK {
                             '"}')
             })
             .ele <- paste(.ele, collapse=", ")
-            .ele <- paste("[", .ele, "]")
         })
-        json <- paste0('"', names(json), '" :', json)
         json <- c(
                 "{",
                 '"id":"sample_pca",',
