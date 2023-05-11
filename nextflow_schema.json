@@ -150,6 +150,16 @@
                     "description": "Path to blacklist regions in BED format, used for filtering alignments.",
                     "help_text": "If provided, alignments that overlap with the regions in this file will be filtered out (see [ENCODE blacklists](https://sites.google.com/site/anshulkundaje/projects/blacklists)). The file should be in BED format. Blacklisted regions for *GRCh37*, *GRCh38*, *GRCm38*, *hg19*, *hg38*, *mm10* are bundled with the pipeline in the [`blacklists`](../assets/blacklists/) directory, and as such will be automatically used if any of those genomes are specified with the `--genome` parameter.",
                     "fa_icon": "fas fa-book-dead"
+                },
+                "publish_mappability": {
+                    "type": "boolean",
+                    "description": "publish mappability to results genome/mappability folder",
+                    "fa_icon": "fas fa-align-center"
+                },
+                "publish_genome": {
+                    "type": "boolean",
+                    "description": "publish genome",
+                    "fa_icon": "fas fa-dna"
                 }
             }
         },
@@ -163,7 +173,7 @@
                     "type": "string",
                     "description": "Specifies that the cutting position has to be using.",
                     "fa_icon": "fas fa-vial",
-                    "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, and CviQI.",
+                    "help_text": "Default CviQI digestion. Available enzymes are MboI, DpnII, BglII, HindIII, MseI, and CviQI.",
                     "default": "CviQI"
                 },
                 "restriction_sites": {
@@ -181,6 +191,13 @@
                     "help_text": "Default is 0.5. It is the average over just covered bases.",
                     "hidden": false,
                     "default": 0.5
+                },
+                "cutadapt_5end": {
+                    "type": "string",
+                    "description": "trim 5' end with the string if not skip_cutadapt",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": "^TAC"
                 }
             }
         },
@@ -213,28 +230,14 @@
                     "hidden": false,
                     "help_text": "The minimum FDR cutoff to call significant peak for R2 reads. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
                     "default": 0.01
-                },
-                "high_resolution_R1": {
-                    "type": "boolean",
-                    "description": "read peak calling for fragment (R1) reads by MACS2",
-                    "fa_icon": "fas fa-mountain",
-                    "hidden": false
-                },
-                "r1_pval_thresh": {
-                    "type": "number",
-                    "description": "cutoff pvalue for fragment (R1)",
-                    "fa_icon": "fas fa-filter",
-                    "hidden": false,
-                    "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noisy compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps. See help from [MACS2 documentation](https://github.com/macs3-project/MACS/blob/master/docs/callpeak.md)",
-                    "default": 0.1
                 }
             }
         },
-        "MAPS_peak_calling_options": {
-            "title": "MAPS peak calling options",
+        "loops_calling_options": {
+            "title": "Interactions calling options",
             "type": "object",
             "fa_icon": "fab fa-connectdevelop",
-            "descripton": "Options for MAPS peak calling options for ATAC-seq reads (R2).",
+            "descripton": "Options for loops calling options.",
             "properties": {
                 "cool_bin": {
                     "type": "string",
@@ -273,7 +276,7 @@
                     "description": "MAPS regression -log10(fdr) cutoff value",
                     "fa_icon": "fas fa-percent",
                     "hidden": false,
-                    "help_text": "Minimal cutoff -log10(FDR) value in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2 (=fdr 0.05).",
+                    "help_text": "Minimal cutoff -log10(FDR) value in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2 (=fdr 0.01).",
                     "default": 2
                 },
                 "maps_filter": {
@@ -292,30 +295,6 @@
                     "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson.",
                     "default": "pospoisson",
                     "enum": ["pospoisson", "negbinom"]
-                },
-                "merge_map_py_source": {
-                    "type": "string",
-                    "description": "source code path for merge_map.py",
-                    "fa_icon": "fab fa-github",
-                    "hidden": true,
-                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/merge_map.py",
-                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/91c9c360092b25a217d91b9ea07eba5dd2ac72f4/bin/utils/genomic_features_generator/scripts/merge_map.py"
-                },
-                "feature_frag2bin_source": {
-                    "type": "string",
-                    "description": "feature_frag2bin source path",
-                    "fa_icon": "fab fa-github",
-                    "hidden": true,
-                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py",
-                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/91c9c360092b25a217d91b9ea07eba5dd2ac72f4/bin/utils/genomic_features_generator/scripts/feature_frag2bin.py"
-                },
-                "make_maps_runfile_source": {
-                    "type": "string",
-                    "description": "make_maps_runfile source path",
-                    "fa_icon": "fab fa-github",
-                    "hidden": true,
-                    "help_text": "The source code is available at https://github.com/ijuric/MAPS/blob/master/bin/MAPS/make_maps_runfile.py",
-                    "default": "https://raw.githubusercontent.com/ijuric/MAPS/18c1a337f222130d7c5735d051614e2a253d5319/bin/MAPS/make_maps_runfile.py"
                 },
                 "remove_dup": {
                     "type": "boolean",
@@ -338,21 +317,186 @@
                     "fa_icon": "fas fa-th",
                     "hidden": true,
                     "default": 1000000000
+                },
+                "min_counts_per_loop": {
+                    "type": "number",
+                    "description": "The minimal number reads count of peak pair",
+                    "fa_icon": "fas fa-th",
+                    "hidden": true,
+                    "default": 1
+                },
+                "skip_maps_signal": {
+                    "type": "boolean",
+                    "description": "skip creat cooler files for maps or not",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": true,
+                    "default": true
+                },
+                "hicdcplus_cutoff_fdr": {
+                    "type": "number",
+                    "description": "FDR cutoff value",
+                    "fa_icon": "fas fa-percent",
+                    "hidden": false,
+                    "help_text": "Minimal cutoff FDR value in the called connections. See help from [HiCDCPlus documentation](https://bioconductor.org/packages/HiCDCPlus/), default 0.05.",
+                    "default": 0.05
+                },
+                "peakachu_pretrained_url": {
+                    "type": "string",
+                    "description": "The predefined modle download prefix string",
+                    "fa_icon": "fas fa-percent",
+                    "hidden": false,
+                    "help_text": "This method is only available for HiCAR data.",
+                    "default": "http://3dgenome.fsm.northwestern.edu/peakachu/HiCAR-models/HiCAR-peakachu-pretrained."
+                },
+                "call_high_peak": {
+                    "type": "boolean",
+                    "description": "Call high resolution peaks or not",
+                    "fa_icon": "fas fa-mountain",
+                    "hidden": false
+                },
+                "r1_pval_thresh": {
+                    "type": "number",
+                    "description": "cutoff pvalue for fragment (R1)",
+                    "fa_icon": "fas fa-filter",
+                    "hidden": false,
+                    "help_text": "The minimum FDR cutoff to call significant peak for R1 reads. R1 reads will be more noisy compare to R2 reads. Here we need a loose cutoff. And this will be fixed in the following steps.",
+                    "default": 0.1
+                }
+            }
+        },
+        "compartment_tads_apa_options": {
+            "title": "Options related to compartment, TADs calling, and APA",
+            "type": "object",
+            "fa_icon": "fab fa-wpforms",
+            "descripton": "Options for compartment, TADs calling, and APA",
+            "properties": {
+                "res_compartments": {
+                    "type": "number",
+                    "description": "The resolution for compartments calling",
+                    "fa_icon": "fas fa-th",
+                    "default": 100000
+                },
+                "res_tads": {
+                    "type": "number",
+                    "description": "The resolution for TADs calling",
+                    "help_text": "If tad_tool is set to resolution, the windows will be calculated by 3X, 5X, 10X and 15X resolution. If tad_tool is set to hicfindtads, this will determine the step parameter.",
+                    "fa_icon": "fas fa-th",
+                    "default": 10000
+                },
+                "tad_tool": {
+                    "type": "string",
+                    "description": "The caller for TADs, available choices: 'cooltools', 'hicexplorer', 'homer'",
+                    "help_text": "Possible tools are hicfindtads and cooltools (by insulation function).",
+                    "fa_icon": "fas fa-th",
+                    "default": "hicexplorer",
+                    "enum": ["cooltools", "hicexplorer", "homer"]
+                },
+                "apa_peak": {
+                    "type": "string",
+                    "description": "The APA peak path",
+                    "default": "Anchor 1D peaks",
+                    "hidden": false,
+                    "fa_icon": "fas fa-caret-up"
+                },
+                "apa_tool": {
+                    "type": "string",
+                    "default": "hicexplorer",
+                    "description": "APA tool, available choices: 'cooltools', 'hicexplorer', and 'juicebox'",
+                    "fa_icon": "fab fa-adn",
+                    "enum": ["cooltools", "hicexplorer", "juicebox"]
+                },
+                "apa_format": {
+                    "type": "string",
+                    "description": "The APA output figure format. Currently this parameter will not affect the Juicer output format (always png format).",
+                    "default": "png",
+                    "hidden": false,
+                    "fa_icon": "fas fa-caret-up"
+                },
+                "compartments_tool": {
+                    "type": "string",
+                    "default": "cooltools",
+                    "description": "Call compartment tool, available choices: 'cooltools', 'hicexplorer', 'homer', and 'juicebox'",
+                    "fa_icon": "fas fa-expand",
+                    "enum": ["cooltools", "hicexplorer", "homer", "juicebox"]
+                },
+                "interactions_tool": {
+                    "type": "string",
+                    "default": "maps",
+                    "description": "Call loops tool, available choices: 'maps', 'hicdcplus', and 'peakachu'",
+                    "fa_icon": "fab fa-airbnb",
+                    "enum": ["maps", "hicdcplus", "peakachu"]
+                },
+                "da_tool": {
+                    "type": "string",
+                    "default": "diffhic",
+                    "description": "Differential analysis tool. Possible options are 'edger', 'diffhic', 'hicexplorer', and 'setOperation'",
+                    "fa_icon": "fas fa-adjust",
+                    "enum": ["edger", "diffhic", "hicexplorer", "setOperation"]
+                },
+                "v4c_tool": {
+                    "type": "string",
+                    "default": "hicexplorer",
+                    "description": "virtual 4c tool, available choices: 'cooltools', 'hicexplorer', and 'trackviewer'",
+                    "fa_icon": "fas fa-mountain",
+                    "enum": ["cooltools", "hicexplorer", "trackviewer"]
+                },
+                "tfea_tool": {
+                    "type": "string",
+                    "default": "homer",
+                    "fa_icon": "fas fa-infinity",
+                    "description": "Transcription Factor Enrichment Analysis tool, available choices: 'atacseqtfea', and 'homer'",
+                    "enum": ["atacseqtfea", "homer"]
+                },
+                "juicer_tools_jar": {
+                    "type": "string",
+                    "default": "https://github.com/aidenlab/JuicerTools/releases/download/v3.0.0/juicer_tools.3.0.0.jar",
+                    "description": "juicer_tools jar file url",
+                    "help_text": "The juicer_tools is ued for downstream analysis such as apa/arrowhead/hiccups. The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/JuicerTools/releases/)",
+                    "fa_icon": "fab fa-java"
+                },
+                "juicer_norm_method": {
+                    "type": "string",
+                    "default": "SCALE",
+                    "description": "Normalization methods",
+                    "help_text": "See more details at [addNorm](https://github.com/aidenlab/juicer/wiki/AddNorm). Avaiable selection are limited by APA and Eigenvector normalization methods.",
+                    "fa_icon": "fab fa-java",
+                    "enum": ["VC", "VC_SQRT", "KR", "SCALE", "NONE"]
+                },
+                "peak_interactions_threshold": {
+                    "type": "integer",
+                    "default": 2,
+                    "description": "parameter for HiCExplorer ChicSignificantinterations",
+                    "fa_icon": "fas fa-filter"
+                },
+                "maps_3d_ext": {
+                    "type": "string",
+                    "default": "sig3Dinteractions.pe.txt",
+                    "hidden": true,
+                    "description": "extension file name for MAPS",
+                    "fa_icon": "far fa-file"
+                },
+                "long_bedpe_postfix": {
+                    "type": "string",
+                    "default": "long.bedpe",
+                    "hidden": true,
+                    "description": "extension file name for long pairs",
+                    "fa_icon": "far fa-file"
+                },
+                "short_bed_postfix": {
+                    "type": "string",
+                    "default": "shrt.vip.bed",
+                    "hidden": true,
+                    "description": "extension file name for short pairs",
+                    "fa_icon": "far fa-file"
                 }
             }
         },
         "Visualization_options": {
-            "title": "Options related to tracks, juicer_tools, and circos",
+            "title": "Options related to tracks, HiCTools, and circos",
             "type": "object",
             "fa_icon": "fab fa-wpforms",
             "description": "Options for tracks viewed by igv, ucsc genome browser and virtual 4c plot tools",
             "properties": {
-                "virtual_4c": {
-                    "type": "boolean",
-                    "description": "create track files for virtual 4c or not",
-                    "fa_icon": "fas fa-align-left",
-                    "hidden": false
-                },
                 "v4c_max_events": {
                     "type": "integer",
                     "description": "max events to plot for virtual 4c",
@@ -360,21 +504,13 @@
                     "hidden": false,
                     "default": 25
                 },
-                "juicer_jvm_params": {
+                "hic_tools_jar": {
                     "type": "string",
-                    "description": "JVM heap parameters for juicer",
-                    "default": "-Xms512m -Xmx4096m",
-                    "fa_icon": "far fa-clock",
-                    "hidden": false,
-                    "help_text": "For 64bit system, you may want to set the Xmx > 4g, eg. '-Xms1024m -Xmx32g'"
-                },
-                "juicer_tools_jar": {
-                    "type": "string",
-                    "description": "The juicer_tools path",
-                    "default": "https://s3.amazonaws.com/hicfiles.tc4ga.com/public/juicer/juicer_tools_1.22.01.jar",
+                    "description": "The HiCTools path",
+                    "default": "https://github.com/aidenlab/HiCTools/releases/download/v3.30.00/hic_tools.3.30.00.jar",
                     "fa_icon": "far fa-java",
                     "hidden": false,
-                    "help_text": "The juicer_tools can be downloaded from [juicer_tools download page](https://github.com/aidenlab/juicer/wiki/Download)"
+                    "help_text": "This tool is used for pre/addNorm/eigenvector/pearsons/sum. Pre is the tool to create .hic file; eigenvector is used for compartment caller. The hic_tools can be downloaded from [HiCTools download page](https://github.com/aidenlab/HiCTools/releases)"
                 }
             }
         },
@@ -468,7 +604,7 @@
         "max_job_request_options": {
             "title": "Max job request options",
             "type": "object",
-            "fa_icon": "fab fa-acquisitions-incorporated",
+            "fa_icon": "fas fa-server",
             "description": "Set the top limit for requested resources for any single job.",
             "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
             "properties": {
@@ -513,6 +649,12 @@
                     "fa_icon": "fas fa-question-circle",
                     "hidden": true
                 },
+                "version": {
+                    "type": "boolean",
+                    "description": "Display version and exit.",
+                    "fa_icon": "fas fa-question-circle",
+                    "hidden": true
+                },
                 "publish_dir_mode": {
                     "type": "string",
                     "default": "copy",
@@ -550,11 +692,29 @@
                     "fa_icon": "fas fa-palette",
                     "hidden": true
                 },
+                "hook_url": {
+                    "type": "string",
+                    "description": "Incoming hook URL for messaging service",
+                    "fa_icon": "fas fa-people-group",
+                    "help_text": "Incoming hook URL for messaging service. Currently, MS Teams and Slack are supported.",
+                    "hidden": true
+                },
                 "multiqc_config": {
                     "type": "string",
                     "description": "Custom config file to supply to MultiQC.",
                     "fa_icon": "fas fa-cog",
                     "hidden": true
+                },
+                "multiqc_logo": {
+                    "type": "string",
+                    "description": "Custom logo file to supply to MultiQC. File name must also be set in the MultiQC config file",
+                    "fa_icon": "fas fa-image",
+                    "hidden": true
+                },
+                "multiqc_methods_description": {
+                    "type": "string",
+                    "description": "Custom MultiQC yaml file containing HTML including a methods description.",
+                    "fa_icon": "fas fa-cog"
                 },
                 "tracedir": {
                     "type": "string",
@@ -576,12 +736,6 @@
                     "description": "Show all params when using `--help`",
                     "hidden": true,
                     "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
-                },
-                "enable_conda": {
-                    "type": "boolean",
-                    "description": "Run this workflow with Conda. You can also use '-profile conda' instead of providing this parameter.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-bacon"
                 }
             }
         },
@@ -594,7 +748,13 @@
             "properties": {
                 "skip_cutadapt": {
                     "type": "boolean",
-                    "description": "skip trim 5'end TAC",
+                    "description": "skip trim 5'end",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false
+                },
+                "resample_pairs": {
+                    "type": "boolean",
+                    "description": "resample the pairs by pairtools",
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false
                 },
@@ -610,13 +770,6 @@
                     "fa_icon": "fas fa-comment-slash",
                     "hidden": false
                 },
-                "skip_enrichment": {
-                    "type": "boolean",
-                    "description": "skip enrichment or not",
-                    "fa_icon": "fas fa-comment-slash",
-                    "hidden": false,
-                    "default": true
-                },
                 "skip_diff_analysis": {
                     "type": "boolean",
                     "description": "skip differential analysis or not",
@@ -628,6 +781,44 @@
                     "description": "skip multiqc or not",
                     "fa_icon": "far fa-calendar-times",
                     "hidden": false
+                },
+                "do_apa": {
+                    "type": "boolean",
+                    "description": "run APA or not",
+                    "fa_icon": "far fa-times-circle"
+                },
+                "skip_compartments": {
+                    "type": "boolean",
+                    "description": "skip call compartment or not",
+                    "fa_icon": "far fa-comment-slash",
+                    "hidden": false
+                },
+                "skip_tads": {
+                    "type": "boolean",
+                    "description": "skip call TADs or not",
+                    "fa_icon": "far fa-comment-slash",
+                    "hidden": false
+                },
+                "skip_interactions": {
+                    "type": "boolean",
+                    "description": "skip call interactions/loops",
+                    "fa_icon": "far fa-times-circle"
+                },
+                "do_tfea": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-times-circle",
+                    "description": "Do Transcription Factor Enrichment Analysis or not"
+                },
+                "create_virtual_4c": {
+                    "type": "boolean",
+                    "description": "create track files for virtual 4c or not",
+                    "fa_icon": "fas fa-align-left",
+                    "hidden": false
+                },
+                "skip_circos": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-times-circle",
+                    "description": "skip circos plot"
                 }
             }
         }
@@ -646,7 +837,10 @@
             "$ref": "#/definitions/MACS2_peak_calling_options"
         },
         {
-            "$ref": "#/definitions/MAPS_peak_calling_options"
+            "$ref": "#/definitions/loops_calling_options"
+        },
+        {
+            "$ref": "#/definitions/compartment_tads_apa_options"
         },
         {
             "$ref": "#/definitions/Visualization_options"

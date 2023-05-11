@@ -1,7 +1,7 @@
 process SEQLEVELS_STYLE {
     tag "$bed"
 
-    conda (params.enable_conda ? "bioconda::bioconductor-genomeinfodb=1.26.4" : null)
+    conda "bioconda::bioconductor-genomeinfodb=1.26.4"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-genomeinfodb:1.26.4--r40hdfd78af_0' :
@@ -17,6 +17,13 @@ process SEQLEVELS_STYLE {
     script:
     """
     #!/usr/bin/env Rscript
+    #######################################################################
+    #######################################################################
+    ## Created to detect the chromosome levels styles
+    ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
+    #######################################################################
+    #######################################################################
 
     library(GenomeInfoDb)
     versions <- c(

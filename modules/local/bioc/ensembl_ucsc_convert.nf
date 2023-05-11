@@ -2,7 +2,7 @@ process ENSEMBL_UCSC_CONVERT {
     tag "$fname"
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-rtracklayer=1.50.0" : null)
+    conda "bioconda::bioconductor-rtracklayer=1.50.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' :
@@ -19,6 +19,13 @@ process ENSEMBL_UCSC_CONVERT {
     def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
+    #######################################################################
+    #######################################################################
+    ## Created to convert the chromosome levels styles
+    ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
+    #######################################################################
+    #######################################################################
     pkgs <- c("GenomeInfoDb", "rtracklayer")
     versions <- c("${task.process}:")
     for(pkg in pkgs){

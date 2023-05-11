@@ -2,7 +2,7 @@ process MAPS_MERGE {
     tag "$bin_size"
     label 'process_low'
 
-    conda (params.enable_conda ? "pandas=1.1.5" : null)
+    conda "pandas=1.1.5"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/pandas:1.1.5' :
@@ -10,7 +10,6 @@ process MAPS_MERGE {
 
     input:
     tuple val(bin_size), path(cut), path(mappability)
-    path merge_map_py_source
 
     output:
     tuple val(bin_size), path("${cut.getSimpleName()}")    , emit: map
@@ -19,7 +18,7 @@ process MAPS_MERGE {
     script:
     def args = task.ext.args ?: ''
     """
-    python $merge_map_py_source \\
+    merge_map.py \\
         -c $cut \\
         -m $mappability \\
         -o tmp.map

@@ -3,7 +3,7 @@ process PREPARE_COUNTS {
     label 'process_high'
     label 'process_long'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
+    conda "bioconda::bioconductor-trackviewer=1.28.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0' :
@@ -67,6 +67,7 @@ process PREPARE_COUNTS {
     OUTPUT <- "counts.${meta.id}.${chrom1}.rds"
     NCORE <- as.numeric("$task.cpus")
     SNOW_TYPE <- "SOCK"
+    COUNTS_FILTER <- 1
     peak_pair_block <- 1e9
     if(!is.null(opt\$peak_pair_block)){
         peak_pair_block <- opt\$peak_pair_block
@@ -89,6 +90,7 @@ process PREPARE_COUNTS {
     chromosomes <- intersect(names(R1PEAK), names(R2PEAK))
     chromosomes <- chromosomes[!grepl("_", chromosomes)]
     chromosomes <- chromosomes[!grepl("M", chromosomes)] ## remove chrM/chrMT
+    chromosomes <- chromosomes[!grepl("EBV", chromosomes)]
     if(length(chromosomes)==0){
         stop("no valid data in same chromosome.")
     }
@@ -159,7 +161,7 @@ process PREPARE_COUNTS {
                     .dist[is.na(.dist)] <- 3e9
                     S4Vectors::mcols(.gi)[, "count"] <- InteractionSet::countOverlaps(.gi, reads, use.region="both")
                     S4Vectors::mcols(.gi)[, "shortCount"] <- GenomicRanges::countOverlaps(S4Vectors::second(.gi), S4Vectors::second(reads))
-                    .gi[S4Vectors::mcols(.gi)[, "count"]>0 & S4Vectors::mcols(.gi)[, "shortCount"]>0 & .dist>1000]
+                    .gi[S4Vectors::mcols(.gi)[, "count"]>=COUNTS_FILTER & S4Vectors::mcols(.gi)[, "shortCount"]>=COUNTS_FILTER & .dist>1000]
                 }
                 countFUNbyPairs <- function(r1peak, r2peak, peak_pairs, reads, parallel){
                     peak_pairs_group <- ceiling(nrow(peak_pairs)/peak_pair_block)

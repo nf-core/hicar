@@ -1,7 +1,7 @@
 process DIFF_HIPEAK {
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-diffhic=1.24.0" : null)
+    conda "bioconda::bioconductor-diffhic=1.24.0"
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/bioconductor-diffhic:1.24.0--r41h399db7b_0 "
     } else {
@@ -14,6 +14,7 @@ process DIFF_HIPEAK {
 
     output:
     path "${prefix}/*"                        , emit: diff
+    path "${prefix}/*.bedpe"  , optional: true, emit: bedpe
     path "${prefix}/*.qc.json", optional: true, emit: stats
     path "versions.yml"                       , emit: versions
 
@@ -213,7 +214,7 @@ process DIFF_HIPEAK {
         ## PCA for multiQC
         try_res <- try({
         json <- data.frame(x=mds\$x, y=mds\$y)
-        rownames(json) <- rownames(mds\$distance.matrix.squared)
+        rownames(json) <- colnames(y)
         json <- split(json, coldata[rownames(json), "condition"])
         json <- mapply(json, rainbow(n=length(json)), FUN=function(.ele, .color){
             .ele <- cbind(.ele, "name"=rownames(.ele))
@@ -227,9 +228,7 @@ process DIFF_HIPEAK {
                             '"}')
             })
             .ele <- paste(.ele, collapse=", ")
-            .ele <- paste("[", .ele, "]")
         })
-        json <- paste0('"', names(json), '" :', json)
         json <- c(
                 "{",
                 '"id":"sample_pca",',
@@ -277,7 +276,12 @@ process DIFF_HIPEAK {
             write.csv(elementMetadata, fname(name, "csv", "edgeR.metadata", name), row.names = TRUE)
             ## save subset results
             res.s <- res[res\$FDR<0.05 & abs(res\$logFC)>1, ]
-            write.csv(res.s, fname(name, "csv", "edgeR.DEtable", name, "padj0.05.lfc1"), row.names = FALSE)
+            if(nrow(res.s)>0){
+                write.csv(res.s, fname(name, "csv", "edgeR.DEtable", name, "padj0.05.lfc1"), row.names = FALSE)
+                write.table(res.s[, c("chr1", "start1", "end1", "chr2", "start2", "end2"), drop=FALSE],
+                    fname(name, "bedpe", "edgeR.DEtable", name, "padj0.05.lfc1"),
+                    row.names = FALSE, col.names=FALSE, quote=FALSE, sep="\\t")
+            }
             ## Volcano plot
             res\$qvalue <- -10*log10(res\$PValue)
             pdf(fname(name, "pdf", "Volcano-plot", name))

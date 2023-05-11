@@ -1,7 +1,7 @@
 process MERGE_PEAK {
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
+    conda "bioconda::bedtools=2.30.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0' :
@@ -20,8 +20,9 @@ process MERGE_PEAK {
     cat $peak | \\
         cut -f1-3 | \\
         sort -k1,1 -k2,2n | \\
-        bedtools merge $args \\
-            -i stdin > merged_peak.bed
+        bedtools merge $args -i stdin | \\
+        awk '{printf "%s\\tpeak%s\\n",\$0,NR}' \\
+            > merged_peak.bed
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

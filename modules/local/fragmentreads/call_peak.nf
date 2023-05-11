@@ -2,7 +2,7 @@ process CALL_R1PEAK {
     tag "$meta.id"
     label 'process_high'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
+    conda "bioconda::bioconductor-trackviewer=1.28.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0' :
@@ -63,7 +63,7 @@ process CALL_R1PEAK {
     dist <- median(mcols(dist)[, "distance"])
     peaks <- promoters(peaks, upstream=dist, downstream=dist)
     peaks <- GenomicRanges::trim(peaks)
-    rd <- reduce(peaks, with.revmap=TRUE)
+    rd <- reduce(peaks, min.gapwidth=dist, with.revmap=TRUE)
     revmap <- mcols(rd)[, "revmap"]
     l <- lengths(revmap)>1
     if(any(l)){

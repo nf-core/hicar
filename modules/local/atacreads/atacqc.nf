@@ -1,7 +1,7 @@
 process ATACQC {
     label 'process_medium'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-atacseqqc=1.16.0" : null)
+    conda "bioconda::bioconductor-atacseqqc=1.16.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-atacseqqc:1.16.0--r41hdfd78af_0' :
@@ -25,6 +25,7 @@ process ATACQC {
     #######################################################################
     ## Created on Sept. 10, 2021 stats for ATAC reads
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     pkgs <- c("rtracklayer", "GenomicFeatures", "ATACseqQC")

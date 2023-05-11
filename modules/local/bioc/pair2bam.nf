@@ -3,7 +3,7 @@ process PAIR2BAM {
     label 'process_high'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
+    conda "bioconda::bioconductor-trackviewer=1.28.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0' :
@@ -24,6 +24,7 @@ process PAIR2BAM {
     #######################################################################
     ## Created on Oct. 2021 convert pairs.gz to bam file for visualization
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     pkgs <- c("Rsamtools", "InteractionSet", "rhdf5")

@@ -2,7 +2,7 @@ process MAPS_FEND {
     tag "$bin_size"
     label 'process_low'
 
-    conda (params.enable_conda ? "bioconda::bedtools=2.30.0" : null)
+    conda "bioconda::bedtools=2.30.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0' :

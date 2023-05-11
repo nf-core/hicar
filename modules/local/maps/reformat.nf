@@ -2,7 +2,7 @@ process MAPS_REFORMAT {
     tag "$meta.id"
     label 'process_low'
 
-    conda (params.enable_conda ? "conda-forge::r-data.table=1.12.2" : null)
+    conda "conda-forge::r-data.table=1.12.2"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-data.table:1.12.2' :
@@ -10,10 +10,12 @@ process MAPS_REFORMAT {
 
     input:
     tuple val(meta), val(bin_size), path(peak)
+    val maps_3d_ext
 
     output:
-    tuple val(meta), val(bin_size), path("*.sig3Dinteractions.bedpe"), emit: bedpe
-    path "versions.yml"           , emit: versions
+    tuple val(meta), val(bin_size), path("*.bedpe")             , emit: bedpe
+    tuple val(meta), val(bin_size), path("*.${maps_3d_ext}")    , emit: peaks
+    path "versions.yml"                                         , emit: versions
 
     script:
     """
@@ -57,8 +59,13 @@ process MAPS_REFORMAT {
         }
         peaks_final = subset(peaks, select = c("chr", "bin1_mid", "bin1_end", "chr", "bin2_mid", "bin2_end", "count", "expected2", "fdr", "lab", "ClusterSize", "ClusterType", "NegLog10P", "summit"))
         colnames(peaks_final) = c('chr1', 'start1', 'end1', 'chr2', 'start2', 'end2', 'count', 'expected', 'fdr', 'ClusterLabel', 'ClusterSize', 'ClusterType', 'ClusterNegLog10P', 'ClusterSummit')
-        fout = sub(".peaks",'.sig3Dinteractions.bedpe',inf)
+        fout = sub(".peaks",paste0('.', "$maps_3d_ext"),inf)
         write.table(peaks_final, fout, row.names = FALSE, col.names = TRUE, quote=FALSE, sep='\t')
+        peaks_final\$name='.'
+        peaks_final <- peaks_final[, c('chr1', 'start1', 'end1', 'chr2', 'start2', 'end2', 'name', 'ClusterNegLog10P')]
+        write.table(peaks_final,
+            sub(".peaks", ".bedpe", inf),
+            row.names=FALSE, col.names=FALSE, quote=FALSE, sep="\t")
     }
     """
 }

@@ -2,7 +2,7 @@ process MERGE_READS {
     tag "$meta.id"
     label 'process_low'
 
-    conda (params.enable_conda ? "bioconda::samtools=1.10" : null)
+    conda "bioconda::samtools=1.10"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2' :
