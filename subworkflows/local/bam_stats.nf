@@ -2,7 +2,7 @@
  * Createing Stats for mapping results
  */
 
-include { SAMTOOLS_SORT                } from '../../modules/nf-core/samtools/sort/main'
+include { SAMTOOLS_SORT                } from '../../modules/local/samtools/sort/main'
 include { SAMTOOLS_INDEX               } from '../../modules/nf-core/samtools/index/main'
 include { SAMTOOLS_STATS               } from '../../modules/nf-core/samtools/stats/main'
 include { SAMTOOLS_IDXSTATS            } from '../../modules/nf-core/samtools/idxstats/main'
