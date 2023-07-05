@@ -325,12 +325,12 @@
                     "hidden": true,
                     "default": 1
                 },
-                "skip_maps_signal": {
+                "create_maps_signal": {
                     "type": "boolean",
                     "description": "skip creat cooler files for maps or not",
                     "fa_icon": "fas fa-comment-slash",
                     "hidden": true,
-                    "default": true
+                    "default": false
                 },
                 "hicdcplus_cutoff_fdr": {
                     "type": "number",
