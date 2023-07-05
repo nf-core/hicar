@@ -31,7 +31,7 @@ CONTROL,1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
 CONTROL,1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
 ```
 
-Please Note that the dots ('.') and space (' ') in the group names will be replaced by '\_' to avoid the potential issues of python scripts. In the pipeline, the group names will be used as prefix of filenames. Many tools developed in python will consider the first dot as the sign of file extension and this will throw errors when the program does not expected the extra dots in the filenames. If you want to keep consistent of file naming system with the group names, please consider to replace all the dots and space in the samplesheet.
+Please Note that the dots ('.') and space (' ') in the group names will be replaced by '\_' to avoid potential issues in python scripts. In the pipeline, the group names will be used as the prefix for filenames. Many tools developed in python will consider the first dot as the sign of file extension and this will throw errors when the program does not expected the extra dots in the filenames. If you want to keep consistent of file naming system with the group names, please consider to replace all the dots and spaces in the samplesheet.
 
 ### Full samplesheet
 
@@ -72,7 +72,7 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 On a large scale, the arrangement of chromosomes are organised into two compartments labelled A ("active") and B ("inactive").
 A/B compartment-associated regions are on the multi-Mb scale and correlate with either open and expression-active chromatin ("A" compartments) or closed and expression inactive chromatin ("B" compartments). A compartments tend to be gene-rich, have high GC-content, contain histone markers for active transcription, and usually displace the interior of the nucleus. The regions in compartment A tend to interact preferentially with A compartment-associated regions than B compartment-associated ones. B compartments, on the other hand, tend to be gene-poor, compact, contain histone markers for gene silencing, and lie on the nuclear periphery.
 
-A topologically associating domain (TAD) is a smaller size genomic region compare to A/B compartments. It is a self-interacting genomic region. Most of the studies indicate TADs regulate gene expression by limiting the enhancer-promoter interaction to each TAD. A number of proteins are known to be associated with TAD formation. The most studied proteins are the protein CTCF and the protein complex cohesin. It has been shown that the TAD boundaries have high levels of CTCF binding and cohesin/lamina shifting edges.
+A topologically associating domain (TAD) is a smaller size genomic region compared to A/B compartments. It is a self-interacting genomic region. Most of the studies indicate TADs regulate gene expression by limiting the enhancer-promoter interaction to each TAD. A number of proteins are known to be associated with TAD formation. The most studied proteins are the protein CTCF and the protein complex cohesin. It has been shown that the TAD boundaries have high levels of CTCF binding and cohesin/lamina shifting edges.
 
 There are multiple available modules to call A/B compartments and TADs.
 
@@ -92,7 +92,7 @@ Chromatin loops (or significant interactions), represent two inter/intra chromos
 
 In downstream, differential analysis available for called interactions. Available tools are Bioconductor packages such as `edgeR`, and `diffhic`, and [`HiCExplorer`](https://hicexplorer.readthedocs.io/en/latest/). We borrowed capture Hi-C analysis pipeline from HiCExplorer to do the differential analysis. Different from `edgeR` and `diffhic` pipeline, HiCExplorer pipeline does not require the replicates. A simple differential analysis by set operation are also available.
 
-For annotation, we will use Bioconductor package [`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/). Please note that, the involved genes are not only distance based annotation. The most of the interaction calling tools are bin-based caller, and the bin size are kilo-base or even more, which make the annotation difficult. For HiCAR data, the R2 reads are Tn5 insertion site of the open chromatin. And most of the R2 reads will be an anchor of annotion for the gene promoters. We will annotate the interactions by the annotation of called ATAC (R2) peaks located within the interaction regions.
+For annotation, we will use Bioconductor package [`ChIPpeakAnno`](https://bioconductor.org/packages/ChIPpeakAnno/). Please note that, the involved genes are not only distance based annotation. The most of the interaction calling tools are bin-based caller, and the bin size are kilo-base or even more, which make the annotation difficult. For HiCAR data, the R2 reads are Tn5 insertion site of the open chromatin. And most of the R2 reads will be an anchor of annotation for the gene promoters. We will annotate the interactions by the annotation of called ATAC (R2) peaks located within the interaction regions.
 
 ### Call high resolution interactions
 
