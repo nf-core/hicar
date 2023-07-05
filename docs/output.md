@@ -260,7 +260,7 @@ and [peakachu](https://doi.org/10.1038/s41467-020-17239-9) or other tools are al
 
 Differential analysis for the loops by [edgeR](https://pubmed.ncbi.nlm.nih.gov/19910308/),
 [diffHic](https://doi.org/10.1186/s12859-015-0683-0) or simply set operation will be put in the folder.
-The subfolder names are the tools used in differentail analysis and in each subfolder,
+The subfolder names are the tools used in differential analysis and in each subfolder,
 different resolution results will be saved in another subfolder.
 
 The input counts are filtered counts dumped by pairtools for each samples.
