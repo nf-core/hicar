@@ -2,7 +2,7 @@ process DIFFSET {
     tag "$bin_size"
     label 'process_low'
 
-    conda "conda-forge::r-upsetr=1.4.0"
+    conda "conda-forge::r-upsetr=1.0.3"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-upsetr:1.0.3--r3.3.2_1' :
@@ -13,9 +13,9 @@ process DIFFSET {
     val long_bedpe_postfix
 
     output:
-    tuple val(bin_size), path("${prefix}/*")               , emit: diff
+    tuple val(bin_size), path("${prefix}/*")                                              , emit: diff
     tuple val(bin_size), val("$prefix"), path("${prefix}/setOperation.*") , optional: true, emit: anno
-    path "versions.yml"                                    , emit: versions
+    path "versions.yml"                                                                   , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "setOperation_bin${bin_size}"

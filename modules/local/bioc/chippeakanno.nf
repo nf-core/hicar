@@ -15,10 +15,10 @@ process BIOC_CHIPPEAKANNO {
     val maps_3d_ext
 
     output:
-    tuple val(foldername), path("${prefix}/*"), emit: anno
+    tuple val(foldername), path("${prefix}/*")          , emit: anno
     tuple val(foldername), path("${prefix}/**.anno.csv"), emit: csv
-    path "${prefix}/*.png", optional:true, emit: png
-    path "versions.yml"                       , emit: versions
+    path "${prefix}/*.png", optional:true               , emit: png
+    path "versions.yml"                                 , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "$foldername"

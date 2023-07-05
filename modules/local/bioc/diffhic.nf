@@ -13,11 +13,11 @@ process DIFFHIC {
     val long_bedpe_postfix
 
     output:
-    tuple val(bin_size), path("${prefix}/*")               , emit: diff
+    tuple val(bin_size), path("${prefix}/*")                                               , emit: diff
     tuple val(bin_size), val("$prefix"), path("${prefix}/diffHic.DEtable*"), optional: true, emit: anno
-    tuple val(bin_size), val("$prefix"), path("${prefix}/*.bedpe") , optional: true, emit: bedpe
-    path "${prefix}/*.qc.json"                             , emit: stats
-    path "versions.yml"                                    , emit: versions
+    tuple val(bin_size), val("$prefix"), path("${prefix}/*.bedpe")         , optional: true, emit: bedpe
+    path "${prefix}/*.qc.json"                                                             , emit: stats
+    path "versions.yml"                                                                    , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "diffHic_bin${bin_size}"
