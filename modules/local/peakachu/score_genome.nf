@@ -5,7 +5,7 @@ process PEAKACHU_SCORE {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/cooltools:0.5.2--py39h5371cbf_1' :
-        'quay.io/biocontainers/cooltools:0.5.2--py39h5371cbf_1' }"
+        'biocontainers/cooltools:0.5.2--py39h5371cbf_1' }"
 
     input:
     tuple val(meta), path(cool), path(model)

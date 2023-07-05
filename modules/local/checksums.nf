@@ -6,7 +6,7 @@ process CHECKSUMS {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/coreutils:8.31--h14c3975_0' :
-        'quay.io/biocontainers/coreutils:8.31--h14c3975_0' }"
+        'biocontainers/coreutils:8.31--h14c3975_0' }"
 
     input:
     tuple val(meta), path(reads)

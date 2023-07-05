@@ -6,7 +6,7 @@ process PAIRSPLOT {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-chipqc:1.28.0--r41hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-chipqc:1.28.0--r41hdfd78af_0' }"
+        'biocontainers/bioconductor-chipqc:1.28.0--r41hdfd78af_0' }"
 
     input:
     tuple val(meta), path(qc, stageAs: "pairsqc_report/*")

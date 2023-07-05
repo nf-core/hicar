@@ -7,7 +7,7 @@ process BIOC_ENRICH {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0' }"
+        'biocontainers/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0' }"
 
     input:
     tuple val(bin_size), path(diff)

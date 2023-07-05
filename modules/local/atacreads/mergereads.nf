@@ -6,7 +6,7 @@ process MERGE_READS {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/samtools:1.10--h9402c20_2' :
-        'quay.io/biocontainers/samtools:1.10--h9402c20_2' }"
+        'biocontainers/samtools:1.10--h9402c20_2' }"
 
     input:
     tuple val(meta), path(bed)

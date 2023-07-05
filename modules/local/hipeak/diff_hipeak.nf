@@ -5,7 +5,7 @@ process DIFF_HIPEAK {
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
         container "https://depot.galaxyproject.org/singularity/bioconductor-diffhic:1.24.0--r41h399db7b_0 "
     } else {
-        container "quay.io/biocontainers/bioconductor-diffhic:1.24.0--r41h399db7b_0"
+        container "biocontainers/bioconductor-diffhic:1.24.0--r41h399db7b_0"
     }
 
     input:

@@ -6,7 +6,7 @@ process DIFFSET {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-upsetr:1.0.3--r3.3.2_1' :
-        'quay.io/biocontainers/r-upsetr:1.0.3--r3.3.2_1' }"
+        'biocontainers/r-upsetr:1.0.3--r3.3.2_1' }"
 
     input:
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")

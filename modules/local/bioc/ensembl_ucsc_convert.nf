@@ -6,7 +6,7 @@ process ENSEMBL_UCSC_CONVERT {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' :
-        'quay.io/biocontainers/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' }"
+        'biocontainers/bioconductor-rtracklayer:1.50.0--r40h7f5ccec_2' }"
 
     input:
     tuple val(bin_size), path(fname)

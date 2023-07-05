@@ -7,7 +7,7 @@ process BIOC_CHIPPEAKANNO {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' }"
+        'biocontainers/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' }"
 
     input:
     tuple val(foldername), path(diff), path(peak)

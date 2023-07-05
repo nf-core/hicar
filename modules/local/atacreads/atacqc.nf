@@ -5,7 +5,7 @@ process ATACQC {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-atacseqqc:1.16.0--r41hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-atacseqqc:1.16.0--r41hdfd78af_0' }"
+        'biocontainers/bioconductor-atacseqqc:1.16.0--r41hdfd78af_0' }"
 
     input:
     path peaks

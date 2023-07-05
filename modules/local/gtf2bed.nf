@@ -6,7 +6,7 @@ process GTF2BED {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/perl-getopt-long:2.50--pl526_1' :
-        'quay.io/biocontainers/perl-getopt-long:2.50--pl526_1' }"
+        'biocontainers/perl-getopt-long:2.50--pl526_1' }"
 
     input:
     path gtf
