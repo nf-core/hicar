@@ -327,7 +327,7 @@
                 },
                 "create_maps_signal": {
                     "type": "boolean",
-                    "description": "skip creat cooler files for maps or not",
+                    "description": "create cooler files for MAPS or not",
                     "fa_icon": "fas fa-comment-slash",
                     "hidden": true,
                     "default": false

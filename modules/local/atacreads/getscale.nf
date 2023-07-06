@@ -11,9 +11,7 @@ process GET_SCALE {
     path "versions.yml"          , emit: versions
 
     script:
-    def software = "awk"
     scale = min_counts/counts.toInteger()
-    def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
     """
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
