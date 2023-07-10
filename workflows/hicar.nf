@@ -188,7 +188,6 @@ workflow HICAR {
     INPUT_CHECK (
         file(params.input)
     )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
     ch_reads = INPUT_CHECK.out.reads
 
     //

@@ -2,40 +2,39 @@
 // Check input samplesheet and get read channels
 //
 
-include { SAMPLESHEET_CHECK } from '../../modules/local/samplesheet_check'
+//
+// Include plugins
+//
+include { fromSamplesheet                          } from 'plugin/nf-validation'
 
 workflow INPUT_CHECK {
     take:
     samplesheet // file: /path/to/samplesheet.csv
 
     main:
-    SAMPLESHEET_CHECK ( samplesheet )
-        .csv
-        .splitCsv ( header:true, sep:',' )
-        .map { create_fastq_channel(it) }
+    Channel.fromSamplesheet("input")
+        .map{ create_fastq_channel(it) }
         .set { reads }
 
     emit:
-    reads                                     // channel: [ val(meta), [ reads ] ]
-    versions = SAMPLESHEET_CHECK.out.versions // channel: [ versions.yml ]
+    reads                                  // channel: [ val(meta), [ reads ] ]
 }
 
 // Function to get list of [ meta, [ fastq_1, fastq_2 ] ]
-def create_fastq_channel(LinkedHashMap row) {
-    def meta = row.clone()
-    meta.remove('fastq_1')
-    meta.remove('fastq_2')
+def create_fastq_channel(ArrayList row) {
+    HashMap<String, Object> meta = new HashMap<>(row[0]);
+    meta.id           = "${meta.group}_REP${meta.replicate}_T${meta.techniquereplicate}"
     meta.single_end   = false
 
     // add path(s) of the fastq file(s) to the meta map
     def fastq_meta = []
-    if (!file(row.fastq_1).exists()) {
-        exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row.fastq_1}"
+    if (!file(row[1]).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> Read 1 FastQ file does not exist!\n${row[1]}"
     }
-    if (!file(row.fastq_2).exists()) {
-        exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row.fastq_2}"
+    if (!file(row[2]).exists()) {
+        exit 1, "ERROR: Please check input samplesheet -> Read 2 FastQ file does not exist!\n${row[2]}"
     }
-    array = [ meta, [ file(row.fastq_1), file(row.fastq_2) ] ]
+    array = [ meta, [ file(row[1]), file(row[2]) ] ]
 
     return array
 }
