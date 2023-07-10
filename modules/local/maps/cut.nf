@@ -8,7 +8,7 @@ process MAPS_CUT {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/biopython:1.70--np112py36_1' :
-        'quay.io/biocontainers/biopython:1.70--np112py36_1' }"
+        'biocontainers/biopython:1.70--np112py36_1' }"
 
     input:
     tuple val(bin_size), val(site), path(fasta)

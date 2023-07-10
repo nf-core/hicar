@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.0.0 - [03/15/2023]
+## v2.0.0 - [07/05/2023]
 
 - update to nf-core-template-2.7.2
 - replace the dots by '\_' in the samples name
@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add the possibility to subsample to balance the input reads
 - add parameter to let user input the 5 end sequence to cutadapt step
 - change the cutadapt error tolerance from 0 to 0.15
+- changes in hipeak caller:
+  - add filter condition for lowest count number as 1.
+  - change the cutoff value for hipeak type assignment step from 12 to 3.
 - fix multiple bugs:
   - the sorting method for huge bed file;
   - the post count for hipeak when there is empty Interactions;

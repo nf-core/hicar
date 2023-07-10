@@ -7,7 +7,7 @@ process CIRCOS {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/circos:0.69.8--hdfd78af_1' :
-        'quay.io/biocontainers/circos:0.69.8--hdfd78af_1' }"
+        'biocontainers/circos:0.69.8--hdfd78af_1' }"
 
     input:
     tuple val(meta), path(data)

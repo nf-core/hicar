@@ -6,7 +6,7 @@ process DIFFHICAR {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-edger:3.36.0--r41hc247a5b_2' :
-        'quay.io/biocontainers/bioconductor-edger:3.36.0--r41hc247a5b_2' }"
+        'biocontainers/bioconductor-edger:3.36.0--r41hc247a5b_2' }"
 
     input:
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")

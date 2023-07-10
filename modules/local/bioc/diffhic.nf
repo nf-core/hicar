@@ -6,18 +6,18 @@ process DIFFHIC {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-diffhic:1.26.0--r41hc247a5b_2' :
-        'quay.io/biocontainers/bioconductor-diffhic:1.26.0--r41hc247a5b_2' }"
+        'biocontainers/bioconductor-diffhic:1.26.0--r41hc247a5b_2' }"
 
     input:
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")
     val long_bedpe_postfix
 
     output:
-    tuple val(bin_size), path("${prefix}/*")               , emit: diff
+    tuple val(bin_size), path("${prefix}/*")                                               , emit: diff
     tuple val(bin_size), val("$prefix"), path("${prefix}/diffHic.DEtable*"), optional: true, emit: anno
-    tuple val(bin_size), val("$prefix"), path("${prefix}/*.bedpe") , optional: true, emit: bedpe
-    path "${prefix}/*.qc.json"                             , emit: stats
-    path "versions.yml"                                    , emit: versions
+    tuple val(bin_size), val("$prefix"), path("${prefix}/*.bedpe")         , optional: true, emit: bedpe
+    path "${prefix}/*.qc.json"                                                             , emit: stats
+    path "versions.yml"                                                                    , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "diffHic_bin${bin_size}"

@@ -9,7 +9,7 @@ include { ENSEMBL_UCSC_CONVERT       } from '../../../modules/local/bioc/ensembl
 workflow HOMER_TFEA {
     take:
     bed                      // peaks regions [meta, R1/2, [peak]]
-    additional_param         // singals for each tools
+    additional_param         // signals for each tools
 
     main:
     ch_versions = Channel.empty()

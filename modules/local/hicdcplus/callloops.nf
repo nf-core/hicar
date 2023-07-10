@@ -8,7 +8,7 @@ process HICDCPLUS_CALLLOOPS {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-hicdcplus:1.2.1--r41h619a076_0' :
-        'quay.io/biocontainers/bioconductor-hicdcplus:1.2.1--r41h619a076_0' }"
+        'biocontainers/bioconductor-hicdcplus:1.2.1--r41h619a076_0' }"
 
     input:
     tuple val(meta), path(peaks), path(features), path(pairs), path(chromsize)
@@ -17,7 +17,7 @@ process HICDCPLUS_CALLLOOPS {
     tuple val(meta), val(meta.bin), path("*.interactions.bedpe")     , emit: interactions
     tuple val(meta), val(meta.bin), path("*_hicdcplus_result.txt.gz"), emit: full_results
     tuple val(meta), val(meta.bin), path("*.interactions.txt")       , emit: filtered_res
-    path "versions.yml"                          , emit: versions
+    path "versions.yml"                                              , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "${meta.id}_${meta.bin}"

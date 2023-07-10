@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+#########################################
+# This source code is licensed under the MIT license
+#########################################
+
 """Provide a command line tool to validate and transform tabular samplesheets."""
 
 

@@ -7,7 +7,7 @@ process HICDCPLUS_FEATURES {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-hicdcplus:1.2.1--r41h619a076_0' :
-        'quay.io/biocontainers/bioconductor-hicdcplus:1.2.1--r41h619a076_0' }"
+        'biocontainers/bioconductor-hicdcplus:1.2.1--r41h619a076_0' }"
 
     input:
     tuple val(bin_size), val(site), path(fasta), path(chrom_sizes), path(mappability)

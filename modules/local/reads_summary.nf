@@ -5,7 +5,7 @@ process READS_SUMMARY {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-magrittr:1.5--r3.2.2_0' :
-        'quay.io/biocontainers/r-magrittr:1.5--r3.2.2_0' }"
+        'biocontainers/r-magrittr:1.5--r3.2.2_0' }"
 
     input:
     path stat

@@ -89,38 +89,37 @@ ch_hic_tools                 = Channel.fromPath(params.hic_tools_jar,
 //
 // MODULE: Local to the pipeline
 //
-include { CHECKSUMS } from '../modules/local/checksums'
-include { HOMER_INSTALL } from '../modules/local/homer/install'
-// include { HICEXPLORER_HICCORRECTMATRIX } from '../modules/local/hicexplorer/hiccorrectmatrix' // NOT WORK, buggy
-include { RECENTER_PEAK } from '../modules/local/hicexplorer/recenterpeak'
-include { HICEXPLORER_CHICQUALITYCONTROL } from '../modules/local/hicexplorer/chicqualitycontrol'
+include { CHECKSUMS                                } from '../modules/local/checksums'
+include { HOMER_INSTALL                            } from '../modules/local/homer/install'
+include { RECENTER_PEAK                            } from '../modules/local/hicexplorer/recenterpeak'
+include { HICEXPLORER_CHICQUALITYCONTROL           } from '../modules/local/hicexplorer/chicqualitycontrol'
 include { HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL } from '../modules/local/hicexplorer/chicviewpointbackgroundmodel'
-include { HICEXPLORER_CHICVIEWPOINT } from '../modules/local/hicexplorer/chicviewpoint'
-include { JUICER_ADDNORM } from '../modules/local/juicer/addnorm'
-include { BIOC_CHIPPEAKANNO } from '../modules/local/bioc/chippeakanno'
-include { BIOC_ENRICH } from '../modules/local/bioc/enrich'
-include { IGV } from '../modules/local/igv'
+include { HICEXPLORER_CHICVIEWPOINT                } from '../modules/local/hicexplorer/chicviewpoint'
+include { JUICER_ADDNORM                           } from '../modules/local/juicer/addnorm'
+include { BIOC_CHIPPEAKANNO                        } from '../modules/local/bioc/chippeakanno'
+include { BIOC_ENRICH                              } from '../modules/local/bioc/enrich'
+include { IGV                                      } from '../modules/local/igv'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME } from '../subworkflows/local/preparegenome'
-include { BAM_STAT } from '../subworkflows/local/bam_stats'
+include { INPUT_CHECK     } from '../subworkflows/local/input_check'
+include { PREPARE_GENOME  } from '../subworkflows/local/preparegenome'
+include { BAM_STAT        } from '../subworkflows/local/bam_stats'
 include { PAIRTOOLS_PAIRE } from '../subworkflows/local/pairtools'
-include { COOLER } from '../subworkflows/local/cooler'
+include { COOLER          } from '../subworkflows/local/cooler'
 
-include { ATAC_PEAK } from '../subworkflows/local/callatacpeak'
-include { TADS } from '../subworkflows/local/tads'
-include { COMPARTMENTS } from '../subworkflows/local/compartments'
-include { APA } from '../subworkflows/local/apa'
-include { INTERACTIONS } from '../subworkflows/local/interactions'
-include { HIPEAK } from '../subworkflows/local/hipeak'
-include { DA } from '../subworkflows/local/differential_analysis'
-include { V4C } from '../subworkflows/local/v4c'
-include { TFEA } from '../subworkflows/local/tfea'
+include { ATAC_PEAK       } from '../subworkflows/local/callatacpeak'
+include { TADS            } from '../subworkflows/local/tads'
+include { COMPARTMENTS    } from '../subworkflows/local/compartments'
+include { APA             } from '../subworkflows/local/apa'
+include { INTERACTIONS    } from '../subworkflows/local/interactions'
+include { HIPEAK          } from '../subworkflows/local/hipeak'
+include { DA              } from '../subworkflows/local/differential_analysis'
+include { V4C             } from '../subworkflows/local/v4c'
+include { TFEA            } from '../subworkflows/local/tfea'
 
-include { RUN_CIRCOS } from '../subworkflows/local/circos'
+include { RUN_CIRCOS      } from '../subworkflows/local/circos'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
