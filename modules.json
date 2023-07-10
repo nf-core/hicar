@@ -165,6 +165,11 @@
                         "git_sha": "371eff7748d769c2ddc8bd593773523a364a52fe",
                         "installed_by": ["modules"]
                     },
+                    "samtools/sort": {
+                        "branch": "master",
+                        "git_sha": "d5d785b3d8b422cda9c6d84a23f629a8e9ff8cd8",
+                        "installed_by": ["modules"]
+                    },
                     "samtools/stats": {
                         "branch": "master",
                         "git_sha": "371eff7748d769c2ddc8bd593773523a364a52fe",
