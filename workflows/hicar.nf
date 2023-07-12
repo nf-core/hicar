@@ -15,13 +15,6 @@ log.info logo + paramsSummaryLog(workflow) + citation
 
 WorkflowHicar.initialise(params, log)
 
-// Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.fasta,
-                            params.gtf, params.bwa_index, params.gene_bed,
-                            params.mappability]
-for (param in checkPathParamList) {
-    if (param) { file(param, checkIfExists: true) } }
-
 // Check mandatory parameters
 if (params.input) {
     ch_input = file("${params.input}", checkIfExists: true)

@@ -97,6 +97,7 @@
                 },
                 "bwa_index": {
                     "type": "string",
+                    "exists": true,
                     "fa_icon": "fab fa-wpexplorer",
                     "description": "Path to bwa index file.",
                     "help_text": "If you have no genome reference available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
@@ -104,6 +105,7 @@
                 "gtf": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "fa_icon": "fas fa-map-marked-alt",
                     "description": "Path to annotation gtf file.",
@@ -120,6 +122,7 @@
                 "gene_bed": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "fa_icon": "fas fa-file-medical-alt",
                     "description": "Path to annotation gene bed file.",
@@ -128,6 +131,7 @@
                 "mappability": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "fa_icon": "fas fa-file-contract",
                     "description": "Path to genome mappability file.",
@@ -271,7 +275,7 @@
                     "fa_icon": "fas fa-check-double",
                     "hidden": false,
                     "help_text": "Miniaml cutoff value for fold change from signal to expected values. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2.",
-                    "default": 2
+                    "default": 2.0
                 },
                 "maps_cutoff_fdr": {
                     "type": "number",
@@ -279,7 +283,7 @@
                     "fa_icon": "fas fa-percent",
                     "hidden": false,
                     "help_text": "Minimal cutoff -log10(FDR) value in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2 (=fdr 0.01).",
-                    "default": 2
+                    "default": 2.0
                 },
                 "maps_filter": {
                     "type": "string",
@@ -321,7 +325,7 @@
                     "default": 1000000000
                 },
                 "min_counts_per_loop": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "The minimal number reads count of peak pair",
                     "fa_icon": "fas fa-th",
                     "hidden": true,
@@ -331,8 +335,7 @@
                     "type": "boolean",
                     "description": "create cooler files for MAPS or not",
                     "fa_icon": "fas fa-comment-slash",
-                    "hidden": true,
-                    "default": false
+                    "hidden": true
                 },
                 "hicdcplus_cutoff_fdr": {
                     "type": "number",
@@ -373,13 +376,13 @@
             "descripton": "Options for compartment, TADs calling, and APA",
             "properties": {
                 "res_compartments": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "The resolution for compartments calling",
                     "fa_icon": "fas fa-th",
                     "default": 100000
                 },
                 "res_tads": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "The resolution for TADs calling",
                     "help_text": "If tad_tool is set to resolution, the windows will be calculated by 3X, 5X, 10X and 15X resolution. If tad_tool is set to hicfindtads, this will determine the step parameter.",
                     "fa_icon": "fas fa-th",
@@ -649,14 +652,12 @@
                     "type": "boolean",
                     "description": "Display help text.",
                     "fa_icon": "fas fa-question-circle",
-                    "default": false,
                     "hidden": true
                 },
                 "version": {
                     "type": "boolean",
                     "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
-                    "default": false,
                     "hidden": true
                 },
                 "publish_dir_mode": {
@@ -680,7 +681,6 @@
                     "type": "boolean",
                     "description": "Send plain-text email instead of HTML.",
                     "fa_icon": "fas fa-remove-format",
-                    "default": false,
                     "hidden": true
                 },
                 "max_multiqc_email_size": {
@@ -695,7 +695,6 @@
                     "type": "boolean",
                     "description": "Do not use coloured log outputs.",
                     "fa_icon": "fas fa-palette",
-                    "default": false,
                     "hidden": true
                 },
                 "hook_url": {
@@ -734,7 +733,6 @@
                     "type": "boolean",
                     "fa_icon": "far fa-eye-slash",
                     "description": "Show all params when using `--help`",
-                    "default": false,
                     "hidden": true,
                     "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
                 },
@@ -742,7 +740,6 @@
                     "type": "boolean",
                     "fa_icon": "far fa-check-circle",
                     "description": "Validation of parameters fails when an unrecognised parameter is found.",
-                    "default": false,
                     "hidden": true,
                     "help_text": "By default, when an unrecognised parameter is found, it returns a warinig."
                 },
@@ -750,7 +747,6 @@
                     "type": "boolean",
                     "fa_icon": "far fa-check-circle",
                     "description": "Validation of parameters in lenient more.",
-                    "default": false,
                     "hidden": true,
                     "help_text": "Allows string values that are parseable as numbers or booleans. For further information see [JSONSchema docs](https://github.com/everit-org/json-schema#lenient-mode)."
                 }
