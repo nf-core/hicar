@@ -35,8 +35,6 @@ format <- opt$format$arg
 stopifnot(length(opt$chrom_size)>0)
 genome <- read.delim(opt$chrom_size$arg, header=FALSE)
 fn <- args[-to_be_removed]
-sl <- width(genome)
-names(sl) <- as.character(seqnames(genome))
 stopifnot(length(opt$task_process)>0)
 pkgs <- c("rtracklayer")
 versions <- paste0(opt$task_process$arg, ":")
@@ -51,6 +49,8 @@ for(pkg in pkgs){
 writeLines(versions, "versions.yml") # write versions.yml
 
 genome <- with(genome, GRanges(V1, IRanges(1, V2)))
+sl <- width(genome)
+names(sl) <- as.character(seqnames(genome))
 # trim bed file
 for(f in fn){
     d <- import(f, format=format, which=genome)
