@@ -2,8 +2,6 @@
 // Get coverage scale
 //
 
-include { GET_SCALE           } from '../../modules/local/atacreads/getscale'
-
 workflow COVERAGE_SCALE {
     take:
     counts                     // counts [meta, counts]
@@ -12,9 +10,13 @@ workflow COVERAGE_SCALE {
     ch_versions             = Channel.empty()
 
     min_cnt = counts.map{[it[1].toInteger()]}.collect().map{it.min()}
-    GET_SCALE(counts, min_cnt)
+    scale = counts.mix().map{
+        meta, counts, min_counts ->
+            factor = min_counts/counts.toInteger()
+            [meta, factor]
+    }
 
     emit:
-    scale           = GET_SCALE.out.scale
+    scale                                  // channel: [ meta, scale_factor ]
     versions        = ch_versions          // channel: [ versions.yml ]
 }
