@@ -5,8 +5,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v2.0.0 - [07/13/2023]
 
-- update to [nf-core-template-2.9](https://github.com/nf-core/hicar/pull/89#issue-1797065776)
-- remove the output folder setting from config files
+- [[#89](https://github.com/nf-core/hicar/pull/89)] - update to nf-core-template-2.9
+- [[#90](https://github.com/nf-core/hicar/pull/90)] - remove the output folder setting from config files
 - [replace the dots](https://github.com/nf-core/hicar/pull/89#issue-1797065776) by '\_' in the samples group
 - add [support for MseI](https://github.com/jianhong/hicar/commit/64bfcecab9870100d56631ffc31ff0ed471e1255).
 - add TAD, AB compartments, APA analysis (see available tools in usage documentation)
