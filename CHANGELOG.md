@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - fix the duplicated imported modules;
   - fix multiple typos.
   - use local SAMTOOLS_SORT module;
+- change the code style:
+  - [[#91](https://github.com/nf-core/hicar/pull/91)] - move the trimbedgraph source to bin folder;
 
 ## v1.0.0 - [05/03/2022]
 
