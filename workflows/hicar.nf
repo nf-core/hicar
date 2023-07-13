@@ -180,7 +180,7 @@ workflow HICAR {
     ch_reads = Channel.fromSamplesheet("input")
         .map{
             meta, fastq_1, fastq_2 ->
-                meta - meta.subMap(['id', 'single_end', 'group']) + [id: meta.group.toString().replaceAll("\\.", "_") + "_REP" + meta.replicate + "_T" + meta.techniquereplicate, single_end: false, group: meta.group.toString().replaceAll("\\.", "_")]
+                meta = meta - meta.subMap(['id', 'single_end', 'group']) + [id: meta.group.toString().replaceAll("\\.", "_") + "_REP" + meta.replicate + "_T" + meta.techniquereplicate, single_end: false, group: meta.group.toString().replaceAll("\\.", "_")]
                 [meta, [fastq_1, fastq_2]]
         }
 
