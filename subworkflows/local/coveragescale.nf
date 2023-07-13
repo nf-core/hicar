@@ -15,7 +15,6 @@ workflow COVERAGE_SCALE {
             factor = min_counts/counts.toInteger()
             [meta, factor]
     }
-    scale.view()
 
     emit:
     scale                                  // channel: [ meta, scale_factor ]
