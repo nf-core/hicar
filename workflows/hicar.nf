@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { paramsSummaryLog; paramsSummaryMap } from 'plugin/nf-validation'
+include { paramsSummaryLog; paramsSummaryMap; fromSamplesheet } from 'plugin/nf-validation'
 
 def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
 def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
@@ -102,7 +102,6 @@ include { IGV                                      } from '../modules/local/igv'
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK     } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME  } from '../subworkflows/local/preparegenome'
 include { BAM_STAT        } from '../subworkflows/local/bam_stats'
 include { PAIRTOOLS_PAIRE } from '../subworkflows/local/pairtools'
@@ -178,10 +177,13 @@ workflow HICAR {
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    INPUT_CHECK (
-        file(params.input)
-    )
-    ch_reads = INPUT_CHECK.out.reads
+    ch_reads = Channel.fromSamplesheet("input")
+        .map{
+            meta, fastq_1, fastq_2 ->
+                meta.group = meta.group.toString().replaceAll("\\.", "_")
+                meta - meta.subMap(['id', 'single_end']) + [id: meta.group + "_REP" + meta.replicate + "_T" + meta.techniquereplicate, single_end: false]
+                [meta, [fastq_1, fastq_2]]
+        }
 
     //
     // check the input fastq files are correct

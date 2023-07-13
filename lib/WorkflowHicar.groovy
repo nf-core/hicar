@@ -14,9 +14,8 @@ class WorkflowHicar {
 
         genomeExistsError(params, log)
 
-
-        if (!params.fasta) {
-            Nextflow.error "Genome fasta file not specified with e.g. '--fasta genome.fa' or via a detectable config file."
+        if (!params.gtf && !params.gff) {
+            Nextflow.error("No GTF or GFF3 annotation specified! The pipeline requires at least one of these files.")
         }
     }
 
