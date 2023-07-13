@@ -1,20 +1,19 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    VALIDATE INPUTS
+    PRINT PARAMS SUMMARY
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
+include { paramsSummaryLog; paramsSummaryMap; fromSamplesheet } from 'plugin/nf-validation'
 
-// Validate input parameters
+def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
+def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
+def summary_params = paramsSummaryMap(workflow)
+
+// Print parameter summary log to screen
+log.info logo + paramsSummaryLog(workflow) + citation
+
 WorkflowHicar.initialise(params, log)
-
-// Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.fasta,
-                            params.gtf, params.bwa_index, params.gene_bed,
-                            params.mappability]
-for (param in checkPathParamList) {
-    if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
 if (params.input) {
@@ -103,7 +102,6 @@ include { IGV                                      } from '../modules/local/igv'
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK     } from '../subworkflows/local/input_check'
 include { PREPARE_GENOME  } from '../subworkflows/local/preparegenome'
 include { BAM_STAT        } from '../subworkflows/local/bam_stats'
 include { PAIRTOOLS_PAIRE } from '../subworkflows/local/pairtools'
@@ -179,11 +177,12 @@ workflow HICAR {
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    INPUT_CHECK (
-        ch_input
-    )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
-    ch_reads = INPUT_CHECK.out.reads
+    ch_reads = Channel.fromSamplesheet("input")
+        .map{
+            meta, fastq_1, fastq_2 ->
+                meta - meta.subMap(['id', 'single_end', 'group']) + [id: meta.group + "_REP" + meta.replicate + "_T" + meta.techniquereplicate, single_end: false, group: meta.group.toString().replaceAll("\\.", "_")]
+                [meta, [fastq_1, fastq_2]]
+        }
 
     //
     // check the input fastq files are correct
@@ -691,10 +690,11 @@ workflow HICAR {
         //
         // MODULE: MultiQC
         //
+
         workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        methods_description    = WorkflowHicar.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
+        methods_description    = WorkflowHicar.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
         ch_methods_description = Channel.value(methods_description)
 
         ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))

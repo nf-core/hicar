@@ -3,11 +3,11 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.0.0 - [07/05/2023]
+## v2.0.0 - [07/10/2023]
 
-- update to nf-core-template-2.7.2
-- replace the dots by '\_' in the samples name
-- add support for MseI.
+- update to [nf-core-template-2.9](https://github.com/nf-core/hicar/pull/89#issue-1797065776)
+- [replace the dots](https://github.com/nf-core/hicar/pull/89#issue-1797065776) by '\_' in the samples group
+- add [support for MseI](https://github.com/jianhong/hicar/commit/64bfcecab9870100d56631ffc31ff0ed471e1255).
 - add TAD, AB compartments, APA analysis (see available tools in usage documentation)
 - add additional methods for interaction caller
 - adjust default resource requirement

@@ -1,6 +1,7 @@
 process PAIRSPLOT {
     tag "$meta.id"
     label 'process_low'
+    errorStrategy { (task.exitStatus in 137..140 && task.attempt <= 3)  ? 'retry' : 'ignore' }
 
     conda "bioconda::bioconductor-chipqc=1.28.0"
     container "${ workflow.containerEngine == 'singularity' &&

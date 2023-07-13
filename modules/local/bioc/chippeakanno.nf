@@ -80,21 +80,30 @@ process BIOC_CHIPPEAKANNO {
         R2 <- GRanges()
     }
     for(det in detbl){
+        DB <- data.frame()
         if(grepl("csv\$", det)) {
             DB <- read.csv(det)
         }else{
             if(grepl("peaks\$", det)){
                 DB <- read.table(det, header=TRUE)
             }else{
-                header <- read.table(det, header=FALSE, nrow=1)
-                hasHeader <- all(c("chr1", "start1", "end1",
-                                    "chr2", "start2", "end2") %in%
-                                    header[1, , drop=TRUE])
-                DB <- read.table(det, header = hasHeader,
-                                    stringsAsFactors = FALSE)
-                if(!hasHeader){
-                    colnames(DB)[1:6] <- c("chr1", "start1", "end1",
-                                        "chr2", "start2", "end2")
+                header <- tryCatch(
+                    read.table(det, header=FALSE, nrow=1),
+                    error = function(.e){
+                        message(.e)
+                    },
+                    finally = NULL
+                )
+                if(length(header)>0){
+                    hasHeader <- all(c("chr1", "start1", "end1",
+                                        "chr2", "start2", "end2") %in%
+                                        header[1, , drop=TRUE])
+                    DB <- read.table(det, header = hasHeader,
+                                        stringsAsFactors = FALSE)
+                    if(!hasHeader){
+                        colnames(DB)[1:6] <- c("chr1", "start1", "end1",
+                                            "chr2", "start2", "end2")
+                    }
                 }
             }
         }
