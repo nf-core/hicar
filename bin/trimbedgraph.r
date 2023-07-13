@@ -34,7 +34,6 @@ stopifnot(length(opt$format)>0)
 format <- opt$format$arg
 stopifnot(length(opt$chrom_size)>0)
 genome <- read.delim(opt$chrom_size$arg, header=FALSE)
-genome <- with(genome, GRanges(V1, IRanges(1, V2)))
 fn <- args[-to_be_removed]
 sl <- width(genome)
 names(sl) <- as.character(seqnames(genome))
@@ -51,6 +50,7 @@ for(pkg in pkgs){
 }
 writeLines(versions, "versions.yml") # write versions.yml
 
+genome <- with(genome, GRanges(V1, IRanges(1, V2)))
 # trim bed file
 for(f in fn){
     d <- import(f, format=format, which=genome)
