@@ -20,10 +20,11 @@ process BEDGRAPH_TRIM {
     def args = task.ext.args ?: 'bedGraph'
     """
     trimbedgraph.r \\
+        --task_process ${task.process} \\
         --format $args \\
         --chrom_size $sizes \\
         $bedgraph
 
-    # *.version.txt files will be created in the rscripts
+    # versions.yml files will be created in the rscripts
     """
 }
