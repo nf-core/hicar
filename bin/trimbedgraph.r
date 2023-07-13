@@ -45,8 +45,9 @@ for(pkg in pkgs){
     # load library
     library(pkg, character.only=TRUE)
     # parepare for versions.yml
-    versions <- c(versions,
-                  paste0("    ", pkg, ": ", as.character(packageVersion(pkg))))
+    versions <- c(
+        versions,
+        paste0("    ", pkg, ": ", as.character(packageVersion(pkg))))
 }
 writeLines(versions, "versions.yml") # write versions.yml
 
