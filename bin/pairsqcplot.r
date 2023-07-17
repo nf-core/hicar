@@ -8,7 +8,7 @@
 ######################################################
 
 args = commandArgs(TRUE)
-RE_len = args[1] # either 4 or 6
+RE_len = as.numeric(args[1]) # either 4 or 6
 if(length(args)>1) { report_dir = args[2] } else { report_dir = './report' }
 
 rainbow_w_offset <- function(L, offset = NA){
@@ -149,7 +149,11 @@ plot_orientation_proportion_vs_distance <- function(x, RE_len, xlim=c(2,5), no_x
 
 plot_orientation_log10count_vs_distance <- function(x, RE_len, xlim=c(2,5), no_xlabel=FALSE){
     ind = which(x$distance>=xlim[1] & x$distance<=xlim[2] & x$log10count.Inner!=-100 & x$log10count.Outer!=-100 & x$log10count.Right!=-100 & x$log10count.Left!=-100)
-    ylim=range(x[ind,c('log10count.Inner','log10count.Outer','log10count.Right','log10count.Left')])
+    if(length(ind)>0){
+        ylim=range(x[ind,c('log10count.Inner','log10count.Outer','log10count.Right','log10count.Left')])
+    }else{
+        ylim=range(x[,c('log10count.Inner','log10count.Outer','log10count.Right','log10count.Left')])
+    }
     matplot(x$distance,x[,c('log10count.Inner','log10count.Outer','log10count.Right','log10count.Left')],pch=19,type='o',xlab="", ylab="Contact frequency",lwd=1,lty=1,ylim=ylim, col=COLOR4(), axes=F, xlim=xlim)
     exp_axis(xlim,1)
     exp_axis(ylim,2)
