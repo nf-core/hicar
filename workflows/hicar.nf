@@ -644,7 +644,7 @@ workflow HICAR {
             bedpe_module_name = 'MAPS_REFORMAT'
             break
         case 'hicdcplus':
-            bedpe_module_name = 'HICDCPLUS_CALLLOOPS'
+            bedpe_module_name = 'HICDCPLUS_CALL_LOOPS'
             break
         case 'peakachu':
             bedpe_module_name = 'PEAKACHU_SCORE'

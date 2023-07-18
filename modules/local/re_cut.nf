@@ -16,11 +16,11 @@ process RE_CUTSITE {
 
     script:
     """
+    restriction_enzyme_cutsite.py $enzyme
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(echo \$(python --version) | sed 's/Python //')
     END_VERSIONS
-
-    restriction_enzyme_cutsite.py $enzyme
     """
 }

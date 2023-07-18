@@ -1,4 +1,4 @@
-process HICDCPLUS_CALLLOOPS {
+process HICDCPLUS_CALL_LOOPS {
     tag "$meta.id"
     label 'process_high'
     label 'process_long'
