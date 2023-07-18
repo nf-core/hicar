@@ -52,15 +52,15 @@ TREATMENT,3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L003_R2_001.fastq.gz,,
 TREATMENT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,,
 ```
 
-| Column                | Description                                                                                                                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `group`               | Custom group name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `replicate`           | Biological replicates of the samples.                                                                                                                                                 |
-| `techniquereplicate`  | technique replicates of the samples. Default is 1.                                                                                                                                    |
-| `fastq_1`             | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                            |
-| `fastq_2`             | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                            |
-| `md5_1`               | Checksum for fastq_1. The checksums of the files will be check to make sure the file is not truncated if provided.                                                                    |
-| `md5_2`               | Checksum for fastq_2. The checksums of the files will be check to make sure the file is not truncated if provided.                                                                    |
+| Column               | Description                                                                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `group`              | Custom group name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
+| `replicate`          | Biological replicates of the samples.                                                                                                                                                 |
+| `techniquereplicate` | technique replicates of the samples. Default is 1.                                                                                                                                    |
+| `fastq_1`            | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                            |
+| `fastq_2`            | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                            |
+| `md5_1`              | Checksum for fastq_1. The checksums of the files will be check to make sure the file is not truncated if provided.                                                                    |
+| `md5_2`              | Checksum for fastq_2. The checksums of the files will be check to make sure the file is not truncated if provided.                                                                    |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
