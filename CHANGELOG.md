@@ -22,8 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - change the circos plot style
 - update reads_summary table to include unmapped/multiple mapped info
 - add the possibility to subsample to balance the input reads
-- add parameter to let user input the 5 end sequence to cutadapt step
-- change the cutadapt error tolerance from 0 to 0.15
+- export cutadapt parameters:
+  - add parameter to let user input the 5 end sequence
+  - add parameter to change the cutadapt error tolerance and set the default as 0.15
+  - add parameter to change the action when an adapter is found and set the default as 'none'
 - changes in hipeak caller:
   - add filter condition for lowest count number as 1.
   - change the cutoff value for hipeak type assignment step from 12 to 3.
