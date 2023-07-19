@@ -52,14 +52,15 @@ TREATMENT,3,AEG588A6_S6_L003_R1_001.fastq.gz,AEG588A6_S6_L003_R2_001.fastq.gz,,
 TREATMENT,3,AEG588A6_S6_L004_R1_001.fastq.gz,AEG588A6_S6_L004_R2_001.fastq.gz,,
 ```
 
-| Column      | Description                                                                                                                                                                           |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `group`     | Custom group name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `replicate` | Biological replicates of the samples.                                                                                                                                                 |
-| `fastq_1`   | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                            |
-| `fastq_2`   | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                            |
-| `md5_1`     | Checksum for fastq_1. The checksums of the files will be check to make sure the file is not truncated if provided.                                                                    |
-| `md5_2`     | Checksum for fastq_2. The checksums of the files will be check to make sure the file is not truncated if provided.                                                                    |
+| Column               | Description                                                                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `group`              | Custom group name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
+| `replicate`          | Biological replicates of the samples.                                                                                                                                                 |
+| `techniquereplicate` | technique replicates of the samples. Default is 1.                                                                                                                                    |
+| `fastq_1`            | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                            |
+| `fastq_2`            | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                            |
+| `md5_1`              | Checksum for fastq_1. The checksums of the files will be check to make sure the file is not truncated if provided.                                                                    |
+| `md5_2`              | Checksum for fastq_2. The checksums of the files will be check to make sure the file is not truncated if provided.                                                                    |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
@@ -72,7 +73,7 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 On a large scale, the arrangement of chromosomes are organised into two compartments labelled A ("active") and B ("inactive").
 A/B compartment-associated regions are on the multi-Mb scale and correlate with either open and expression-active chromatin ("A" compartments) or closed and expression inactive chromatin ("B" compartments). A compartments tend to be gene-rich, have high GC-content, contain histone markers for active transcription, and usually displace the interior of the nucleus. The regions in compartment A tend to interact preferentially with A compartment-associated regions than B compartment-associated ones. B compartments, on the other hand, tend to be gene-poor, compact, contain histone markers for gene silencing, and lie on the nuclear periphery.
 
-A topologically associating domain (TAD) is a smaller size genomic region compared to A/B compartments. It is a self-interacting genomic region. Most of the studies indicate TADs regulate gene expression by limiting the enhancer-promoter interaction to each TAD. A number of proteins are known to be associated with TAD formation. The most studied proteins are the protein CTCF and the protein complex cohesin. It has been shown that the TAD boundaries have high levels of CTCF binding and cohesin/lamina shifting edges.
+A topologically associating domain (TAD) is a smaller size genomic region compared to A/B compartments. It is a self-interacting genomic region. Most of the studies indicate TADs regulate gene expression by limiting the enhancer-promoter interaction to each TAD. A number of proteins are known to be associated with TAD formation. The most studied proteins are the protein CCCTC-binding factor (CTCF) and the protein complex cohesin. It has been shown that the TAD boundaries have high levels of CTCF binding and cohesin/lamina shifting edges.
 
 There are multiple available modules to call A/B compartments and TADs.
 
