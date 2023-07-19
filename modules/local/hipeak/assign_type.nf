@@ -2,11 +2,11 @@ process ASSIGN_TYPE {
     tag "$meta.id"
     label 'process_high'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-chippeakanno=3.26.0" : null)
+    conda "bioconda::bioconductor-chippeakanno=3.26.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' }"
+        'biocontainers/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' }"
 
     input:
     tuple val(meta), path(counts)
@@ -47,7 +47,7 @@ process ASSIGN_TYPE {
 
     OUTPUT = "."
     GROUP_ID = "$meta.id"
-    COUNT_CUTOFF = 12
+    COUNT_CUTOFF = 3
     RATIO_CUTOFF = 2.0
     FDR = 2
     parse_args <- function(options, args){

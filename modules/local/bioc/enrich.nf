@@ -3,11 +3,11 @@ process BIOC_ENRICH {
     label 'process_medium'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-clusterprofiler=3.18.1" : null)
+    conda "bioconda::bioconductor-clusterprofiler=3.18.1"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0' }"
+        'biocontainers/bioconductor-clusterprofiler:3.18.1--r40hdfd78af_0' }"
 
     input:
     tuple val(bin_size), path(diff)

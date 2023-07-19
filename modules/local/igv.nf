@@ -2,11 +2,11 @@ process IGV {
     label 'process_low'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "python=3.8" : null)
+    conda "python=3.8"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/python:3.8' :
-        'quay.io/biocontainers/python:3.8' }"
+        'biocontainers/python:3.8' }"
 
     input:
     path track

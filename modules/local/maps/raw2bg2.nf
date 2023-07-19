@@ -2,11 +2,11 @@ process MAPS_RAW2BG2 {
     tag "$meta.id"
     label 'process_medium'
 
-    conda (params.enable_conda ? "conda-forge::r-data.table=1.12.2" : null)
+    conda "conda-forge::r-data.table=1.12.2"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-data.table:1.12.2' :
-        'quay.io/biocontainers/r-data.table:1.12.2' }"
+        'biocontainers/r-data.table:1.12.2' }"
 
     input:
     tuple val(meta), val(bin_size), path(peak)
@@ -25,6 +25,7 @@ process MAPS_RAW2BG2 {
     #########################################
     # Author: jianhong ou
     # create single files from reg_raw to bedgraph for cool load and juicerbox
+    # the signal is the ratio2 (matrix count / matrix fit model expected2)
     #########################################
     versions <- c("${task.process}:", "    MAPS: 1.1.0")
     writeLines(versions, "versions.yml") # write versions.yml

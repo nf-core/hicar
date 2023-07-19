@@ -1,11 +1,11 @@
 process READS_SUMMARY {
     label 'process_low'
 
-    conda (params.enable_conda ? "r::r-magrittr=1.5" : null)
+    conda "r::r-magrittr=1.5"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/r-magrittr:1.5--r3.2.2_0' :
-        'quay.io/biocontainers/r-magrittr:1.5--r3.2.2_0' }"
+        'biocontainers/r-magrittr:1.5--r3.2.2_0' }"
 
     input:
     path stat
@@ -24,6 +24,23 @@ process READS_SUMMARY {
     fs <- dir(".", "*.reads_stats.csv")
     if(length(fs)>0){
         df <- do.call(rbind, lapply(fs, read.csv))
+        if(all(c("sample", "total", "duplicate", "non_duplicated", "trans", "cis", "longRange") %in% colnames(df))){
+            df[, "sample"] <- sub(".stats.tsv", "", df[, "sample"])
+            df[, "shortRange"] <- df[, "cis"] - df[, "longRange"]
+            df[, "unmapped_multimapped"] <- df[, "total"] - df[, "duplicate"] - df[, "non_duplicated"]
+            df[, "unmapped_multimapped_rate"] <- 100*df[, "unmapped_multimapped"]/df[, "total"]
+            df[, "trans_rate"] <- 100*df[, "trans"]/df[, "total"]
+            df[, "longRange_rate"] <- 100*df[, "longRange"]/df[, "total"]
+            df[, "shortRange_rate"] <- 100*df[, "shortRange"]/df[, "total"]
+            write.csv(
+                df[, c( "sample",
+                        "longRange",
+                        "shortRange",
+                        "trans",
+                        "duplicate",
+                        "unmapped_multimapped")],
+                "reads_summary_rate.csv", row.names=FALSE)
+        }
         con <- file("reads_summary.csv", open="wt")
         write.csv(df, con, row.names=FALSE)
         close(con)
@@ -71,9 +88,7 @@ process READS_SUMMARY {
                 y <- .e
                 .e <- paste('{ "x":', x, ', "y":', y, ', "color":"', .color, '"', "}")
                 .e <- paste(.e, collapse=", ")
-                paste("[", .e, "]")
             })
-            .ele <- paste0('"', names(.ele), '" : ', .ele)
             .ele <- paste(.ele, collapse=", ")
         })
         json <- c(
