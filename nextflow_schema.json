@@ -198,6 +198,21 @@
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false,
                     "default": "^TAC"
+                },
+                "cutadapt_action": {
+                    "type": "string",
+                    "description": "The action when an adapter is found if not skip_cutadapt",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": "none",
+                    "enum": ["trim", "retain", "none", "mask"]
+                },
+                "cutadapt_error_tolerance": {
+                    "type": "number",
+                    "description": "Error tolerance for adaptor filter if not skip_cutadapt",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": 0.15
                 }
             }
         },
@@ -325,7 +340,7 @@
                     "hidden": true,
                     "default": 1
                 },
-                "skip_maps_signal": {
+                "create_maps_signal ": {
                     "type": "boolean",
                     "description": "skip creat cooler files for maps or not",
                     "fa_icon": "fas fa-comment-slash",

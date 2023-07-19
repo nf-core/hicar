@@ -26,7 +26,7 @@ workflow MAPS_PEAK {
     //regression and peak calling
     peak = MAPS_CALLPEAK(MAPS_MAPS.out.maps).peak
     ch_version = ch_version.mix(MAPS_CALLPEAK.out.versions)
-    if(!params.skip_maps_signal){
+    if(!params.create_maps_signal ){
         //create cooler files for raw read matrix
         MAPS_RAW2BG2(MAPS_CALLPEAK.out.signal)
         ch_version = ch_version.mix(MAPS_RAW2BG2.out.versions)
