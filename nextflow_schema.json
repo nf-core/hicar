@@ -194,10 +194,24 @@
                 },
                 "cutadapt_5end": {
                     "type": "string",
-                    "description": "trim 5' end with the string if not skip_cutadapt",
+                    "description": "trim 5' end with the string if not skip_cutadapt. This is the introduced by the first enzyme, eg. CviQI, and splintoligo. Please try to observe your 5 ends of R1 reads to confirm the sequence.",
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false,
                     "default": "^TAC"
+                },
+                "cutadapt_3end": {
+                    "type": "string",
+                    "description": "trim 3' end with the string if not skip_cutadapt. This site is the second enzyme you used to do the digestion, eg NlaIII.",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": "CATG"
+                },
+                "cutadapt_minimum_length": {
+                    "type": "string",
+                    "description": "The minimal length of bases that should not be searched for second enzyme digest site.",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": "50:50"
                 },
                 "cutadapt_action": {
                     "type": "string",
@@ -311,6 +325,12 @@
                     "default": "pospoisson",
                     "enum": ["pospoisson", "negbinom"]
                 },
+                "maps_prepare_trans": {
+                    "type": "boolean",
+                    "description": "generate trans signals for MAPS if set",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": false
+                },
                 "remove_dup": {
                     "type": "boolean",
                     "description": "remove duplicates for high resolution peaks or not",
@@ -340,12 +360,11 @@
                     "hidden": true,
                     "default": 1
                 },
-                "create_maps_signal ": {
+                "create_maps_signal": {
                     "type": "boolean",
                     "description": "skip creat cooler files for maps or not",
                     "fa_icon": "fas fa-comment-slash",
-                    "hidden": true,
-                    "default": true
+                    "hidden": true
                 },
                 "hicdcplus_cutoff_fdr": {
                     "type": "number",

@@ -132,9 +132,19 @@ include { RUN_CIRCOS } from '../subworkflows/local/circos'
 //
 include { BWA_MEM                     } from '../modules/nf-core/bwa/mem/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-include { CUTADAPT                    } from '../modules/nf-core/cutadapt/main'
+include {
+    CUTADAPT
+        as CUTADAPT_5END;
+    CUTADAPT
+        as CUTADAPT_3END              } from '../modules/nf-core/cutadapt/main'
 include { FASTQC                      } from '../modules/nf-core/fastqc/main'
-include { CAT_CAT                     } from '../modules/nf-core/cat/cat/main'
+include {
+    CAT_CAT
+        as CAT_HOMER;
+    CAT_CAT
+        as CAT_CUTADAPT_R1;
+    CAT_CAT
+        as CAT_CUTADAPT_R2            } from '../modules/nf-core/cat/cat/main'
 include { HOMER_MAKETAGDIRECTORY      } from '../modules/nf-core/homer/maketagdirectory/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { SAMTOOLS_MERGE              } from '../modules/nf-core/samtools/merge/main'
@@ -217,12 +227,31 @@ workflow HICAR {
     // MODULE: trimming
     //
     if(!params.skip_cutadapt){
-        CUTADAPT(
+        CUTADAPT_5END(
             ch_reads
         )
-        ch_versions = ch_versions.mix(CUTADAPT.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
-        reads4mapping = CUTADAPT.out.reads
+        ch_versions = ch_versions.mix(CUTADAPT_5END.out.versions.ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_5END.out.log.collect{it[1]}.ifEmpty([]))
+        if (params.cutadapt_3end != ''){
+            CUTADAPT_3END(
+                ch_reads
+            )
+            ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_3END.out.log.collect{it[1]}.ifEmpty([]))
+            // combine the trimmed and untrimmed (protected by minimal length) reads together
+            cutadapt_out = CUTADAPT_3END.out.reads.transpose().branch{
+                R1: it[1] =~ /_[13].trim.fastq.gz/
+                R2: it[1] =~ /_[24].trim.fastq.gz/
+            }
+            CAT_CUTADAPT_R1(
+                cutadapt_out.R1.groupTuple()
+            )
+            CAT_CUTADAPT_R2(
+                cutadapt_out.R2.groupTuple()
+            )
+            reads4mapping = CAT_CUTADAPT_R1.out.file_out.concat(CAT_CUTADAPT_R2.out.file_out).groupTuple()
+        }else{
+            reads4mapping = CUTADAPT_5END.out.reads
+        }
     }else{
         reads4mapping = ch_reads
     }
@@ -409,14 +438,14 @@ workflow HICAR {
         }
 
         if(homer_done){// force wait Homer install done
-            CAT_CAT(
+            CAT_HOMER(
                 PAIRTOOLS_PAIRE.out.homerpair.map{
                     meta, pairs ->
                     [[id:meta.group], pairs]
                 }.groupTuple(by:0)
             )
             HOMER_MAKETAGDIRECTORY(
-                CAT_CAT.out.file_out,
+                CAT_HOMER.out.file_out,
                 PREPARE_GENOME.out.fasta
             )
             if(params.tad_tool == 'homer'){
@@ -430,7 +459,7 @@ workflow HICAR {
             if(params.tfea_tool == 'homer'){
                 ch_tfea_additional = homer_genome
             }
-            ch_versions = ch_versions.mix(CAT_CAT.out.versions.ifEmpty(null))
+            ch_versions = ch_versions.mix(CAT_HOMER.out.versions.ifEmpty(null))
             ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
         }
     }
