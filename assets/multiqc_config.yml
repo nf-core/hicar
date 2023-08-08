@@ -18,6 +18,7 @@ run_modules:
   - fastqc
   - cutadapt
   - samtools
+  - kraken
 
 # Hiding General Statistics Proper Pairs columns
 table_columns_visible:

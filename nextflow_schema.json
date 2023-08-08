@@ -853,6 +853,17 @@
                     "type": "boolean",
                     "fa_icon": "far fa-times-circle",
                     "description": "skip circos plot"
+                },
+                "do_contamination_analysis": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-times-circle",
+                    "description": "do contamination analysis with Kraken2"
+                },
+                "kraken2_db": {
+                    "type": "string",
+                    "fa_icon": "far fa-times-circle",
+                    "description": "the database for Kraken2",
+                    "default": "https://genome-idx.s3.amazonaws.com/kraken/k2_nt_20230502.tar.gz"
                 }
             }
         }

@@ -8,6 +8,7 @@ include {
     GUNZIP as GUNZIP_GFF;
     GUNZIP as GUNZIP_GENE_BED;
     GUNZIP as GUNZIP_ADDITIONAL_FASTA } from '../../modules/nf-core/gunzip/main'
+include { UNTAR                       } from '../../modules/nf-core/untar/main'
 include { GTF2BED                     } from '../../modules/local/gtf2bed'
 include { CHROMSIZES                  } from '../../modules/local/genome/chromsizes'
 include { GENOME_FILTER               } from '../../modules/local/genome/filter'
@@ -161,10 +162,26 @@ workflow PREPARE_GENOME {
      */
     ch_bwa_index = params.bwa_index ? Channel.value(file(params.bwa_index)).map{ [['id':ucscname], it] } : BWA_INDEX ( ch_fasta.map{[['id':ucscname], it]} ).index
 
+    /*
+     * Uncompress Kraken database if required
+     */
+    ch_kraken_db = Channel.empty()
+    if (params.do_contamination_analysis) {
+        if (params.kraken2_db.endsWith('.tar.gz')) {
+            db_file = file("${params.kraken2_db}", checkIfExists: true)
+            db_name = db_file.baseName.toString().replaceFirst(/\.tar.*$/, "")
+            UNTAR ( [[id:"${db_name}"], db_file] )
+            ch_kraken_db = UNTAR.out.untar.map{it[1]}
+        } else {
+            ch_kraken_db = file(params.kraken2_db)
+        }
+    }
+
     emit:
     fasta             = ch_fasta                       // path: genome.fasta,
     gtf               = ch_gtf                         // path: genome.gtf,
     gene_bed          = ch_gene_bed                    // path: gene.bed,
+    kraken_db         = ch_kraken_db                   // path: kraken2_db,
     chrom_sizes       = ch_chrom_sizes                 // path: genome.sizes,
     blacklist         = ch_blacklist                   // path: blacklist.bed,
     bed               = filtered_bed                   // path: *.bed,

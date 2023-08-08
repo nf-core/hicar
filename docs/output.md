@@ -15,6 +15,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 - [genome](#genome) - The genome related files used in the pipeline.
 - [bwa](#alignment) - The alignments of trimmed reads.
+- [kraken2](#kraken2) - The Kraken2 output.
 - [pairs](#pairs) - The interaction pairs and their quality control reports.
 - [Matrix for visualization](#matrix-for-visualization) - Cooler or Juicer files for visualization
 - [ATACpeak](#call-peaks-for-r2-reads) - The peaks called for ATAC reads (R2 reads).
@@ -108,6 +109,18 @@ If the mappability file is not provided in the profile file, the [GenMap](https:
 </details>
 
 Adapter-trimmed reads are mapped to the reference assembly using [BWA::mem](http://bio-bwa.sourceforge.net/bwa.shtml). A genome index is required to run BWA so if this is not provided explicitly using the `--bwa_index` parameter then it will be created automatically from the genome fasta input. The index creation process can take a while for larger genomes.
+
+### Kraken2
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `kraken2/*.report.txt`: The output files of Kraken2.
+- `kraken2/krona/*`: The krona html file.
+
+</details>
+
+Kraken2 will map all the reads to determine the contamination. It will help user for troubleshooting.
 
 ### Pairs
 

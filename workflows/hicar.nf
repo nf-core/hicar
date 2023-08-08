@@ -121,6 +121,7 @@ include { V4C } from '../subworkflows/local/v4c'
 include { TFEA } from '../subworkflows/local/tfea'
 
 include { RUN_CIRCOS } from '../subworkflows/local/circos'
+include { KRAKEN2 } from '../subworkflows/local/kraken'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -293,6 +294,16 @@ workflow HICAR {
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
+
+    //
+    // MODULE: determine contamination, do not run if there is no issue with mapping, computational resources comsuming
+    // It will install the nt-db, which ask about 850G free space for storage (300G zipped file and 480G unzipped database)
+    //
+    if(params.do_contamination_analysis){
+        KRAKEN2(reads4mapping, PREPARE_GENOME.out.kraken_db)
+        ch_multiqc_files = ch_multiqc_files.mix( KRAKEN2.out.mqc )
+        ch_versions = ch_versions.mix( KRAKEN2.out.versions.ifEmpty(null) )
+    }
 
     //
     // SUBWORKFLOW: filter reads, output pair (like hic pair), raw (pair), and stats
