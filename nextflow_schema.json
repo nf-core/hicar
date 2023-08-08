@@ -227,6 +227,15 @@
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false,
                     "default": 0.15
+                },
+                "pairtools_walks_policy": {
+                    "type": "string",
+                    "description": "The action for rescuing complex walks",
+                    "fa_icon": "fas fa-remove-format",
+                    "help_text": "See more details at https://pairtools.readthedocs.io/en/latest/parsing.html#multiple-ligations-walks",
+                    "hidden": false,
+                    "default": "mask",
+                    "enum": ["mask", "all", "5any", "5unique", "3any", "3unique"]
                 }
             }
         },
