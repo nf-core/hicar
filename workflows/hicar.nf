@@ -235,7 +235,7 @@ workflow HICAR {
         ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_5END.out.log.collect{it[1]}.ifEmpty([]))
         if (params.cutadapt_3end != ''){
             CUTADAPT_3END(
-                ch_reads
+                CUTADAPT_5END.out.reads
             )
             ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_3END.out.log.collect{it[1]}.ifEmpty([]))
             // combine the trimmed and untrimmed (protected by minimal length) reads together

@@ -77,6 +77,7 @@ nextflow run nf-core/hicar \
 > see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
 
 For more details, please refer to the [usage documentation](https://nf-co.re/hicar/usage) and the [parameter documentation](https://nf-co.re/hicar/parameters).
+For release candidate (RC) version, please refer to the [usage documentation](docs/usage.md) and [output documentation](docs/output.md). To setup your parameters for RC version, please refer to [parameter configureation page](https://jianhong.github.io/hicar_doc/launch.html).
 
 ## Pipeline output
 

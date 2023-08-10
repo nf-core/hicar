@@ -123,7 +123,7 @@ Visualize Hi-C data in a virtual 4C (v4c) format can help user to zoom in the in
 | setOperation | setOperation  | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
 | trackViewer  | trackviewer   | &#9744;          | &#9744; | &#9744;      | &#9744;               | &#9744; | &#9745; |
 
-## detect the contamination
+## Detect the contamination
 
 If the mapping rate is extremely low (eg. < 60%), you may want to turn on `do_contamination_analysis` paramerter. The pipeline will run [Kraken2](https://ccb.jhu.edu/software/kraken2/) against [nt database](https://benlangmead.github.io/aws-indexes/k2), which is prepared from [GenBank](https://www.ncbi.nlm.nih.gov/genbank/), [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/), [Third Party Annotation (TPA)](https://www.ncbi.nlm.nih.gov/genbank/tpa/) and [protein data bank (PDB)](https://www.rcsb.org/).
 
