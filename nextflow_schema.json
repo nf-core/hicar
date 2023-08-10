@@ -201,10 +201,10 @@
                 },
                 "cutadapt_3end": {
                     "type": "string",
-                    "description": "trim 3' end with the string if not skip_cutadapt. This site is the second enzyme you used to do the digestion, eg if NlaIII, set to 'CATG'. Leave blank to skip this step.",
+                    "description": "trim 3' end with the string if not skip_cutadapt. This site is the second enzyme you used to do the digestion, eg if NlaIII, set to 'CATG'. Use 'skip' to skip this step.",
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false,
-                    "default": ""
+                    "default": "skip"
                 },
                 "cutadapt_minimum_length": {
                     "type": "string",

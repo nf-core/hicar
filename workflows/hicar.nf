@@ -233,7 +233,7 @@ workflow HICAR {
         )
         ch_versions = ch_versions.mix(CUTADAPT_5END.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_5END.out.log.collect{it[1]}.ifEmpty([]))
-        if (params.cutadapt_3end != ''){
+        if (params.cutadapt_3end != 'skip'){
             CUTADAPT_3END(
                 CUTADAPT_5END.out.reads
             )
