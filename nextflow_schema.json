@@ -872,7 +872,7 @@
                     "type": "string",
                     "fa_icon": "far fa-times-circle",
                     "description": "the database for Kraken2",
-                    "default": "https://genome-idx.s3.amazonaws.com/kraken/k2_nt_20230502.tar.gz"
+                    "default": "https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20230605.tar.gz"
                 }
             }
         }
