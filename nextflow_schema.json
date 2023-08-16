@@ -218,7 +218,7 @@
                     "description": "The action when an adapter is found if not skip_cutadapt",
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false,
-                    "default": "none",
+                    "default": "trim",
                     "enum": ["trim", "retain", "none", "mask"]
                 },
                 "cutadapt_error_tolerance": {
