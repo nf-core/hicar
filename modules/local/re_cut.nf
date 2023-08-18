@@ -5,7 +5,7 @@ process RE_CUTSITE {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/biopython:1.78' :
-        'quay.io/biocontainers/biopython:1.78' }"
+        'biocontainers/biopython:1.78' }"
 
     input:
     val enzyme
@@ -16,11 +16,11 @@ process RE_CUTSITE {
 
     script:
     """
+    restriction_enzyme_cutsite.py $enzyme
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(echo \$(python --version) | sed 's/Python //')
     END_VERSIONS
-
-    restriction_enzyme_cutsite.py $enzyme
     """
 }

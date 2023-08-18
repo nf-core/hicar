@@ -1,20 +1,19 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    VALIDATE INPUTS
+    PRINT PARAMS SUMMARY
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
+include { paramsSummaryLog; paramsSummaryMap; fromSamplesheet } from 'plugin/nf-validation'
 
-// Validate input parameters
+def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
+def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
+def summary_params = paramsSummaryMap(workflow)
+
+// Print parameter summary log to screen
+log.info logo + paramsSummaryLog(workflow) + citation
+
 WorkflowHicar.initialise(params, log)
-
-// Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.fasta,
-                            params.gtf, params.bwa_index, params.gene_bed,
-                            params.mappability]
-for (param in checkPathParamList) {
-    if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
 if (params.input) {
@@ -89,36 +88,34 @@ ch_hic_tools                 = Channel.fromPath(params.hic_tools_jar,
 //
 // MODULE: Local to the pipeline
 //
-include { CHECKSUMS } from '../modules/local/checksums'
-include { HOMER_INSTALL } from '../modules/local/homer/install'
-// include { HICEXPLORER_HICCORRECTMATRIX } from '../modules/local/hicexplorer/hiccorrectmatrix' // NOT WORK, buggy
-include { RECENTER_PEAK } from '../modules/local/hicexplorer/recenterpeak'
-include { HICEXPLORER_CHICQUALITYCONTROL } from '../modules/local/hicexplorer/chicqualitycontrol'
+include { CHECKSUMS                                } from '../modules/local/checksums'
+include { HOMER_INSTALL                            } from '../modules/local/homer/install'
+include { RECENTER_PEAK                            } from '../modules/local/hicexplorer/recenterpeak'
+include { HICEXPLORER_CHICQUALITYCONTROL           } from '../modules/local/hicexplorer/chicqualitycontrol'
 include { HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL } from '../modules/local/hicexplorer/chicviewpointbackgroundmodel'
-include { HICEXPLORER_CHICVIEWPOINT } from '../modules/local/hicexplorer/chicviewpoint'
-include { JUICER_ADDNORM } from '../modules/local/juicer/addnorm'
-include { BIOC_CHIPPEAKANNO } from '../modules/local/bioc/chippeakanno'
-include { BIOC_ENRICH } from '../modules/local/bioc/enrich'
-include { IGV } from '../modules/local/igv'
+include { HICEXPLORER_CHICVIEWPOINT                } from '../modules/local/hicexplorer/chicviewpoint'
+include { JUICER_ADDNORM                           } from '../modules/local/juicer/addnorm'
+include { BIOC_CHIPPEAKANNO                        } from '../modules/local/bioc/chippeakanno'
+include { BIOC_ENRICH                              } from '../modules/local/bioc/enrich'
+include { IGV                                      } from '../modules/local/igv'
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK } from '../subworkflows/local/input_check'
-include { PREPARE_GENOME } from '../subworkflows/local/preparegenome'
-include { BAM_STAT } from '../subworkflows/local/bam_stats'
+include { PREPARE_GENOME  } from '../subworkflows/local/preparegenome'
+include { BAM_STAT        } from '../subworkflows/local/bam_stats'
 include { PAIRTOOLS_PAIRE } from '../subworkflows/local/pairtools'
-include { COOLER } from '../subworkflows/local/cooler'
+include { COOLER          } from '../subworkflows/local/cooler'
 
-include { ATAC_PEAK } from '../subworkflows/local/callatacpeak'
-include { TADS } from '../subworkflows/local/tads'
-include { COMPARTMENTS } from '../subworkflows/local/compartments'
-include { APA } from '../subworkflows/local/apa'
-include { INTERACTIONS } from '../subworkflows/local/interactions'
-include { HIPEAK } from '../subworkflows/local/hipeak'
-include { DA } from '../subworkflows/local/differential_analysis'
-include { V4C } from '../subworkflows/local/v4c'
-include { TFEA } from '../subworkflows/local/tfea'
+include { ATAC_PEAK       } from '../subworkflows/local/callatacpeak'
+include { TADS            } from '../subworkflows/local/tads'
+include { COMPARTMENTS    } from '../subworkflows/local/compartments'
+include { APA             } from '../subworkflows/local/apa'
+include { INTERACTIONS    } from '../subworkflows/local/interactions'
+include { HIPEAK          } from '../subworkflows/local/hipeak'
+include { DA              } from '../subworkflows/local/differential_analysis'
+include { V4C             } from '../subworkflows/local/v4c'
+include { TFEA            } from '../subworkflows/local/tfea'
 
 include { RUN_CIRCOS } from '../subworkflows/local/circos'
 include { KRAKEN2 } from '../subworkflows/local/kraken'
@@ -191,11 +188,36 @@ workflow HICAR {
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    INPUT_CHECK (
-        ch_input
-    )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
-    ch_reads = INPUT_CHECK.out.reads
+    ch_reads = Channel.fromSamplesheet("input")
+        .collect(flat: false, sort: true)
+        .map{//assign technique replicate
+            all_tech_eq_1 = true
+            for(item in it){//check if all the values are default values
+                if ( item[0].techniquereplicate != 1){
+                    all_tech_eq_1 = false
+                    break
+                }
+            }
+            if(all_tech_eq_1){//if all are default value (1), assign the technique_replicate from 1 to N
+                technique_replicate = [:]
+                for(item in it){
+                    id = item[0].group + '_' + item[0].replicate
+                    if(technique_replicate[id]){
+                        technique_replicate[id] += 1
+                    }else{
+                        technique_replicate[id] = 1
+                    }
+                    item[0].techniquereplicate = technique_replicate[id]
+                }
+            }
+            return it
+        }
+        .flatten().collate(3) //[meta, fq1, fq2]
+        .map{
+            meta, fastq_1, fastq_2 ->
+                meta_copy = meta - meta.subMap(['id', 'single_end', 'group']) + [id: meta.group.toString().replaceAll("\\.", "_") + "_REP" + meta.replicate + "_T" + meta.techniquereplicate, single_end: false, group: meta.group.toString().replaceAll("\\.", "_")]
+                [meta_copy, [fastq_1, fastq_2]]
+        }
 
     //
     // check the input fastq files are correct
@@ -277,8 +299,8 @@ workflow HICAR {
     BWA_MEM.out.bam
                 .map{
                     meta, bam ->
-                        meta.id = meta.group + "_REP" + meta.replicate
-                        [meta.id, meta, bam]
+                        meta_copy = meta - meta.subMap(['id']) + [id: meta.group + "_REP" + meta.replicate]
+                        [meta_copy.id, meta_copy, bam]
                 }
                 .groupTuple(by: [0])
                 .map{[it[1][0], it[2].flatten()]}
@@ -686,7 +708,7 @@ workflow HICAR {
             bedpe_module_name = 'MAPS_REFORMAT'
             break
         case 'hicdcplus':
-            bedpe_module_name = 'HICDCPLUS_CALLLOOPS'
+            bedpe_module_name = 'HICDCPLUS_CALL_LOOPS'
             break
         case 'peakachu':
             bedpe_module_name = 'PEAKACHU_SCORE'
@@ -732,10 +754,11 @@ workflow HICAR {
         //
         // MODULE: MultiQC
         //
+
         workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
         ch_workflow_summary = Channel.value(workflow_summary)
 
-        methods_description    = WorkflowHicar.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description)
+        methods_description    = WorkflowHicar.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
         ch_methods_description = Channel.value(methods_description)
 
         ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))

@@ -5,7 +5,7 @@ process PAIRTOOLS_SAMPLE {
     conda "bioconda::pairtools=0.3.0"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/pairtools:0.3.0--py37hb9c2fc3_5' :
-        'quay.io/biocontainers/pairtools:0.3.0--py37hb9c2fc3_5' }"
+        'biocontainers/pairtools:0.3.0--py37hb9c2fc3_5' }"
 
     input:
     tuple val(meta), path(input), val(fraction)

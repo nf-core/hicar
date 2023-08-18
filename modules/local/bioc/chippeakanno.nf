@@ -7,7 +7,7 @@ process BIOC_CHIPPEAKANNO {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' }"
+        'biocontainers/bioconductor-chippeakanno:3.32.0--r42hdfd78af_0' }"
 
     input:
     tuple val(foldername), path(diff), path(peak)
@@ -15,10 +15,10 @@ process BIOC_CHIPPEAKANNO {
     val maps_3d_ext
 
     output:
-    tuple val(foldername), path("${prefix}/*"), emit: anno
+    tuple val(foldername), path("${prefix}/*")          , emit: anno
     tuple val(foldername), path("${prefix}/**.anno.csv"), emit: csv
-    path "${prefix}/*.png", optional:true, emit: png
-    path "versions.yml"                       , emit: versions
+    path "${prefix}/*.png", optional:true               , emit: png
+    path "versions.yml"                                 , emit: versions
 
     script:
     prefix   = task.ext.prefix ?: "$foldername"
@@ -80,20 +80,21 @@ process BIOC_CHIPPEAKANNO {
         R2 <- GRanges()
     }
     for(det in detbl){
+        DB <- data.frame()
         if(grepl("csv\$", det)) {
             DB <- read.csv(det)
         }else{
             if(grepl("peaks\$", det)){
                 DB <- read.table(det, header=TRUE)
             }else{
-            header <- tryCatch(
+                header <- tryCatch(
                     read.table(det, header=FALSE, nrow=1),
                     error = function(.e){
                         message(.e)
                     },
                     finally = NULL
-                    )
-                    if(length(header)>0){
+                )
+                if(length(header)>0){
                     hasHeader <- all(c("chr1", "start1", "end1",
                                         "chr2", "start2", "end2") %in%
                                         header[1, , drop=TRUE])

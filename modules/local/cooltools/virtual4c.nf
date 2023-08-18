@@ -7,7 +7,7 @@ process VIRTUAL4C_BY_COOLTOOLS {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/cooltools:0.5.4--py39hbf8eff0_0' :
-        'quay.io/biocontainers/cooltools:0.5.4--py39hbf8eff0_0' }"
+        'biocontainers/cooltools:0.5.4--py39hbf8eff0_0' }"
 
     input:
     tuple val(bin_size), path(cool), path(viewpoint)

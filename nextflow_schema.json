@@ -15,9 +15,10 @@
                 "input": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/csv",
-                    "pattern": "^\\S+\\.csv$",
                     "schema": "assets/schema_input.json",
+                    "pattern": "^\\S+\\.(csv|tsv|yaml)$",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
                     "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/hicar/usage#samplesheet-input).",
                     "fa_icon": "fas fa-file-csv"
@@ -72,6 +73,7 @@
                 "fasta": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
@@ -95,6 +97,7 @@
                 },
                 "bwa_index": {
                     "type": "string",
+                    "exists": true,
                     "fa_icon": "fab fa-wpexplorer",
                     "description": "Path to bwa index file.",
                     "help_text": "If you have no genome reference available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
@@ -102,6 +105,7 @@
                 "gtf": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "fa_icon": "fas fa-map-marked-alt",
                     "description": "Path to annotation gtf file.",
@@ -118,6 +122,7 @@
                 "gene_bed": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "fa_icon": "fas fa-file-medical-alt",
                     "description": "Path to annotation gene bed file.",
@@ -126,6 +131,7 @@
                 "mappability": {
                     "type": "string",
                     "format": "file-path",
+                    "exists": true,
                     "mimetype": "text/plain",
                     "fa_icon": "fas fa-file-contract",
                     "description": "Path to genome mappability file.",
@@ -307,7 +313,7 @@
                     "fa_icon": "fas fa-check-double",
                     "hidden": false,
                     "help_text": "Miniaml cutoff value for fold change from signal to expected values. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2.",
-                    "default": 2
+                    "default": 2.0
                 },
                 "maps_cutoff_fdr": {
                     "type": "number",
@@ -315,7 +321,7 @@
                     "fa_icon": "fas fa-percent",
                     "hidden": false,
                     "help_text": "Minimal cutoff -log10(FDR) value in the called connections. See help from [MAPS documentation](https://github.com/ijuric/MAPS), default 2 (=fdr 0.01).",
-                    "default": 2
+                    "default": 2.0
                 },
                 "maps_filter": {
                     "type": "string",
@@ -363,7 +369,7 @@
                     "default": 1000000000
                 },
                 "min_counts_per_loop": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "The minimal number reads count of peak pair",
                     "fa_icon": "fas fa-th",
                     "hidden": true,
@@ -371,7 +377,7 @@
                 },
                 "create_maps_signal": {
                     "type": "boolean",
-                    "description": "skip creat cooler files for maps or not",
+                    "description": "create cooler files for MAPS or not",
                     "fa_icon": "fas fa-comment-slash",
                     "hidden": true
                 },
@@ -414,13 +420,13 @@
             "descripton": "Options for compartment, TADs calling, and APA",
             "properties": {
                 "res_compartments": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "The resolution for compartments calling",
                     "fa_icon": "fas fa-th",
                     "default": 100000
                 },
                 "res_tads": {
-                    "type": "number",
+                    "type": "integer",
                     "description": "The resolution for TADs calling",
                     "help_text": "If tad_tool is set to resolution, the windows will be calculated by 3X, 5X, 10X and 15X resolution. If tad_tool is set to hicfindtads, this will determine the step parameter.",
                     "fa_icon": "fas fa-th",
@@ -673,7 +679,7 @@
                     "description": "Maximum amount of time that can be requested for any single job.",
                     "default": "240.h",
                     "fa_icon": "far fa-clock",
-                    "pattern": "^(\\d+\\.?\\s*(s|m|h|day)\\s*)+$",
+                    "pattern": "^(\\d+\\.?\\s*(s|m|h|d|day)\\s*)+$",
                     "hidden": true,
                     "help_text": "Use to set an upper-limit for the time requirement for each process. Should be a string in the format integer-unit e.g. `--max_time '2.h'`"
                 }
@@ -744,6 +750,7 @@
                 },
                 "multiqc_config": {
                     "type": "string",
+                    "format": "file-path",
                     "description": "Custom config file to supply to MultiQC.",
                     "fa_icon": "fas fa-cog",
                     "hidden": true
@@ -759,13 +766,6 @@
                     "description": "Custom MultiQC yaml file containing HTML including a methods description.",
                     "fa_icon": "fas fa-cog"
                 },
-                "tracedir": {
-                    "type": "string",
-                    "description": "Directory to keep pipeline Nextflow logs and reports.",
-                    "default": "${params.outdir}/pipeline_info",
-                    "fa_icon": "fas fa-cogs",
-                    "hidden": true
-                },
                 "validate_params": {
                     "type": "boolean",
                     "description": "Boolean whether to validate parameters against the schema at runtime",
@@ -773,12 +773,26 @@
                     "fa_icon": "fas fa-check-square",
                     "hidden": true
                 },
-                "show_hidden_params": {
+                "validationShowHiddenParams": {
                     "type": "boolean",
                     "fa_icon": "far fa-eye-slash",
                     "description": "Show all params when using `--help`",
                     "hidden": true,
                     "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
+                },
+                "validationFailUnrecognisedParams": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-check-circle",
+                    "description": "Validation of parameters fails when an unrecognised parameter is found.",
+                    "hidden": true,
+                    "help_text": "By default, when an unrecognised parameter is found, it returns a warinig."
+                },
+                "validationLenientMode": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-check-circle",
+                    "description": "Validation of parameters in lenient more.",
+                    "hidden": true,
+                    "help_text": "Allows string values that are parseable as numbers or booleans. For further information see [JSONSchema docs](https://github.com/everit-org/json-schema#lenient-mode)."
                 }
             }
         },

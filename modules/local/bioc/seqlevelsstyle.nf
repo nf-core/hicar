@@ -5,7 +5,7 @@ process SEQLEVELS_STYLE {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-genomeinfodb:1.26.4--r40hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-genomeinfodb:1.26.4--r40hdfd78af_0' }"
+        'biocontainers/bioconductor-genomeinfodb:1.26.4--r40hdfd78af_0' }"
 
     input:
     path bed

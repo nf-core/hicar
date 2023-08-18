@@ -8,7 +8,7 @@ process BIOC_ATACSEQTFEA {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-atacseqtfea:1.0.1--r42hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-atacseqtfea:1.0.1--r42hdfd78af_0' }"
+        'biocontainers/bioconductor-atacseqtfea:1.0.1--r42hdfd78af_0' }"
 
     input:
     tuple val(meta), path(peak), path(bam)

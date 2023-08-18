@@ -5,7 +5,7 @@ process HICEXPLORER_CHICSIGNIFICANTINTERACTIONS {
     conda "bioconda::hicexplorer=3.7.2 cleanlab=1.0.1"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/hicexplorer:3.7.2--pyhdfd78af_1' :
-        'quay.io/biocontainers/hicexplorer:3.7.2--pyhdfd78af_1' }"
+        'biocontainers/hicexplorer:3.7.2--pyhdfd78af_1' }"
 
     input:
     tuple val(bin_size), path(background), path(interactions)

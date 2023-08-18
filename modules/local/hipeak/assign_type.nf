@@ -6,7 +6,7 @@ process ASSIGN_TYPE {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' :
-        'quay.io/biocontainers/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' }"
+        'biocontainers/bioconductor-chippeakanno:3.26.0--r41hdfd78af_0' }"
 
     input:
     tuple val(meta), path(counts)

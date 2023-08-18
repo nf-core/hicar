@@ -3,7 +3,7 @@
  */
 
 include { HICDCPLUS_FEATURES             } from '../../../modules/local/hicdcplus/features'
-include { HICDCPLUS_CALLLOOPS            } from '../../../modules/local/hicdcplus/callloops'
+include { HICDCPLUS_CALL_LOOPS            } from '../../../modules/local/hicdcplus/callloops'
 
 workflow HICDCPLUS {
     take:
@@ -31,8 +31,8 @@ workflow HICDCPLUS {
                                     .map{[[id:it[0].id, bin:it[2]],
                                         it[1], it[3]]}
         .combine(bedpe, by: 0)
-    ch_loop = HICDCPLUS_CALLLOOPS(ch_reads.combine(additional_param.map{[it[2]]})).interactions
-    ch_versions = ch_versions.mix(HICDCPLUS_CALLLOOPS.out.versions.ifEmpty([]))
+    ch_loop = HICDCPLUS_CALL_LOOPS(ch_reads.combine(additional_param.map{[it[2]]})).interactions
+    ch_versions = ch_versions.mix(HICDCPLUS_CALL_LOOPS.out.versions.ifEmpty([]))
 
     emit:
     interactions = ch_loop                      // channel: [ meta, bin_size, path(bedpe) ]

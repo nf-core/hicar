@@ -7,7 +7,7 @@ process BIOC_ENZYMECUT {
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0' :
-        'quay.io/biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0' }"
+        'biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0' }"
 
     input:
     tuple val(bin_size), val(site), path(fasta)

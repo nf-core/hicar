@@ -1,5 +1,5 @@
 //
-// Transcription factor enrichment analysis
+// Get coverage scale
 //
 
 include { GET_SCALE           } from '../../modules/local/atacreads/getscale'
