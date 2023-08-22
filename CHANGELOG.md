@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.0.0dev - [08/16/2023]
+## v2.0.0dev - [08/22/2023]
 
 - update to nf-core-template-2.7.2
 - replace the dots by '\_' in the samples name
@@ -37,7 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - fix the chromosome style for homer TFEA analysis and annotation by ChIPpeakAnno;
   - fix the duplicated imported modules;
   - fix multiple typos.
-  - use local SAMTOOLS_SORT module;
 
 ## v1.0.0 - [05/03/2022]
 
