@@ -54,7 +54,7 @@ def main():
     parser.add_argument("OUT_FILE_PATH", help="directory where .maps file will be stored. Must end with slash ")
     parser.add_argument("SEX_CHROMS", help="")
     parser.add_argument("--BINNING_RANGE", default=1000000, help="")
-    parser.add_argument("--PREPARE_TRANS", action='store_true', help="parepare counts for trans-interactions")
+    parser.add_argument("--PREPARE_TRANS", action="store_true", help="parepare counts for trans-interactions")
     p = parser.parse_args(sys.argv[1:])
     init(p)
 
