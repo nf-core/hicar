@@ -25,7 +25,7 @@
                 },
                 "method": {
                     "type": "string",
-                    "description": "Metho for the experiment.",
+                    "description": "Method for the experiment.",
                     "default": "HiCAR",
                     "help_text": "It can be HiCAR, HiChIP, ChIA-PET, PLAC-Seq. If it is not HiCAR, user may want to define the anchor peaks. Otherwise, the anchor peaks will be called by R2 reads.",
                     "fa_icon": "fas fa-atom"
