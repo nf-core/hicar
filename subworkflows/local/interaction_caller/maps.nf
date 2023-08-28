@@ -36,7 +36,7 @@ workflow MAPS {
                 .set{ maps_input }
     MAPS_PEAK(
         maps_input,
-        additional_param.map{[ it[1] ]},            //chrom_size
+        additional_param.map{[ it[2] ]},            //chrom_size
         )
     ch_versions = ch_versions.mix(MAPS_PEAK.out.versions)
     ch_multiqc_files = MAPS_PEAK.out.stats.collect().ifEmpty(null)
