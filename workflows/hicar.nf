@@ -691,14 +691,16 @@ workflow HICAR {
     //
     // visualization: circos
     //
-    RUN_CIRCOS(
-        ch_circos_files.groupTuple(),
-        PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.chrom_sizes,
-        PREPARE_GENOME.out.ucscname,
-        ch_circos_config
-    )
-    ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))
+    if(!params.skip_circos){
+        RUN_CIRCOS(
+            ch_circos_files.groupTuple(),
+            PREPARE_GENOME.out.gtf,
+            PREPARE_GENOME.out.chrom_sizes,
+            PREPARE_GENOME.out.ucscname,
+            ch_circos_config
+        )
+        ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))
+    }
 
     //
     // visualization: IGV, Create igv index.html file
