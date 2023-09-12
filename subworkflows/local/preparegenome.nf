@@ -30,7 +30,7 @@ workflow PREPARE_GENOME {
         GUNZIP_FASTA ( [[id:'fasta'], file("${params.fasta}", checkIfExists: true)] )
         ch_fasta = GUNZIP_FASTA.out.gunzip.map{it[1]}
     } else {
-        ch_fasta = Channel.fromPath(params.fasta)
+        ch_fasta = Channel.value(file(params.fasta, checkIfExists: true))
     }
 
     /*
