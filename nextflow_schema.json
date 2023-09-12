@@ -77,7 +77,7 @@
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically.",
                     "fa_icon": "far fa-file-code"
                 },
                 "igenomes_base": {
@@ -887,6 +887,21 @@
                     "fa_icon": "far fa-times-circle",
                     "description": "the database for Kraken2",
                     "default": "https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20230605.tar.gz"
+                },
+                "publish_raw_pairsam": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-copy",
+                    "description": "Save the raw pairsam files"
+                },
+                "publish_filtered_pairs": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-copy",
+                    "description": "Save the filtered pairs"
+                },
+                "publish_filtered_h5": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-copy",
+                    "description": "Save the filtered pairs in hdf5 format."
                 }
             }
         }
