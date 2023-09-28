@@ -1,6 +1,6 @@
-process PAIRTOOLS_STATS {
+process PAIRTOOLS_PARSE2 {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_low'
 
     // Pinning numpy to 1.23 until https://github.com/open2c/pairtools/issues/170 is resolved
     // Not an issue with the biocontainers because they were built prior to numpy 1.24
@@ -10,10 +10,12 @@ process PAIRTOOLS_STATS {
         'quay.io/biocontainers/pairtools:1.0.2--py39h2a9f597_0' }"
 
     input:
-    tuple val(meta), path(input)
+    tuple val(meta), path(bam)
+    path chromsizes
 
     output:
-    tuple val(meta), path("*.stats.tsv")   , emit: stat
+    tuple val(meta), path("*.pairsam.gz")  , emit: pairsam
+    tuple val(meta), path("*.pairsam.stat"), emit: stat
     path "versions.yml"                    , emit: versions
 
     when:
@@ -24,12 +26,12 @@ process PAIRTOOLS_STATS {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     pairtools \\
-        stats \\
+        parse2 \\
+        -c $chromsizes \\
         $args \\
-        --nproc-in $task.cpus \\
-        --nproc-out $task.cpus \\
-        -o ${prefix}.stats.tsv \\
-        $input
+        --output-stats ${prefix}.pairsam.stat \\
+        -o ${prefix}.pairsam.gz \\
+        $bam
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
