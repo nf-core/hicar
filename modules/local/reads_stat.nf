@@ -40,6 +40,7 @@ process READS_STAT {
 
     df <- data.frame(sample=sample_name,
             total=all_pairs["total"],
+            samefrag=all_pairs["total_mapped"] - dep_pairs["total"],
             duplicate=dep_pairs['total_dups'],
             non_duplicated=dep_pairs['total_nodups'],
             duplication_rate=round(100*dep_pairs['total_dups']/all_pairs["total"],2),
