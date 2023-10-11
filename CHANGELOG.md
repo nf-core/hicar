@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add scale factor to atac reads coverage calculation
 - change the circos plot style
 - update reads_summary table to include unmapped/multiple mapped, same fragement info
+- change the TSSEscore from 1K upstream/downstream to 2K range.
 - add the possibility to subsample to balance the input reads
 - add parameter to let user input the 5 end sequence to cutadapt step
 - change the cutadapt error tolerance from 0 to 0.15
