@@ -162,7 +162,7 @@
                     },
                     "pairtools/sort": {
                         "branch": "master",
-                        "git_sha": "278dfc354f62ad086ce5dfce491e4fbeaf0848fc",
+                        "git_sha": "1f798fb2b6da5ec9b65b54d0793d56d89bb3ef39",
                         "installed_by": ["modules"]
                     },
                     "samtools/flagstat": {
