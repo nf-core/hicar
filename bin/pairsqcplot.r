@@ -166,25 +166,23 @@ create_d3_js_for_interactive_multiline_plot <- function(
 
     # create js file
     js_content = c(
-      paste("d3.tsv('", tsvcolfile, "', function(tsvcolumns) {", sep=""),
-      paste( "interactive_multiline_plot('", tsvfile, "', tsvcolumns, ", xmin, ",", xmax, ",", ymin, ",", ymax ,", '", xlab, "', '", ylab, "', '", div_id , "');", sep=""),
-      "});"
+        paste("d3.tsv('", tsvcolfile, "', function(tsvcolumns) {", sep=""),
+        paste( "interactive_multiline_plot('", tsvfile, "', tsvcolumns, ", xmin, ",", xmax, ",", ymin, ",", ymax ,", '", xlab, "', '", ylab, "', '", div_id , "');", sep=""),
+        "});"
     )
     js_file = paste("./", js_file_prefix, ".", sample_name, ".js", sep="") # relative to report dir  (to be used in html)
     js_file_curr = paste(report_dir, "/distanceplot_perchr.", sample_name, ".js", sep="") # relative to current dir
     write.table(js_content, js_file_curr,quote=FALSE, row.names=FALSE, col.names=FALSE)
 
-   # tags for html to call js file
-   html_script_tag = paste("<script src=\"", js_file, "\"></script>",sep="")   # relative to report dir
-   html_common_script_tag = "<script src=\"https://d3js.org/d3.v3.js\"></script><script src=\"https://rawgit.com/SooLee/d3forNozzleR/master/interactive_multiline.js\"></script>"
-   html_div_tag = paste("<div id=\"", div_id, "\"></div>",sep="")
+    # tags for html to call js file
+    html_script_tag = paste("<script src=\"", js_file, "\"></script>",sep="")   # relative to report dir
+    html_common_script_tag = "<script src=\"https://d3js.org/d3.v3.js\"></script><script src=\"https://rawgit.com/SooLee/d3forNozzleR/master/interactive_multiline.js\"></script>"
+    html_div_tag = paste("<div id=\"", div_id, "\"></div>",sep="")
 
-   minihtml = paste("<html><body>",html_common_script_tag,html_div_tag,html_script_tag,"</body></html>",sep="")
+    minihtml = paste("<html><body>",html_common_script_tag,html_div_tag,html_script_tag,"</body></html>",sep="")
 
-   # return necessary things to create an html component
-   return(list(div_id=div_id, tsvcolfile=tsvcolfile, js_file=js_file, html_script_tag = html_script_tag, html_common_script_tag=html_common_script_tag, html_div_tag=html_div_tag, minihtml=minihtml))
-
-
+    # return necessary things to create an html component
+    return(list(div_id=div_id, tsvcolfile=tsvcolfile, js_file=js_file, html_script_tag = html_script_tag, html_common_script_tag=html_common_script_tag, html_div_tag=html_div_tag, minihtml=minihtml))
 }
 
 plot_orientation_proportion_vs_distance <- function(x, RE_len, xlim=c(2,5), no_xlabel=FALSE){
