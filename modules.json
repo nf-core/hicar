@@ -62,7 +62,7 @@
                     },
                     "custom/dumpsoftwareversions": {
                         "branch": "master",
-                        "git_sha": "76cc4938c1f6ea5c7d83fed1eeffc146787f9543",
+                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
                         "installed_by": ["modules"]
                     },
                     "cutadapt": {
@@ -72,7 +72,7 @@
                     },
                     "fastqc": {
                         "branch": "master",
-                        "git_sha": "c8e35eb2055c099720a75538d1b8adb3fb5a464c",
+                        "git_sha": "bd8092b67b5103bdd52e300f75889442275c3117",
                         "installed_by": ["modules"]
                     },
                     "genmap/index": {
@@ -127,7 +127,7 @@
                     },
                     "multiqc": {
                         "branch": "master",
-                        "git_sha": "f2d63bd5b68925f98f572eed70993d205cc694b7",
+                        "git_sha": "911696ea0b62df80e900ef244d7867d177971f73",
                         "installed_by": ["modules"]
                     },
                     "pairix": {
@@ -162,7 +162,7 @@
                     },
                     "pairtools/sort": {
                         "branch": "master",
-                        "git_sha": "278dfc354f62ad086ce5dfce491e4fbeaf0848fc",
+                        "git_sha": "1f798fb2b6da5ec9b65b54d0793d56d89bb3ef39",
                         "installed_by": ["modules"]
                     },
                     "samtools/flagstat": {

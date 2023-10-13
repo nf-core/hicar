@@ -80,14 +80,6 @@
                     "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically.",
                     "fa_icon": "far fa-file-code"
                 },
-                "igenomes_base": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "Directory / URL base for iGenomes references.",
-                    "default": "s3://ngi-igenomes/igenomes",
-                    "fa_icon": "fas fa-cloud-download-alt",
-                    "hidden": true
-                },
                 "igenomes_ignore": {
                     "type": "boolean",
                     "description": "Do not load the iGenomes reference config.",
@@ -234,14 +226,30 @@
                     "hidden": false,
                     "default": 0.15
                 },
-                "pairtools_walks_policy": {
+                "pairtools_parse_params": {
                     "type": "string",
-                    "description": "The action for rescuing complex walks",
+                    "description": "The parameters used by parse",
+                    "fa_icon": "fas fa-remove-format",
+                    "help_text": "See more details at https://pairtools.readthedocs.io/en/latest/parsing.html",
+                    "hidden": false,
+                    "default": "--min-mapq 10 --max-molecule-size 2000 --max-inter-align-gap 50 --walks-policy mask  --no-flip --drop-seq --drop-sam"
+                },
+                "pairtools_parse2_params": {
+                    "type": "string",
+                    "description": "The parameters used by parse2",
+                    "fa_icon": "fas fa-remove-format",
+                    "help_text": "See more details at https://pairtools.readthedocs.io/en/latest/parsing.html",
+                    "hidden": false,
+                    "default": "--min-mapq 10 --max-molecule-size 2000 --max-inter-align-gap 50 --report-position outer --add-pair-index --no-flip --drop-seq --expand --max-expansion-depth 6"
+                },
+                "pairtools_parse_version": {
+                    "type": "string",
+                    "description": "The parse tools used for the rescue. Avaiable choices are parse and parse2.",
                     "fa_icon": "fas fa-remove-format",
                     "help_text": "See more details at https://pairtools.readthedocs.io/en/latest/parsing.html#multiple-ligations-walks",
                     "hidden": false,
-                    "default": "mask",
-                    "enum": ["mask", "all", "5any", "5unique", "3any", "3unique"]
+                    "default": "parse",
+                    "enum": ["parse", "parse2"]
                 }
             }
         },

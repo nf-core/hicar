@@ -1,5 +1,7 @@
 # ![nf-core/hicar](docs/images/nf-core-hicar_logo_light.png#gh-light-mode-only) ![nf-core/hicar](docs/images/nf-core-hicar_logo_dark.png#gh-dark-mode-only)
 
+[![GitHub Actions CI Status](https://github.com/nf-core/hicar/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/hicar/actions?query=workflow%3A%22nf-core+CI%22)
+[![GitHub Actions Linting Status](https://github.com/nf-core/hicar/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/hicar/actions?query=workflow%3A%22nf-core+linting%22)
 [![AWS CI](https://img.shields.io/badge/CI%20tests-full%20size-FF9900?labelColor=000000&logo=Amazon%20AWS)](https://nf-co.re/hicar/results)
 [![Cite with Zenodo](http://img.shields.io/badge/DOI-10.5281/zenodo.6515312-1073c8?labelColor=000000)](https://doi.org/10.5281/zenodo.6515312)
 
@@ -44,10 +46,11 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 ## Usage
 
-> **Note**
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how
-> to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline)
-> with `-profile test` before running the workflow on actual data.
+:::note
+If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how
+to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline)
+with `-profile test` before running the workflow on actual data.
+:::
 
 First, prepare a samplesheet with your input data that looks as follows:
 
@@ -71,10 +74,11 @@ nextflow run nf-core/hicar \
      --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
 ```
 
-> **Warning:**
-> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those
-> provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
-> see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
+:::warning
+Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those
+provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
+see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
+:::
 
 For more details, please refer to the [usage documentation](https://nf-co.re/hicar/usage) and the [parameter documentation](https://nf-co.re/hicar/parameters).
 For release candidate (RC) version, please refer to the [usage documentation](docs/usage.md) and [output documentation](docs/output.md). To setup your parameters for RC version, please refer to [parameter configureation page](https://jianhong.github.io/hicar_doc/launch.html).

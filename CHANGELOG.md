@@ -3,7 +3,7 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.0.0dev - [08/22/2023]
+## v2.0.0dev - [10/10/2023]
 
 - update to nf-core-template-2.7.2
 - replace the dots by '\_' in the samples name
@@ -19,14 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - removed local_modules tests
 - add scale factor to atac reads coverage calculation
 - change the circos plot style
-- update reads_summary table to include unmapped/multiple mapped info
+- update reads_summary table to include unmapped/multiple mapped, same fragement info
+- change the TSSEscore from 1K upstream/downstream to 2K range.
 - add the possibility to subsample to balance the input reads
 - add parameter to let user input the 5 end sequence to cutadapt step
 - change the cutadapt error tolerance from 0 to 0.15
 - change the default cutadapt_action from none to trim
 - add 3' trim to remove the second enzyme site if it appeared in after 50 base.
 - export parameter for prepare trans counts for MAPS
-- export parameter walks-policy for pairtools
+- add parameter to select pairtools parse or parse2
+- export parameter for pairtools parse and parse2
 - add function to detect the contamination by karken2
 - fix multiple bugs:
   - the sorting method for huge bed file;

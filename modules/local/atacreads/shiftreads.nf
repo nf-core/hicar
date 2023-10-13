@@ -2,11 +2,11 @@ process SHIFT_READS {
     tag "$meta.id"
     label 'process_low'
 
-    conda "anaconda::gawk=5.1.0"
+    conda "conda-forge::coreutils=8.31"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/gawk:5.1.0' :
-        'biocontainers/gawk:5.1.0' }"
+        'https://depot.galaxyproject.org/singularity/coreutils:8.31--h14c3975_0' :
+        'biocontainers/coreutils:8.31--h14c3975_0' }"
 
     input:
     tuple val(meta), path(pair)
@@ -19,13 +19,14 @@ process SHIFT_READS {
 
     script:
     def prefix   = task.ext.prefix ? "${meta.id}${task.ext.prefix}" : "${meta.id}"
+    def buffer   = task.memory.toGiga().intdiv(2)
     def command  = do_shift ?
         'BEGIN {OFS="\t"};  /^[^#]/ { if (\$7 == "+") {\$5 = \$5 + 4} else if (\$7 == "-") {\$5 = \$5 - 5};  print \$4, \$5, \$5+1, "*", "0", \$7}' :
         'BEGIN {OFS="\t"};  /^[^#]/ { print \$4, \$5, \$5+1, "*", "0", \$7 }'
     """
     gunzip -c $pair | \\
         awk '$command' | \\
-        sort -k1,1 -k2,2n | \\
+        sort --parallel=$task.cpus --buffer-size=${buffer}G -k1,1 -k2,2n | \\
         uniq | \\
         gzip -nc > ${prefix}.R2.ATAC.bed.gz
     echo \$(cat $pair | wc -l)
