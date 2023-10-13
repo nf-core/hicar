@@ -25,7 +25,7 @@
                 },
                 "method": {
                     "type": "string",
-                    "description": "Metho for the experiment.",
+                    "description": "Method for the experiment.",
                     "default": "HiCAR",
                     "help_text": "It can be HiCAR, HiChIP, ChIA-PET, PLAC-Seq. If it is not HiCAR, user may want to define the anchor peaks. Otherwise, the anchor peaks will be called by R2 reads.",
                     "fa_icon": "fas fa-atom"
@@ -77,16 +77,8 @@
                     "mimetype": "text/plain",
                     "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
                     "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically.",
                     "fa_icon": "far fa-file-code"
-                },
-                "igenomes_base": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "Directory / URL base for iGenomes references.",
-                    "default": "s3://ngi-igenomes/igenomes",
-                    "fa_icon": "fas fa-cloud-download-alt",
-                    "hidden": true
                 },
                 "igenomes_ignore": {
                     "type": "boolean",
@@ -200,10 +192,64 @@
                 },
                 "cutadapt_5end": {
                     "type": "string",
-                    "description": "trim 5' end with the string if not skip_cutadapt",
+                    "description": "trim 5' end with the string if not skip_cutadapt. This is the introduced by the first enzyme, eg. CviQI, and splintoligo. Please try to observe your 5 ends of R1 reads to confirm the sequence.",
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false,
                     "default": "^TAC"
+                },
+                "cutadapt_3end": {
+                    "type": "string",
+                    "description": "trim 3' end with the string if not skip_cutadapt. This site is the second enzyme you used to do the digestion, eg if NlaIII, set to 'CATG'. Use 'skip' to skip this step.",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": "skip"
+                },
+                "cutadapt_minimum_length": {
+                    "type": "string",
+                    "description": "The minimal length of bases that should not be searched for second enzyme digest site.",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": "50:50"
+                },
+                "cutadapt_action": {
+                    "type": "string",
+                    "description": "The action when an adapter is found if not skip_cutadapt",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": "trim",
+                    "enum": ["trim", "retain", "none", "mask"]
+                },
+                "cutadapt_error_tolerance": {
+                    "type": "number",
+                    "description": "Error tolerance for adaptor filter if not skip_cutadapt",
+                    "fa_icon": "fas fa-remove-format",
+                    "hidden": false,
+                    "default": 0.15
+                },
+                "pairtools_parse_params": {
+                    "type": "string",
+                    "description": "The parameters used by parse",
+                    "fa_icon": "fas fa-remove-format",
+                    "help_text": "See more details at https://pairtools.readthedocs.io/en/latest/parsing.html",
+                    "hidden": false,
+                    "default": "--min-mapq 10 --max-molecule-size 2000 --max-inter-align-gap 50 --walks-policy mask  --no-flip --drop-seq --drop-sam"
+                },
+                "pairtools_parse2_params": {
+                    "type": "string",
+                    "description": "The parameters used by parse2",
+                    "fa_icon": "fas fa-remove-format",
+                    "help_text": "See more details at https://pairtools.readthedocs.io/en/latest/parsing.html",
+                    "hidden": false,
+                    "default": "--min-mapq 10 --max-molecule-size 2000 --max-inter-align-gap 50 --report-position outer --add-pair-index --no-flip --drop-seq --expand --max-expansion-depth 6"
+                },
+                "pairtools_parse_version": {
+                    "type": "string",
+                    "description": "The parse tools used for the rescue. Avaiable choices are parse and parse2.",
+                    "fa_icon": "fas fa-remove-format",
+                    "help_text": "See more details at https://pairtools.readthedocs.io/en/latest/parsing.html#multiple-ligations-walks",
+                    "hidden": false,
+                    "default": "parse",
+                    "enum": ["parse", "parse2"]
                 }
             }
         },
@@ -301,6 +347,12 @@
                     "help_text": "pospoisson for positive poisson regression, negbinom for negative binomial. default is pospoisson.",
                     "default": "pospoisson",
                     "enum": ["pospoisson", "negbinom"]
+                },
+                "maps_prepare_trans": {
+                    "type": "boolean",
+                    "description": "generate trans signals for MAPS if set",
+                    "fa_icon": "fas fa-comment-slash",
+                    "hidden": false
                 },
                 "remove_dup": {
                     "type": "boolean",
@@ -832,6 +884,32 @@
                     "type": "boolean",
                     "fa_icon": "far fa-times-circle",
                     "description": "skip circos plot"
+                },
+                "do_contamination_analysis": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-times-circle",
+                    "description": "do contamination analysis with Kraken2"
+                },
+                "kraken2_db": {
+                    "type": "string",
+                    "fa_icon": "far fa-times-circle",
+                    "description": "the database for Kraken2",
+                    "default": "https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20230605.tar.gz"
+                },
+                "publish_raw_pairsam": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-copy",
+                    "description": "Save the raw pairsam files"
+                },
+                "publish_filtered_pairs": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-copy",
+                    "description": "Save the filtered pairs"
+                },
+                "publish_filtered_h5": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-copy",
+                    "description": "Save the filtered pairs in hdf5 format."
                 }
             }
         }

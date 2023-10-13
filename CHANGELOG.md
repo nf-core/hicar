@@ -3,12 +3,11 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.0.0 - [07/13/2023]
+## v2.0.0dev - [10/10/2023]
 
-- [[#89](https://github.com/nf-core/hicar/pull/89)] - update to nf-core-template-2.9
-- [[#90](https://github.com/nf-core/hicar/pull/90)] - remove the output folder setting from config files
-- [replace the dots](https://github.com/nf-core/hicar/pull/89#issue-1797065776) by '\_' in the samples group
-- add [support for MseI](https://github.com/jianhong/hicar/commit/64bfcecab9870100d56631ffc31ff0ed471e1255).
+- update to nf-core-template-2.7.2
+- replace the dots by '\_' in the samples name
+- add support for MseI.
 - add TAD, AB compartments, APA analysis (see available tools in usage documentation)
 - add additional methods for interaction caller
 - adjust default resource requirement
@@ -20,13 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - removed local_modules tests
 - add scale factor to atac reads coverage calculation
 - change the circos plot style
-- update reads_summary table to include unmapped/multiple mapped info
+- update reads_summary table to include unmapped/multiple mapped, same fragement info
+- change the TSSEscore from 1K upstream/downstream to 2K range.
 - add the possibility to subsample to balance the input reads
 - add parameter to let user input the 5 end sequence to cutadapt step
 - change the cutadapt error tolerance from 0 to 0.15
-- changes in hipeak caller:
-  - add filter condition for lowest count number as 1.
-  - change the cutoff value for hipeak type assignment step from 12 to 3.
+- change the default cutadapt_action from none to trim
+- add 3' trim to remove the second enzyme site if it appeared in after 50 base.
+- export parameter for prepare trans counts for MAPS
+- add parameter to select pairtools parse or parse2
+- export parameter for pairtools parse and parse2
+- add function to detect the contamination by karken2
 - fix multiple bugs:
   - the sorting method for huge bed file;
   - the post count for hipeak when there is empty Interactions;
@@ -36,7 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - fix the chromosome style for homer TFEA analysis and annotation by ChIPpeakAnno;
   - fix the duplicated imported modules;
   - fix multiple typos.
-  - use local SAMTOOLS_SORT module;
 
 ## v1.0.0 - [05/03/2022]
 

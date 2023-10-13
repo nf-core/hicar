@@ -117,7 +117,8 @@ include { DA              } from '../subworkflows/local/differential_analysis'
 include { V4C             } from '../subworkflows/local/v4c'
 include { TFEA            } from '../subworkflows/local/tfea'
 
-include { RUN_CIRCOS      } from '../subworkflows/local/circos'
+include { RUN_CIRCOS } from '../subworkflows/local/circos'
+include { KRAKEN2 } from '../subworkflows/local/kraken'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -129,9 +130,19 @@ include { RUN_CIRCOS      } from '../subworkflows/local/circos'
 //
 include { BWA_MEM                     } from '../modules/nf-core/bwa/mem/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-include { CUTADAPT                    } from '../modules/nf-core/cutadapt/main'
+include {
+    CUTADAPT
+        as CUTADAPT_5END;
+    CUTADAPT
+        as CUTADAPT_3END              } from '../modules/nf-core/cutadapt/main'
 include { FASTQC                      } from '../modules/nf-core/fastqc/main'
-include { CAT_CAT                     } from '../modules/nf-core/cat/cat/main'
+include {
+    CAT_CAT
+        as CAT_HOMER;
+    CAT_CAT
+        as CAT_CUTADAPT_R1;
+    CAT_CAT
+        as CAT_CUTADAPT_R2            } from '../modules/nf-core/cat/cat/main'
 include { HOMER_MAKETAGDIRECTORY      } from '../modules/nf-core/homer/maketagdirectory/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { SAMTOOLS_MERGE              } from '../modules/nf-core/samtools/merge/main'
@@ -166,6 +177,7 @@ workflow HICAR {
     ch_tad_additional   = Channel.empty() // additional inputs for tad
     ch_comp_additional  = Channel.empty() // additional inputs for A/B compartments
     ch_tfea_additional  = Channel.empty() // additional inputs for TFEA
+    ch_trackfiles       = Channel.empty() // files for igv.js
 
     ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_config)
     ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
@@ -178,6 +190,30 @@ workflow HICAR {
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
     ch_reads = Channel.fromSamplesheet("input")
+        .collect(flat: false, sort: true)
+        .map{//assign technique replicate
+            all_tech_eq_1 = true
+            for(item in it){//check if all the values are default values
+                if ( item[0].techniquereplicate != 1){
+                    all_tech_eq_1 = false
+                    break
+                }
+            }
+            if(all_tech_eq_1){//if all are default value (1), assign the technique_replicate from 1 to N
+                technique_replicate = [:]
+                for(item in it){
+                    id = item[0].group + '_' + item[0].replicate
+                    if(technique_replicate[id]){
+                        technique_replicate[id] += 1
+                    }else{
+                        technique_replicate[id] = 1
+                    }
+                    item[0].techniquereplicate = technique_replicate[id]
+                }
+            }
+            return it
+        }
+        .flatten().collate(3) //[meta, fq1, fq2]
         .map{
             meta, fastq_1, fastq_2 ->
                 meta_copy = meta - meta.subMap(['id', 'single_end', 'group']) + [id: meta.group.toString().replaceAll("\\.", "_") + "_REP" + meta.replicate + "_T" + meta.techniquereplicate, single_end: false, group: meta.group.toString().replaceAll("\\.", "_")]
@@ -215,12 +251,31 @@ workflow HICAR {
     // MODULE: trimming
     //
     if(!params.skip_cutadapt){
-        CUTADAPT(
+        CUTADAPT_5END(
             ch_reads
         )
-        ch_versions = ch_versions.mix(CUTADAPT.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT.out.log.collect{it[1]}.ifEmpty([]))
-        reads4mapping = CUTADAPT.out.reads
+        ch_versions = ch_versions.mix(CUTADAPT_5END.out.versions.ifEmpty(null))
+        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_5END.out.log.collect{it[1]}.ifEmpty([]))
+        if (params.cutadapt_3end != 'skip'){
+            CUTADAPT_3END(
+                CUTADAPT_5END.out.reads
+            )
+            ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_3END.out.log.collect{it[1]}.ifEmpty([]))
+            // combine the trimmed and untrimmed (protected by minimal length) reads together
+            cutadapt_out = CUTADAPT_3END.out.reads.transpose().branch{
+                R1: it[1] =~ /_[13].trim.fastq.gz/
+                R2: it[1] =~ /_[24].trim.fastq.gz/
+            }
+            CAT_CUTADAPT_R1(
+                cutadapt_out.R1.groupTuple()
+            )
+            CAT_CUTADAPT_R2(
+                cutadapt_out.R2.groupTuple()
+            )
+            reads4mapping = CAT_CUTADAPT_R1.out.file_out.concat(CAT_CUTADAPT_R2.out.file_out).groupTuple()
+        }else{
+            reads4mapping = CUTADAPT_5END.out.reads
+        }
     }else{
         reads4mapping = ch_reads
     }
@@ -245,8 +300,8 @@ workflow HICAR {
     BWA_MEM.out.bam
                 .map{
                     meta, bam ->
-                        meta.id = meta.group + "_REP" + meta.replicate
-                        [meta.id, meta, bam]
+                        meta_copy = meta - meta.subMap(['id']) + [id: meta.group + "_REP" + meta.replicate]
+                        [meta_copy.id, meta_copy, bam]
                 }
                 .groupTuple(by: [0])
                 .map{[it[1][0], it[2].flatten()]}
@@ -262,6 +317,16 @@ workflow HICAR {
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
+
+    //
+    // MODULE: determine contamination, do not run if there is no issue with mapping, computational resources comsuming
+    // It will install the nt-db, which ask about 850G free space for storage (300G zipped file and 480G unzipped database)
+    //
+    if(params.do_contamination_analysis){
+        KRAKEN2(reads4mapping, PREPARE_GENOME.out.kraken_db)
+        ch_multiqc_files = ch_multiqc_files.mix( KRAKEN2.out.mqc )
+        ch_versions = ch_versions.mix( KRAKEN2.out.versions.ifEmpty(null) )
+    }
 
     //
     // SUBWORKFLOW: filter reads, output pair (like hic pair), raw (pair), and stats
@@ -407,14 +472,14 @@ workflow HICAR {
         }
 
         if(homer_done){// force wait Homer install done
-            CAT_CAT(
+            CAT_HOMER(
                 PAIRTOOLS_PAIRE.out.homerpair.map{
                     meta, pairs ->
                     [[id:meta.group], pairs]
                 }.groupTuple(by:0)
             )
             HOMER_MAKETAGDIRECTORY(
-                CAT_CAT.out.file_out,
+                CAT_HOMER.out.file_out,
                 PREPARE_GENOME.out.fasta
             )
             if(params.tad_tool == 'homer'){
@@ -428,7 +493,7 @@ workflow HICAR {
             if(params.tfea_tool == 'homer'){
                 ch_tfea_additional = homer_genome
             }
-            ch_versions = ch_versions.mix(CAT_CAT.out.versions.ifEmpty(null))
+            ch_versions = ch_versions.mix(CAT_HOMER.out.versions.ifEmpty(null))
             ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
         }
     }
@@ -499,7 +564,7 @@ workflow HICAR {
     //
     if(params.do_apa){
         ch_apa_peak = params.apa_peak ? Channel.fromPath( params.apa_peak, checkIfExists: true ) : ATAC_PEAK.out.mergedpeak
-        if(params.apa_tool=='juicebox'){
+        if(params.apa_tool=='juicebox' && !params.skip_interactions){
             ch_apa_additional = INTERACTIONS.out.mergedloops.combine(ch_apa_additional).unique()
         }
         APA(
@@ -626,39 +691,81 @@ workflow HICAR {
     //
     // visualization: circos
     //
-    RUN_CIRCOS(
-        ch_circos_files.groupTuple(),
-        PREPARE_GENOME.out.gtf,
-        PREPARE_GENOME.out.chrom_sizes,
-        PREPARE_GENOME.out.ucscname,
-        ch_circos_config
-    )
-    ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))
+    if(!params.skip_circos){
+        RUN_CIRCOS(
+            ch_circos_files.groupTuple(),
+            PREPARE_GENOME.out.gtf,
+            PREPARE_GENOME.out.chrom_sizes,
+            PREPARE_GENOME.out.ucscname,
+            ch_circos_config
+        )
+        ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))
+    }
 
     //
     // visualization: IGV, Create igv index.html file
     //
-    def bedpe_module_name = 'MAPS_REFORMAT'
-    switch(params.interactions_tool){
-        case 'maps':
-            bedpe_module_name = 'MAPS_REFORMAT'
-            break
-        case 'hicdcplus':
-            bedpe_module_name = 'HICDCPLUS_CALL_LOOPS'
-            break
-        case 'peakachu':
-            bedpe_module_name = 'PEAKACHU_SCORE'
-            break
-    }
-    INTERACTIONS.out.loops.map{[it[0].id+'.'+it[1]+'.contacts',
+    ch_trackfiles = ch_trackfiles.mix(ATAC_PEAK.out
+                        .bws.map{[it[0].id+"_R2",
                             RelativePublishFolder.getPublishedFolder(workflow,
-                                                bedpe_module_name)+it[2].name]}
-        .mix(ATAC_PEAK.out
-                    .bws.map{[it[0].id+"_R2",
-                        RelativePublishFolder.getPublishedFolder(workflow,
-                                            'UCSC_BEDGRAPHTOBIGWIG_PER_GROUP')+it[1].name]})
-        .set{ch_trackfiles} // collect track files for igv
-
+                                                'UCSC_BEDGRAPHTOBIGWIG_PER_GROUP')+it[1].name]})
+    if(!params.skip_interactions){
+        def interaction_module_name = 'MAPS_REFORMAT'
+        switch(params.interactions_tool){
+            case 'maps':
+                interaction_module_name = 'MAPS_REFORMAT'
+                break
+            case 'hicdcplus':
+                interaction_module_name = 'HICDCPLUS_CALL_LOOPS'
+                break
+            case 'peakachu':
+                interaction_module_name = 'PEAKACHU_SCORE'
+                break
+        }
+        ch_trackfiles = ch_trackfiles.mix(
+                            INTERACTIONS.out.loops.map{[it[0].id+'.'+it[1]+'.contacts',
+                                RelativePublishFolder.getPublishedFolder(workflow,
+                                                    interaction_module_name)+it[2].name]})
+    }
+    if(!params.skip_compartments){
+        def compartment_module_name = 'COOLTOOLS_EIGSCIS'
+        switch(params.compartments_tool){
+            case 'cooltools':
+                compartment_module_name = 'COOLTOOLS_EIGSCIS'
+                break
+            case 'hicexplorer':
+                compartment_module_name = 'HICEXPLORER_HICPCA'
+                break
+            case 'homer':
+                compartment_module_name = 'UCSC_BEDGRAPHTOBIGWIG_HOMER_COMPARTMENTS'
+                break
+            case 'juicebox':
+                compartment_module_name = 'UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR'
+                break
+        }
+        ch_trackfiles = ch_trackfiles.mix(COMPARTMENTS.out.igv
+                            .map{[it[0].id+'.compartments',
+                                RelativePublishFolder.getPublishedFolder(workflow,
+                                    compartment_module_name)+it[1].name]})
+    }
+    if(!params.skip_tads){
+        def tads_module_name = 'COOLTOOLS_INSULATION'
+        switch(params.tad_tool){
+            case 'cooltools':
+                tads_module_name = 'COOLTOOLS_INSULATION'
+                break
+            case 'hicexplorer':
+                tads_module_name = 'HICEXPLORER_HICFINDTADS'
+                break
+            case 'homer':
+                tads_module_name = 'HOMER_FINDTADSANDLOOPS_TADS'
+                break
+        }
+        ch_trackfiles = ch_trackfiles.mix(TADS.out.igv
+                            .map{[it[0].id+'.TADs',
+                                RelativePublishFolder.getPublishedFolder(workflow,
+                                    tads_module_name)+it[1].name]})
+    }
     ch_trackfiles.collect{it.join('\t')}
         .flatten()
         .collectFile(
@@ -720,6 +827,7 @@ workflow.onComplete {
     if (params.email || params.email_on_fail) {
         NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
     }
+    NfcoreTemplate.dump_parameters(workflow, params)
     NfcoreTemplate.summary(workflow, params, log)
     if (params.hook_url) {
         NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)

@@ -43,6 +43,11 @@ jobs:
           - "--method HiChIP --anchor_peaks 'https://raw.githubusercontent.com/aryeelab/hichipper/master/tests/chipseq/GM12878_SMC3_ChIPSeq_chr22.narrowPeak'"
 
     steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+
       - name: Check out pipeline code
         uses: actions/checkout@v3
 

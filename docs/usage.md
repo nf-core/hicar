@@ -124,6 +124,12 @@ Visualize Hi-C data in a virtual 4C (v4c) format can help user to zoom in the in
 | setOperation | setOperation  | &#9744;          | &#9744; | &#9744;      | &#9745;               | &#9744; | &#9744; |
 | trackViewer  | trackviewer   | &#9744;          | &#9744; | &#9744;      | &#9744;               | &#9744; | &#9745; |
 
+## Detect the contamination
+
+If the mapping rate is extremely low (eg. < 60%), you may want to turn on `do_contamination_analysis` paramerter. The pipeline will run [Kraken2](https://ccb.jhu.edu/software/kraken2/) against [nt database](https://benlangmead.github.io/aws-indexes/k2), which is prepared from [GenBank](https://www.ncbi.nlm.nih.gov/genbank/), [RefSeq](https://www.ncbi.nlm.nih.gov/refseq/), [Third Party Annotation (TPA)](https://www.ncbi.nlm.nih.gov/genbank/tpa/) and [protein data bank (PDB)](https://www.rcsb.org/).
+
+Note that by default the pipeline will download a huge database file and decompress it in your working directory. This will ask more than 850G free storage space. It will be a better solution if you predownload the files and feed the path via `kraken2_db` parameter.
+
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
@@ -147,7 +153,9 @@ If you wish to repeatedly use the same parameters for multiple runs, rather than
 
 Pipeline settings can be provided in a `yaml` or `json` file via `-params-file <file>`.
 
-> ⚠️ Do not use `-c <file>` to specify parameters as this will result in errors. Custom config files specified with `-c` must only be used for [tuning process resource specifications](https://nf-co.re/docs/usage/configuration#tuning-workflow-resources), other infrastructural tweaks (such as output directories), or module arguments (args).
+:::warning
+Do not use `-c <file>` to specify parameters as this will result in errors. Custom config files specified with `-c` must only be used for [tuning process resource specifications](https://nf-co.re/docs/usage/configuration#tuning-workflow-resources), other infrastructural tweaks (such as output directories), or module arguments (args).
+:::
 
 The above pipeline run specified with a params file in yaml format:
 
@@ -184,11 +192,15 @@ This version number will be logged in reports when you run the pipeline, so that
 
 To further assist in reproducbility, you can use share and re-use [parameter files](#running-the-pipeline) to repeat pipeline runs with the same settings without having to write out a command with every single parameter.
 
-> 💡 If you wish to share such profile (such as upload as supplementary material for academic publications), make sure to NOT include cluster specific paths to files, nor institutional specific profiles.
+:::tip
+If you wish to share such profile (such as upload as supplementary material for academic publications), make sure to NOT include cluster specific paths to files, nor institutional specific profiles.
+:::
 
 ## Core Nextflow arguments
 
-> **NB:** These options are part of Nextflow and use a _single_ hyphen (pipeline parameters use a double-hyphen).
+:::note
+These options are part of Nextflow and use a _single_ hyphen (pipeline parameters use a double-hyphen).
+:::
 
 ### `-profile`
 
@@ -196,7 +208,9 @@ Use this parameter to choose a configuration profile. Profiles can give configur
 
 Several generic profiles are bundled with the pipeline which instruct the pipeline to use software packaged using different methods (Docker, Singularity, Podman, Shifter, Charliecloud, Apptainer, Conda) - see below.
 
-> We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
+:::info
+We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
+:::
 
 The pipeline also dynamically loads configurations from [https://github.com/nf-core/configs](https://github.com/nf-core/configs) when it runs, making multiple config profiles for various institutional clusters available at run time. For more information and to see if your system is available in these configs please see the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation).
 
