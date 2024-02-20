@@ -46,11 +46,8 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 ## Usage
 
-:::note
-If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how
-to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline)
-with `-profile test` before running the workflow on actual data.
-:::
+> [!NOTE]
+> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
 First, prepare a samplesheet with your input data that looks as follows:
 
@@ -74,11 +71,9 @@ nextflow run nf-core/hicar \
      --mappability /path/mappability/bigWig/file  # Provide mappability to avoid memory intensive calculation
 ```
 
-:::warning
-Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those
-provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
-see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
-:::
+> [!WARNING]
+> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_;
+> see [docs](https://nf-co.re/usage/configuration#custom-configuration-files).
 
 For more details, please refer to the [usage documentation](https://nf-co.re/hicar/usage) and the [parameter documentation](https://nf-co.re/hicar/parameters).
 For release candidate (RC) version, please refer to the [usage documentation](docs/usage.md) and [output documentation](docs/output.md). To setup your parameters for RC version, please refer to [parameter configureation page](https://jianhong.github.io/hicar_doc/launch.html).

@@ -40,7 +40,7 @@ process MAPS_RAW2BG2 {
     peaks_final_out <- lapply(infs, function(inf){
         peaks = as.data.table(read.table(inf, header=TRUE, stringsAsFactors=FALSE))
         if(nrow(peaks)==0){
-            peaks\$bin1_end <- peaks\$bin2_end <- numeric(0)
+            return(NULL)
         }else{
             peaks\$bin1_end = peaks\$bin1_mid + RESOLUTION
             peaks\$bin2_end = peaks\$bin2_mid + RESOLUTION

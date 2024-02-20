@@ -86,6 +86,8 @@ process DIFFHIC {
     cnts <- do.call(cbind, cnts)
     if(all(colSums(cnts)==0)){## peaks not exactly bin based
         cnts <- lapply(cnts0, function(.ele){
+            ## just in case some software changed the seqlevels style
+            seqlevelsStyle(.ele) <- seqlevelsStyle(peaks)[1]
             ol <- findOverlaps(peaks, .ele, select = "all")
             .peak <- peaks
             .peak\$score <- 0
@@ -163,7 +165,15 @@ process DIFFHIC {
         y <- calcNormFactors(y)
         design <- model.matrix(~0+group)
         colnames(design) <- levels(y\$samples\$group)
-        y <- estimateDisp(y,design)
+        y <- tryCatch({
+            estimateDisp(y,design)
+        }, error = function(.e){
+            warning(.e)
+            keep <- filterByExpr(y, min.count = 1,
+            min.total.count=ceiling(ncol(y)/2))
+            y <- y[keep, , keep.lib.sizes=FALSE]
+            estimateDisp(y, design)
+        })
         fit <- glmQLFit(y, design)
 
         ## PCA
@@ -225,14 +235,17 @@ process DIFFHIC {
             dev.off()
             ## save res
             res <- as.data.frame(rs)
-            res <- cbind(peaks, res)
+            current_peaks <- peaks
+            if(length(current_peaks)!=nrow(res)){
+                current_peaks <- current_peaks[as.numeric(rownames(res))]
+            }
+            res <- cbind(current_peaks, res)
             write.csv(res, fname(name, "csv", "diffHic.DEtable", name), row.names = FALSE)
             ## save metadata
             elementMetadata <- do.call(rbind, lapply(c("adjust.method","comparison","test"), function(.ele) rs[[.ele]]))
             rownames(elementMetadata) <- c("adjust.method","comparison","test")
             colnames(elementMetadata)[1] <- "value"
             write.csv(elementMetadata, fname(name, "csv", "diffHic.metadata", name), row.names = TRUE)
-            current_peaks <- peaks
             current_peaks\$score <- res\$F
             current_peaks <- current_peaks[res\$FDR<0.05 & abs(res\$logFC)>1]
             rtracklayer::export(current_peaks, fname(name, "bedpe", "diffHic.DEtable", name, "padj0.05.lfc1"), format = 'bedpe')
