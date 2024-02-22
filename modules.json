@@ -137,32 +137,32 @@
                     },
                     "pairtools/dedup": {
                         "branch": "master",
-                        "git_sha": "278dfc354f62ad086ce5dfce491e4fbeaf0848fc",
+                        "git_sha": "500d9eaad96739d5f4c9b839944f4a3500ec7540",
                         "installed_by": ["modules"]
                     },
                     "pairtools/flip": {
                         "branch": "master",
-                        "git_sha": "278dfc354f62ad086ce5dfce491e4fbeaf0848fc",
+                        "git_sha": "3d1602c1d6c8dccb3fdfbaeb0d6187ebf5de67f3",
                         "installed_by": ["modules"]
                     },
                     "pairtools/parse": {
                         "branch": "master",
-                        "git_sha": "278dfc354f62ad086ce5dfce491e4fbeaf0848fc",
+                        "git_sha": "9745b380c85528dba913f0fc1483b1f12a0d7941",
                         "installed_by": ["modules"]
                     },
                     "pairtools/restrict": {
                         "branch": "master",
-                        "git_sha": "278dfc354f62ad086ce5dfce491e4fbeaf0848fc",
+                        "git_sha": "e46bed12df04ad994daa83a90a79942b7888da42",
                         "installed_by": ["modules"]
                     },
                     "pairtools/select": {
                         "branch": "master",
-                        "git_sha": "278dfc354f62ad086ce5dfce491e4fbeaf0848fc",
+                        "git_sha": "803e2eda24671f4a5f51e02715bcbd9041d2dad2",
                         "installed_by": ["modules"]
                     },
                     "pairtools/sort": {
                         "branch": "master",
-                        "git_sha": "1f798fb2b6da5ec9b65b54d0793d56d89bb3ef39",
+                        "git_sha": "c5fa7d50a536c46da1d7333d9251deade2ba0827",
                         "installed_by": ["modules"]
                     },
                     "samtools/flagstat": {
