@@ -521,7 +521,8 @@ workflow HICAR {
             ch_comp_matrix,
             params.res_compartments,
             ch_comp_additional,
-            cool_bin
+            cool_bin//,
+            //ATAC_PEAK.out.mergedpeak
         )
         ch_versions = ch_versions.mix(COMPARTMENTS.out.versions.ifEmpty(null))
         ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect().ifEmpty([]))

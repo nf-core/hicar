@@ -208,6 +208,8 @@ By default, the peaks are called by `--no-model` parameter for the R2 reads in B
 
 To compute the A/B compartments ask correlation matrix computed by observed/expected matrix in the way described by [Lieberman-Aiden](https://doi.org/10.1126/science.1181369) and are determined by the eigenvectors based on the covariance matrix of the correlation matrix.
 
+The pipeline will try to align A/B compartments when A/B switched for each single chromomsome for two groups. And then do differential analysis for the compartments by chiq-square test for Mahalanobis Distance.
+
 ### TADs
 
 <details markdown="1">
