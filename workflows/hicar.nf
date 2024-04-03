@@ -1,19 +1,8 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    PRINT PARAMS SUMMARY
+    IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-include { paramsSummaryLog; paramsSummaryMap; fromSamplesheet } from 'plugin/nf-validation'
-
-def logo = NfcoreTemplate.logo(workflow, params.monochrome_logs)
-def citation = '\n' + WorkflowMain.citation(workflow) + '\n'
-def summary_params = paramsSummaryMap(workflow)
-
-// Print parameter summary log to screen
-log.info logo + paramsSummaryLog(workflow) + citation
-
-WorkflowHicar.initialise(params, log)
 
 // Check mandatory parameters
 if (params.input) {
@@ -62,11 +51,6 @@ def checkToolsUsedInDownstream(tool, params){
     CONFIG FILES
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-
-ch_multiqc_config          = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-ch_multiqc_custom_config   = params.multiqc_config ? Channel.fromPath( params.multiqc_config, checkIfExists: true ) : Channel.empty()
-ch_multiqc_logo            = params.multiqc_logo   ? Channel.fromPath( params.multiqc_logo, checkIfExists: true ) : Channel.empty()
-ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
 // custom config file
 ch_circos_config         = file("$projectDir/assets/circos.conf", checkIfExists: true)
 /*
@@ -129,7 +113,6 @@ include { KRAKEN2 } from '../subworkflows/local/kraken'
 // MODULE: Installed directly from nf-core/modules
 //
 include { BWA_MEM                     } from '../modules/nf-core/bwa/mem/main'
-include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include {
     CUTADAPT
         as CUTADAPT_5END;
@@ -146,6 +129,10 @@ include {
 include { HOMER_MAKETAGDIRECTORY      } from '../modules/nf-core/homer/maketagdirectory/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { SAMTOOLS_MERGE              } from '../modules/nf-core/samtools/merge/main'
+include { paramsSummaryMap       } from 'plugin/nf-validation'
+include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_hicar_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -154,11 +141,14 @@ include { SAMTOOLS_MERGE              } from '../modules/nf-core/samtools/merge/
 */
 
 // Info required for completion email and summary
-def multiqc_report = []
-
 cool_bin = Channel.fromList(params.cool_bin.tokenize('_'))
 
 workflow HICAR {
+
+    take:
+    ch_samplesheet // channel: samplesheet read in from --input
+
+    main:
 
     ch_versions         = Channel.empty() // pipeline versions
     ch_multiqc_files    = Channel.empty() // multiQC reports
@@ -178,59 +168,23 @@ workflow HICAR {
     ch_comp_additional  = Channel.empty() // additional inputs for A/B compartments
     ch_tfea_additional  = Channel.empty() // additional inputs for TFEA
     ch_trackfiles       = Channel.empty() // files for igv.js
-
-    ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_config)
-    ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
+    multiqc_report      = Channel.empty() // multiqc report
 
     //
     // preprocess: check inputs, check checksums, prepare genome
     //
 
     //
-    // SUBWORKFLOW: Read in samplesheet, validate and stage input files
-    //
-    ch_reads = Channel.fromSamplesheet("input")
-        .collect(flat: false, sort: true)
-        .map{//assign technique replicate
-            all_tech_eq_1 = true
-            for(item in it){//check if all the values are default values
-                if ( item[0].techniquereplicate != 1){
-                    all_tech_eq_1 = false
-                    break
-                }
-            }
-            if(all_tech_eq_1){//if all are default value (1), assign the technique_replicate from 1 to N
-                technique_replicate = [:]
-                for(item in it){
-                    id = item[0].group + '_' + item[0].replicate
-                    if(technique_replicate[id]){
-                        technique_replicate[id] += 1
-                    }else{
-                        technique_replicate[id] = 1
-                    }
-                    item[0].techniquereplicate = technique_replicate[id]
-                }
-            }
-            return it
-        }
-        .flatten().collate(3) //[meta, fq1, fq2]
-        .map{
-            meta, fastq_1, fastq_2 ->
-                meta_copy = meta - meta.subMap(['id', 'single_end', 'group']) + [id: meta.group.toString().replaceAll("\\.", "_") + "_REP" + meta.replicate + "_T" + meta.techniquereplicate, single_end: false, group: meta.group.toString().replaceAll("\\.", "_")]
-                [meta_copy, [fastq_1, fastq_2]]
-        }
-
-    //
     // check the input fastq files are correct
     //
-    CHECKSUMS( ch_reads )
-    ch_versions = ch_versions.mix(CHECKSUMS.out.versions.ifEmpty(null))
+    CHECKSUMS( ch_samplesheet )
+    ch_versions = ch_versions.mix(CHECKSUMS.out.versions)
 
     //
     // SUBWORKFLOW: Prepare genome
     //
     PREPARE_GENOME()
-    ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions.ifEmpty(null))
+    ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
     // clean reads: run fastqc, trim
@@ -241,10 +195,10 @@ workflow HICAR {
     //
     if(!params.skip_fastqc){
         FASTQC (
-            ch_reads
+            ch_samplesheet
         )
-        ch_versions = ch_versions.mix(FASTQC.out.versions.first().ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+        ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
+        ch_versions = ch_versions.mix(FASTQC.out.versions.first())
     }
 
     //
@@ -252,15 +206,15 @@ workflow HICAR {
     //
     if(!params.skip_cutadapt){
         CUTADAPT_5END(
-            ch_reads
+            ch_samplesheet
         )
-        ch_versions = ch_versions.mix(CUTADAPT_5END.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_5END.out.log.collect{it[1]}.ifEmpty([]))
+        ch_versions = ch_versions.mix(CUTADAPT_5END.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_5END.out.log.collect{it[1]})
         if (params.cutadapt_3end != 'skip'){
             CUTADAPT_3END(
                 CUTADAPT_5END.out.reads
             )
-            ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_3END.out.log.collect{it[1]}.ifEmpty([]))
+            ch_multiqc_files = ch_multiqc_files.mix(CUTADAPT_3END.out.log.collect{it[1]})
             // combine the trimmed and untrimmed (protected by minimal length) reads together
             cutadapt_out = CUTADAPT_3END.out.reads.transpose().branch{
                 R1: it[1] =~ /_[13].trim.fastq.gz/
@@ -277,7 +231,7 @@ workflow HICAR {
             reads4mapping = CUTADAPT_5END.out.reads
         }
     }else{
-        reads4mapping = ch_reads
+        reads4mapping = ch_samplesheet
     }
 
     //
@@ -292,7 +246,7 @@ workflow HICAR {
         PREPARE_GENOME.out.bwa_index,
         false
     )
-    ch_versions = ch_versions.mix(BWA_MEM.out.versions.ifEmpty(null))
+    ch_versions = ch_versions.mix(BWA_MEM.out.versions)
 
     //
     // Pool the technique replicates
@@ -307,16 +261,16 @@ workflow HICAR {
                 .map{[it[1][0], it[2].flatten()]}
                 .set{ mapped_bam }
     SAMTOOLS_MERGE(mapped_bam, [], [])
-    ch_versions = ch_versions.mix(SAMTOOLS_MERGE.out.versions.ifEmpty(null))
+    ch_versions = ch_versions.mix(SAMTOOLS_MERGE.out.versions)
 
     //
     // MODULE: mapping stats
     //
     BAM_STAT(SAMTOOLS_MERGE.out.bam)
-    ch_versions = ch_versions.mix(BAM_STAT.out.versions.ifEmpty(null))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]}.ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]}.ifEmpty([]))
+    ch_versions = ch_versions.mix(BAM_STAT.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.stats.collect{it[1]})
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.flagstat.collect{it[1]})
+    ch_multiqc_files = ch_multiqc_files.mix(BAM_STAT.out.idxstats.collect{it[1]})
 
     //
     // MODULE: determine contamination, do not run if there is no issue with mapping, computational resources comsuming
@@ -325,7 +279,7 @@ workflow HICAR {
     if(params.do_contamination_analysis){
         KRAKEN2(reads4mapping, PREPARE_GENOME.out.kraken_db)
         ch_multiqc_files = ch_multiqc_files.mix( KRAKEN2.out.mqc )
-        ch_versions = ch_versions.mix( KRAKEN2.out.versions.ifEmpty(null) )
+        ch_versions = ch_versions.mix( KRAKEN2.out.versions )
     }
 
     //
@@ -337,8 +291,8 @@ workflow HICAR {
         PREPARE_GENOME.out.digest_genome,
         params.resample_pairs
     )
-    ch_versions = ch_versions.mix(PAIRTOOLS_PAIRE.out.versions.ifEmpty(null))
-    ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect().ifEmpty([]))
+    ch_versions = ch_versions.mix(PAIRTOOLS_PAIRE.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(PAIRTOOLS_PAIRE.out.stat.collect())
 
     //
     // combine bin_size and create cooler file, and dump long_bedpe
@@ -352,7 +306,7 @@ workflow HICAR {
         ch_hic_tools,
         params.long_bedpe_postfix
     )
-    ch_versions = ch_versions.mix(COOLER.out.versions.ifEmpty(null))
+    ch_versions = ch_versions.mix(COOLER.out.versions)
 
     //
     // 1D peak is required for loops calling
@@ -369,8 +323,8 @@ workflow HICAR {
         ch_anchor_peaks,
         params.short_bed_postfix
     )
-    ch_versions = ch_versions.mix(ATAC_PEAK.out.versions.ifEmpty(null))
-    ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect().ifEmpty([]))
+    ch_versions = ch_versions.mix(ATAC_PEAK.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(ATAC_PEAK.out.stats.collect())
     ch_tfea_bed = ATAC_PEAK.out.peak.map{[it[0], 'R2', it[1]]}
 
     //
@@ -493,8 +447,8 @@ workflow HICAR {
             if(params.tfea_tool == 'homer'){
                 ch_tfea_additional = homer_genome
             }
-            ch_versions = ch_versions.mix(CAT_HOMER.out.versions.ifEmpty(null))
-            ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions.ifEmpty(null))
+            ch_versions = ch_versions.mix(CAT_HOMER.out.versions)
+            ch_versions = ch_versions.mix(HOMER_MAKETAGDIRECTORY.out.versions)
         }
     }
 
@@ -524,8 +478,8 @@ workflow HICAR {
             cool_bin//,
             //ATAC_PEAK.out.mergedpeak
         )
-        ch_versions = ch_versions.mix(COMPARTMENTS.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect().ifEmpty([]))
+        ch_versions = ch_versions.mix(COMPARTMENTS.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(COMPARTMENTS.out.mqc.collect())
         ch_circos_files = ch_circos_files.mix(COMPARTMENTS.out.circos)
     }
 
@@ -539,8 +493,8 @@ workflow HICAR {
             ch_tad_additional,
             cool_bin
         )
-        ch_versions = ch_versions.mix(TADS.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(TADS.out.mqc.collect().ifEmpty([]))
+        ch_versions = ch_versions.mix(TADS.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(TADS.out.mqc.collect())
         ch_circos_files = ch_circos_files.mix(TADS.out.circos)
     }
 
@@ -553,8 +507,8 @@ workflow HICAR {
             ch_loop_1d_peak,
             ch_loop_additional
         )
-        ch_versions = ch_versions.mix(INTERACTIONS.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(INTERACTIONS.out.mqc.collect().ifEmpty([]))
+        ch_versions = ch_versions.mix(INTERACTIONS.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(INTERACTIONS.out.mqc.collect())
         ch_annotation_files = ch_annotation_files.mix(INTERACTIONS.out.anno.map{[params.interactions_tool+'/'+it[0], it[1]]})
         ch_circos_files = ch_circos_files.mix(INTERACTIONS.out.circos)
         ch_de_files = ch_de_files.mix(INTERACTIONS.out.loops)
@@ -573,8 +527,8 @@ workflow HICAR {
             ch_apa_peak,
             ch_apa_additional
         )
-        ch_versions = ch_versions.mix(APA.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(APA.out.mqc.collect().ifEmpty([]))
+        ch_versions = ch_versions.mix(APA.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(APA.out.mqc.collect())
     }
 
     //
@@ -596,8 +550,8 @@ workflow HICAR {
             params.short_bed_postfix,
             params.maps_3d_ext
         )
-        ch_versions = ch_versions.mix(HIPEAK.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(HIPEAK.out.mqc.collect().ifEmpty([]))
+        ch_versions = ch_versions.mix(HIPEAK.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(HIPEAK.out.mqc.collect())
         ch_tfea_bed = ch_tfea_bed.mix(HIPEAK.out.fragmentPeak.map{[it[0], 'R1', it[1]]})
         ch_tfea_bed = ch_tfea_bed.mix(HIPEAK.out.bed4tfea)
     }
@@ -617,8 +571,8 @@ workflow HICAR {
                 COOLER.out.samplebedpe
             )
         }
-        ch_versions = ch_versions.mix(DA.out.versions.ifEmpty(null))
-        ch_multiqc_files = ch_multiqc_files.mix(DA.out.mqc.collect().ifEmpty([]))
+        ch_versions = ch_versions.mix(DA.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(DA.out.mqc.collect())
         ch_annotation_files = ch_annotation_files.mix(DA.out.anno.map{[params.da_tool+'/'+it[1], it[2]]})
         ch_v4c_files = ch_v4c_files.mix(DA.out.anno.map{[it[0], it[2]]})
     }
@@ -638,7 +592,7 @@ workflow HICAR {
                                     .combine(PREPARE_GENOME.out.gtf)
         }
         TFEA(ch_tfea_bed, ch_tfea_additional)
-        ch_versions = ch_versions.mix(TFEA.out.versions.ifEmpty(null))
+        ch_versions = ch_versions.mix(TFEA.out.versions)
     }
 
     //
@@ -646,7 +600,7 @@ workflow HICAR {
     //
     if(!params.skip_peak_annotation){
         BIOC_CHIPPEAKANNO(ch_annotation_files.combine(ATAC_PEAK.out.mergedpeak), PREPARE_GENOME.out.gtf, params.maps_3d_ext)
-        ch_versions = ch_versions.mix(BIOC_CHIPPEAKANNO.out.versions.ifEmpty(null))
+        ch_versions = ch_versions.mix(BIOC_CHIPPEAKANNO.out.versions)
     }
 
     //
@@ -659,7 +613,7 @@ workflow HICAR {
                     DA.out.diff,
                     [],[],[],[]
                 )
-                ch_versions = ch_versions.mix(V4C.out.versions.ifEmpty(null))
+                ch_versions = ch_versions.mix(V4C.out.versions)
             }
         }else{
             if(params.v4c_tool=='trackviewer'){
@@ -685,7 +639,7 @@ workflow HICAR {
                 PREPARE_GENOME.out.gtf,
                 PREPARE_GENOME.out.chrom_sizes,
                 PREPARE_GENOME.out.digest_genome)
-            ch_versions = ch_versions.mix(V4C.out.versions.ifEmpty(null))
+            ch_versions = ch_versions.mix(V4C.out.versions)
         }
     }
 
@@ -700,7 +654,7 @@ workflow HICAR {
             PREPARE_GENOME.out.ucscname,
             ch_circos_config
         )
-        ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions.ifEmpty(null))
+        ch_versions = ch_versions.mix(RUN_CIRCOS.out.versions)
     }
 
     //
@@ -779,11 +733,12 @@ workflow HICAR {
     //
     // MODULE: Pipeline reporting
     //
-    CUSTOM_DUMPSOFTWAREVERSIONS (
-        ch_versions.unique().collectFile(name: 'collated_versions.yml')
-    )
-    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect().ifEmpty([]))
-    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.yml.collect().ifEmpty([]))
+    //
+    // Collate and save software versions
+    //
+    softwareVersionsToYAML(ch_versions)
+        .collectFile(storeDir: "${params.outdir}/pipeline_info", name: 'nf_core_pipeline_software_mqc_versions.yml', sort: true, newLine: true)
+        .set { ch_collated_versions }
 
     ch_multiqc_files
         .flatten()
@@ -798,15 +753,16 @@ workflow HICAR {
         //
         // MODULE: MultiQC
         //
-
-        workflow_summary    = WorkflowHicar.paramsSummaryMultiqc(workflow, summary_params)
-        ch_workflow_summary = Channel.value(workflow_summary)
-
-        methods_description    = WorkflowHicar.methodsDescriptionText(workflow, ch_multiqc_custom_methods_description, params)
-        ch_methods_description = Channel.value(methods_description)
-
-        ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-        ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
+        ch_multiqc_config                     = Channel.fromPath("$projectDir/assets/multiqc_config.yml", checkIfExists: true)
+        ch_multiqc_custom_config              = params.multiqc_config ? Channel.fromPath(params.multiqc_config, checkIfExists: true) : Channel.empty()
+        ch_multiqc_logo                       = params.multiqc_logo ? Channel.fromPath(params.multiqc_logo, checkIfExists: true) : Channel.empty()
+        summary_params                        = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
+        ch_workflow_summary                   = Channel.value(paramsSummaryMultiqc(summary_params))
+        ch_multiqc_custom_methods_description = params.multiqc_methods_description ? file(params.multiqc_methods_description, checkIfExists: true) : file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
+        ch_methods_description                = Channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
+        ch_multiqc_files                      = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+        ch_multiqc_files                      = ch_multiqc_files.mix(ch_collated_versions)
+        ch_multiqc_files                      = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: false))
 
         MULTIQC (
             ch_multiqc_files.collect(),
@@ -814,25 +770,11 @@ workflow HICAR {
             ch_multiqc_custom_config.toList(),
             ch_multiqc_logo.toList()
         )
-        multiqc_report = MULTIQC.out.report.toList()
     }
-}
 
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    COMPLETION EMAIL AND SUMMARY
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-*/
-
-workflow.onComplete {
-    if (params.email || params.email_on_fail) {
-        NfcoreTemplate.email(workflow, params, summary_params, projectDir, log, multiqc_report)
-    }
-    NfcoreTemplate.dump_parameters(workflow, params)
-    NfcoreTemplate.summary(workflow, params, log)
-    if (params.hook_url) {
-        NfcoreTemplate.IM_notification(workflow, params, summary_params, projectDir, log)
-    }
+    emit:
+    multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
+    versions       = ch_versions                 // channel: [ path(versions.yml) ]
 }
 
 /*

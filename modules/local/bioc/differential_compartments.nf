@@ -80,12 +80,15 @@ process DIFFERENTIAL_COMPARTMENTS {
         maha <- mapply(dfs, intra_cen, intra_cov, FUN = function(df, cen, cov){
             apply(df, 1, function(.ele){
                 .dif <- abs(diff(range(.ele)))^2
+                if(.dif==0) return(NA)
                 .cov <- solve(cov) %*% diag(.dif, n)
                 mahalanobis(t(.ele), as.matrix(cen), .cov)
             })
         }, SIMPLIFY = FALSE)
         pval <- lapply(maha, function(.ele){
-            pchisq(.ele, df = n - 1, lower.tail = TRUE)
+            p <- pchisq(.ele, df = n - 1, lower.tail = TRUE)
+            p[is.na(p)] <- 1
+            p
         })
         out <- mapply(regions, pval, FUN=function(gr, p){
             mcols(gr) <- data.frame(pval=p)
