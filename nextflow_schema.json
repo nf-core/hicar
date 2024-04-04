@@ -240,7 +240,7 @@
                     "fa_icon": "fas fa-remove-format",
                     "help_text": "See more details at https://pairtools.readthedocs.io/en/latest/parsing.html",
                     "hidden": false,
-                    "default": "--min-mapq 10 --max-molecule-size 2000 --max-inter-align-gap 50 --report-position outer --add-pair-index --no-flip --drop-seq --expand --max-expansion-depth 6"
+                    "default": "--min-mapq 10 --max-insert-size 2000 --max-inter-align-gap 50 --report-position outer --add-pair-index --no-flip --drop-seq --expand --max-expansion-depth 6"
                 },
                 "pairtools_parse_version": {
                     "type": "string",
@@ -303,7 +303,6 @@
                     "type": "string",
                     "description": "output of restriction_cut_multipleenzyme.py.",
                     "help_text": "See https://github.com/ijuric/MAPS/blob/master/bin/utils/genomic_features_generator/scripts/restriction_cut_multipleenzyme.py.",
-                    "default": "None",
                     "hidden": false,
                     "fa_icon": "fas fa-stream"
                 },
@@ -374,7 +373,7 @@
                     "help_text": "The block number of peak pair in each thread to count the reads. Smaller number will decrease the memory cost and increase the computation time for parepare the counts in hipeak calling.",
                     "fa_icon": "fas fa-th",
                     "hidden": true,
-                    "default": 1000000000
+                    "default": 1e8
                 },
                 "min_counts_per_loop": {
                     "type": "integer",
@@ -451,7 +450,7 @@
                 "apa_peak": {
                     "type": "string",
                     "description": "The APA peak path",
-                    "default": "Anchor 1D peaks",
+                    "help_text": "Anchor 1D peaks",
                     "hidden": false,
                     "fa_icon": "fas fa-caret-up"
                 },
@@ -465,7 +464,7 @@
                 "apa_format": {
                     "type": "string",
                     "description": "The APA output figure format. Currently this parameter will not affect the Juicer output format (always png format).",
-                    "default": "png",
+                    "default": "pdf",
                     "hidden": false,
                     "fa_icon": "fas fa-caret-up"
                 },
@@ -676,7 +675,7 @@
                 "max_memory": {
                     "type": "string",
                     "description": "Maximum amount of memory that can be requested for any single job.",
-                    "default": "128.GB",
+                    "default": "240.GB",
                     "fa_icon": "fas fa-memory",
                     "pattern": "^\\d+(\\.\\d+)?\\.?\\s*(K|M|G|T)?B$",
                     "hidden": true,
