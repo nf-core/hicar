@@ -37,12 +37,12 @@ if(params.anchor_peaks){
 def checkToolsUsedInDownstream(tool, params){
     return (
         (params.interactions_tool == tool && !params.skip_interactions) ||
-        (params.tad_tool == tool && !params.skip_tads) ||
-        (params.compartments_tool == tool && !params.skip_compartments) ||
-        (params.apa_tool == tool && params.do_apa) ||
-        (params.da_tool == tool && !params.skip_diff_analysis) ||
-        (params.v4c_tool == tool && params.create_virtual_4c) ||
-        (params.tfea_tool == tool && params.do_tfea)
+        (params.tad_tool == tool && !params.skip_tads && !params.qc_only) ||
+        (params.compartments_tool == tool && !params.skip_compartments && !params.qc_only) ||
+        (params.apa_tool == tool && params.do_apa && !params.qc_only) ||
+        (params.da_tool == tool && !params.skip_diff_analysis && !params.qc_only) ||
+        (params.v4c_tool == tool && params.create_virtual_4c && !params.qc_only) ||
+        (params.tfea_tool == tool && params.do_tfea && !params.qc_only)
     )
 }
 
@@ -146,7 +146,13 @@ cool_bin = Channel.fromList(params.cool_bin.tokenize('_'))
 workflow HICAR {
 
     take:
-    ch_samplesheet // channel: samplesheet read in from --input
+    ch_samplesheet           // channel: samplesheet read in from --input
+    fasta                    //      file: /path/to/genome.fasta
+    gtf                      //      file: /path/to/genome.gtf
+    gff                      //      file: /path/to/genome.gff
+    gene_bed                 //      file: /path/to/gene.bed
+    macs_gsize               //      number or string for macs2 genome size
+    bwa_index                // directory: /path/to/bwa/index/
 
     main:
 
@@ -183,7 +189,14 @@ workflow HICAR {
     //
     // SUBWORKFLOW: Prepare genome
     //
-    PREPARE_GENOME()
+    PREPARE_GENOME(
+        fasta,
+        gtf,
+        gff,
+        gene_bed,
+        macs_gsize,
+        bwa_index
+    )
     ch_versions = ch_versions.mix(PREPARE_GENOME.out.versions)
 
     //
@@ -470,7 +483,7 @@ workflow HICAR {
     //
     // calling compartments
     //
-    if(!params.skip_compartments){
+    if(!params.skip_compartments && !params.qc_only){
         COMPARTMENTS(
             ch_comp_matrix,
             params.res_compartments,
@@ -486,7 +499,7 @@ workflow HICAR {
     //
     // calling TADs
     //
-    if(!params.skip_tads){
+    if(!params.skip_tads && !params.qc_only){
         TADS(
             ch_tad_matrix,
             params.res_tads,
@@ -517,7 +530,7 @@ workflow HICAR {
     //
     // aggregate peak analysis
     //
-    if(params.do_apa){
+    if(params.do_apa && !params.qc_only){
         ch_apa_peak = params.apa_peak ? Channel.fromPath( params.apa_peak, checkIfExists: true ) : ATAC_PEAK.out.mergedpeak
         if(params.apa_tool=='juicebox' && !params.skip_interactions){
             ch_apa_additional = INTERACTIONS.out.mergedloops.combine(ch_apa_additional).unique()
@@ -536,7 +549,7 @@ workflow HICAR {
     // calling high resolution fragments peaks and then call loops
     // this process is time comsuming step
     //
-    if(params.call_high_peak && params.method.toLowerCase()=="hicar"){
+    if(params.call_high_peak && params.method.toLowerCase()=="hicar" && !params.qc_only){
         HIPEAK(
             PREPARE_GENOME.out.fasta,
             PREPARE_GENOME.out.chrom_sizes,
@@ -559,7 +572,7 @@ workflow HICAR {
     //
     // Differential analysis
     //
-    if(!params.skip_diff_analysis){
+    if(!params.skip_diff_analysis && !params.qc_only){
         if(params.da_tool=='hicexplorer'){
             DA(
                 HICEXPLORER_CHICVIEWPOINT.out.interactions,
@@ -580,7 +593,7 @@ workflow HICAR {
     //
     // Motif analysis: for R2 reads and R1 reads
     //
-    if(params.do_tfea){
+    if(params.do_tfea && !params.qc_only){
         if(params.tfea_tool=='atacseqtfea'){
             ch_tfea_bed = ch_tfea_bed.map{[[id:it[1]], it[2]]}.groupTuple(by:0)
                             .combine(
@@ -598,7 +611,7 @@ workflow HICAR {
     //
     // Annotation
     //
-    if(!params.skip_peak_annotation){
+    if(!params.skip_peak_annotation && !params.qc_only){
         BIOC_CHIPPEAKANNO(ch_annotation_files.combine(ATAC_PEAK.out.mergedpeak), PREPARE_GENOME.out.gtf, params.maps_3d_ext)
         ch_versions = ch_versions.mix(BIOC_CHIPPEAKANNO.out.versions)
     }
@@ -606,7 +619,7 @@ workflow HICAR {
     //
     // visualization: virtual_4c
     //
-    if(params.create_virtual_4c){
+    if(params.create_virtual_4c && !params.qc_only){
         if(params.v4c_tool == 'hicexplorer'){
             if(params.da_tool == 'hicexplorer'){
                 V4C(
@@ -646,7 +659,7 @@ workflow HICAR {
     //
     // visualization: circos
     //
-    if(!params.skip_circos){
+    if(!params.skip_circos && !params.qc_only){
         RUN_CIRCOS(
             ch_circos_files.groupTuple(),
             PREPARE_GENOME.out.gtf,
@@ -660,75 +673,78 @@ workflow HICAR {
     //
     // visualization: IGV, Create igv index.html file
     //
-    ch_trackfiles = ch_trackfiles.mix(ATAC_PEAK.out
-                        .bws.map{[it[0].id+"_R2",
-                            RelativePublishFolder.getPublishedFolder(workflow,
-                                                'UCSC_BEDGRAPHTOBIGWIG_PER_GROUP')+it[1].name]})
-    if(!params.skip_interactions){
-        def interaction_module_name = 'MAPS_REFORMAT'
-        switch(params.interactions_tool){
-            case 'maps':
-                interaction_module_name = 'MAPS_REFORMAT'
-                break
-            case 'hicdcplus':
-                interaction_module_name = 'HICDCPLUS_CALL_LOOPS'
-                break
-            case 'peakachu':
-                interaction_module_name = 'PEAKACHU_SCORE'
-                break
-        }
-        ch_trackfiles = ch_trackfiles.mix(
-                            INTERACTIONS.out.loops.map{[it[0].id+'.'+it[1]+'.contacts',
+    if(!params.qc_only){
+        ch_trackfiles = ch_trackfiles.mix(ATAC_PEAK.out
+                            .bws.map{[it[0].id+"_R2",
                                 RelativePublishFolder.getPublishedFolder(workflow,
-                                                    interaction_module_name)+it[2].name]})
-    }
-    if(!params.skip_compartments){
-        def compartment_module_name = 'COOLTOOLS_EIGSCIS'
-        switch(params.compartments_tool){
-            case 'cooltools':
-                compartment_module_name = 'COOLTOOLS_EIGSCIS'
-                break
-            case 'hicexplorer':
-                compartment_module_name = 'HICEXPLORER_HICPCA'
-                break
-            case 'homer':
-                compartment_module_name = 'UCSC_BEDGRAPHTOBIGWIG_HOMER_COMPARTMENTS'
-                break
-            case 'juicebox':
-                compartment_module_name = 'UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR'
-                break
+                                                    'UCSC_BEDGRAPHTOBIGWIG_PER_GROUP')+it[1].name]})
+        if(!params.skip_interactions){
+            def interaction_module_name = 'MAPS_REFORMAT'
+            switch(params.interactions_tool){
+                case 'maps':
+                    interaction_module_name = 'MAPS_REFORMAT'
+                    break
+                case 'hicdcplus':
+                    interaction_module_name = 'HICDCPLUS_CALL_LOOPS'
+                    break
+                case 'peakachu':
+                    interaction_module_name = 'PEAKACHU_SCORE'
+                    break
+            }
+            ch_trackfiles = ch_trackfiles.mix(
+                                INTERACTIONS.out.loops.map{[it[0].id+'.'+it[1]+'.contacts',
+                                    RelativePublishFolder.getPublishedFolder(workflow,
+                                                        interaction_module_name)+it[2].name]})
         }
-        ch_trackfiles = ch_trackfiles.mix(COMPARTMENTS.out.igv
-                            .map{[it[0].id+'.compartments',
-                                RelativePublishFolder.getPublishedFolder(workflow,
-                                    compartment_module_name)+it[1].name]})
-    }
-    if(!params.skip_tads){
-        def tads_module_name = 'COOLTOOLS_INSULATION'
-        switch(params.tad_tool){
-            case 'cooltools':
-                tads_module_name = 'COOLTOOLS_INSULATION'
-                break
-            case 'hicexplorer':
-                tads_module_name = 'HICEXPLORER_HICFINDTADS'
-                break
-            case 'homer':
-                tads_module_name = 'HOMER_FINDTADSANDLOOPS_TADS'
-                break
+        if(!params.skip_compartments){
+            def compartment_module_name = 'COOLTOOLS_EIGSCIS'
+            switch(params.compartments_tool){
+                case 'cooltools':
+                    compartment_module_name = 'COOLTOOLS_EIGSCIS'
+                    break
+                case 'hicexplorer':
+                    compartment_module_name = 'HICEXPLORER_HICPCA'
+                    break
+                case 'homer':
+                    compartment_module_name = 'UCSC_BEDGRAPHTOBIGWIG_HOMER_COMPARTMENTS'
+                    break
+                case 'juicebox':
+                    compartment_module_name = 'UCSC_BEDGRAPHTOBIGWIG_JUICER_EIGENVECTOR'
+                    break
+            }
+            ch_trackfiles = ch_trackfiles.mix(COMPARTMENTS.out.igv
+                                .map{[it[0].id+'.compartments',
+                                    RelativePublishFolder.getPublishedFolder(workflow,
+                                        compartment_module_name)+it[1].name]})
         }
-        ch_trackfiles = ch_trackfiles.mix(TADS.out.igv
-                            .map{[it[0].id+'.TADs',
-                                RelativePublishFolder.getPublishedFolder(workflow,
-                                    tads_module_name)+it[1].name]})
+        if(!params.skip_tads){
+            def tads_module_name = 'COOLTOOLS_INSULATION'
+            switch(params.tad_tool){
+                case 'cooltools':
+                    tads_module_name = 'COOLTOOLS_INSULATION'
+                    break
+                case 'hicexplorer':
+                    tads_module_name = 'HICEXPLORER_HICFINDTADS'
+                    break
+                case 'homer':
+                    tads_module_name = 'HOMER_FINDTADSANDLOOPS_TADS'
+                    break
+            }
+            ch_trackfiles = ch_trackfiles.mix(TADS.out.igv
+                                .map{[it[0].id+'.TADs',
+                                    RelativePublishFolder.getPublishedFolder(workflow,
+                                        tads_module_name)+it[1].name]})
+        }
+        ch_trackfiles.collect{it.join('\t')}
+            .flatten()
+            .collectFile(
+                name     :'track_files.txt',
+                storeDir : params.outdir+'/'+RelativePublishFolder.getPublishedFolder(workflow, 'IGV'),
+                newLine  : true, sort:{it[0]})
+            .set{ igv_track_files }
+        IGV(igv_track_files, PREPARE_GENOME.out.ucscname, RelativePublishFolder.getPublishedFolder(workflow, 'IGV'))
     }
-    ch_trackfiles.collect{it.join('\t')}
-        .flatten()
-        .collectFile(
-            name     :'track_files.txt',
-            storeDir : params.outdir+'/'+RelativePublishFolder.getPublishedFolder(workflow, 'IGV'),
-            newLine  : true, sort:{it[0]})
-        .set{ igv_track_files }
-    IGV(igv_track_files, PREPARE_GENOME.out.ucscname, RelativePublishFolder.getPublishedFolder(workflow, 'IGV'))
+
 
     //
     // MODULE: Pipeline reporting

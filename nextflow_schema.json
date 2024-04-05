@@ -822,6 +822,12 @@
                     "fa_icon": "fas fa-remove-format",
                     "hidden": false
                 },
+                "qc_only": {
+                    "type": "boolean",
+                    "description": "skip all downstream analysis and do qc only. It is a shortcut for --skip_peak_annotation --skip_diff_analysis --skip_compartments --skip_tads --skip_circos",
+                    "fa_icon": "fab fa-creative-commons-pd",
+                    "hidden": false
+                },
                 "skip_fastqc": {
                     "type": "boolean",
                     "description": "skip fastqc or not",

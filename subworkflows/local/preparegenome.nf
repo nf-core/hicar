@@ -21,16 +21,24 @@ include { UCSC_WIGTOBIGWIG            } from '../../modules/nf-core/ucsc/wigtobi
 include { BWA_INDEX                   } from '../../modules/nf-core/bwa/index/main'
 
 workflow PREPARE_GENOME {
+    take:
+    fasta                    //      file: /path/to/genome.fasta
+    gtf                      //      file: /path/to/genome.gtf
+    gff                      //      file: /path/to/genome.gff
+    gene_bed                 //      file: /path/to/gene.bed
+    macs_gsize               //      number or string for macs2 genome size
+    bwa_index                // directory: /path/to/bwa/index/
+
     main:
 
     /*
      * Uncompress genome fasta file if required
      */
-    if (params.fasta.endsWith('.gz')) {
-        GUNZIP_FASTA ( [[id:'fasta'], file("${params.fasta}", checkIfExists: true)] )
+    if (fasta.endsWith('.gz')) {
+        GUNZIP_FASTA ( [[id:'fasta'], file("${fasta}", checkIfExists: true)] )
         ch_fasta = GUNZIP_FASTA.out.gunzip.map{it[1]}
     } else {
-        ch_fasta = Channel.value(file(params.fasta, checkIfExists: true))
+        ch_fasta = Channel.value(file(fasta, checkIfExists: true))
     }
 
     /*
@@ -38,19 +46,19 @@ workflow PREPARE_GENOME {
      */
     ch_version = Channel.empty()
     ch_gtf = Channel.empty()
-    if (params.gtf) {
-        if (params.gtf.endsWith('.gz')) {
-            GUNZIP_GTF ( [[id:'gtf'], file("${params.gtf}", checkIfExists: true)] )
+    if (gtf) {
+        if (gtf.endsWith('.gz')) {
+            GUNZIP_GTF ( [[id:'gtf'], file("${gtf}", checkIfExists: true)] )
             ch_gtf = GUNZIP_GTF.out.gunzip.map{it[1]}
         } else {
-            ch_gtf = file(params.gtf)
+            ch_gtf = file(gtf)
         }
-    } else if (params.gff) {
-        if (params.gff.endsWith('.gz')) {
-            GUNZIP_GFF ( [[id:'gff'], file("${params.gff}", checkIfExists: true)] )
+    } else if (gff) {
+        if (gff.endsWith('.gz')) {
+            GUNZIP_GFF ( [[id:'gff'], file("${gff}", checkIfExists: true)] )
             ch_gff = GUNZIP_GFF.out.gunzip.map{it[1]}
         } else {
-            ch_gff = file(params.gff)
+            ch_gff = file(gff)
         }
         ch_gtf = GFFREAD ( ch_gff ).gtf
         ch_version = ch_version.mix(GFFREAD.out.versions)
@@ -60,12 +68,12 @@ workflow PREPARE_GENOME {
      * Uncompress gene BED annotation file or create from GTF if required
      */
     ch_gene_bed = Channel.empty()
-    if (params.gene_bed) {
-        if (params.gene_bed.endsWith('.gz')) {
-            GUNZIP_GENE_BED ( [[id:'gene_bed'], file("${params.gene_bed}", checkIfExists: true)] )
+    if (gene_bed) {
+        if (gene_bed.endsWith('.gz')) {
+            GUNZIP_GENE_BED ( [[id:'gene_bed'], file("${gene_bed}", checkIfExists: true)] )
             ch_gene_bed = GUNZIP_GENE_BED.out.gunzip.map{it[1]}
         } else {
-            ch_gene_bed = file(params.gene_bed)
+            ch_gene_bed = file(gene_bed)
         }
     } else {
         ch_gene_bed = GTF2BED ( ch_gtf ).bed
@@ -81,8 +89,8 @@ workflow PREPARE_GENOME {
      * Calculate effective genome sizes
      */
     genome_size = 0
-    if (params.macs_gsize) {
-        genome_size = params.macs_gsize
+    if (macs_gsize) {
+        genome_size = macs_gsize
     } else {
         //genome size remove all N
         // ref:https://github.com/macs3-project/MACS/issues/299

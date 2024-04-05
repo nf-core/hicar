@@ -54,7 +54,13 @@ if (anno_readme && file(anno_readme).exists()) {
 workflow NFCORE_HICAR {
 
     take:
-    samplesheet // channel: samplesheet read in from --input
+    samplesheet              // channel: samplesheet read in from --input
+    fasta                    //      file: /path/to/genome.fasta
+    gtf                      //      file: /path/to/genome.gtf
+    gff                      //      file: /path/to/genome.gff
+    gene_bed                 //      file: /path/to/gene.bed
+    macs_gsize               //      number or string for macs2 genome size
+    bwa_index                // directory: /path/to/bwa/index/
 
     main:
 
@@ -62,7 +68,13 @@ workflow NFCORE_HICAR {
     // WORKFLOW: Run pipeline
     //
     HICAR (
-        samplesheet
+        samplesheet,
+        fasta,
+        gtf,
+        gff,
+        gene_bed,
+        macs_gsize,
+        bwa_index
     )
 
     emit:
@@ -96,7 +108,13 @@ workflow {
     // WORKFLOW: Run main workflow
     //
     NFCORE_HICAR (
-        PIPELINE_INITIALISATION.out.samplesheet
+        PIPELINE_INITIALISATION.out.samplesheet,
+        params.fasta,
+        params.gtf,
+        params.gff,
+        params.gene_bed,
+        params.macs_gsize,
+        params.bwa_index
     )
 
     //
