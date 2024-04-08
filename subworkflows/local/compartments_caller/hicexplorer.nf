@@ -42,6 +42,6 @@ workflow HICEXPLORER_COMPARTMENTS {
     ch_version = ch_version.mix(HICEXPLORER_HICPLOTMATRIX_PCA1.out.versions)
 
     emit:
-    compartments  = HICEXPLORER_HICPCA.out.pca          // channel: [ val(meta), path(bigwig)]
+    compartments  = HICEXPLORER_HICPCA.out.pca1          // channel: [ val(meta), path(bigwig)]
     versions      = ch_version                           // channel: [ path(version) ]
 }
