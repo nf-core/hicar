@@ -1,9 +1,2 @@
 repository_type: pipeline
-lint:
-  files_unchanged:
-    - .github/workflows/awsfulltest.yml
-    - .github/workflows/linting.yml
-    - .github/workflows/linting_comment.yml
-    - .github/workflows/branch.yml
-    - .github/workflows/ci.yml
-    - .github/ISSUE_TEMPLATE/bug_report.yml
+nf_core_version: "2.14.1"
