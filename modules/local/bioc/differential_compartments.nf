@@ -55,7 +55,7 @@ process DIFFERENTIAL_COMPARTMENTS {
         ## split the regions into non-overlapping regions
         regions <- disjoin(unlist(GRangesList(d)))
         ol <- lapply(d, function(.ele){
-            .ol <- findOverlaps(regions, .ele)
+            .ol <- findOverlaps(regions, .ele, minoverlap=1L)
             .id <- subjectHits(.ol)[match(seq_along(regions), queryHits(.ol))]
             out <- rep(0, length(regions))
             out[!is.na(.id)] <- mcols(.ele[.id[!is.na(.id)]])[, 'score']
@@ -96,8 +96,34 @@ process DIFFERENTIAL_COMPARTMENTS {
         })
         out <- unlist(GRangesList(out))
     }
-    mcols(out)[, 'score'] <- p.adjust(mcols(out)[, 'pval'], method = 'BH')
+    #mcols(out)[, 'score'] <- p.adjust(mcols(out)[, 'pval'], method = 'BH')
+    mcols(out)[, 'score'] <- -10*log10(mcols(out)[, 'pval'])
     ## export pvalue for the difference of A/B compartment
     export(out[!is.na(mcols(out)[, 'score'])], OUTFILE)
+    regions <- unlist(GRangesList(regions))
+    ol <- findOverlaps(regions, out, type='equal')
+    mcols(regions)[, "pval"] <- 1
+    mcols(regions)[queryHits(ol), "pval"] <- mcols(out)[subjectHits(ol), 'pval']
+    mcols(regions)[, 'score'] <- -10*log10(mcols(regions)[, 'pval'])
+    rle <- list()
+    for(n in colnames(mcols(regions))[seq_along(d)]){
+        mcols(regions)[, paste0(n, '_AB')] <- ifelse(mcols(regions)[, n] >= 0, 'A', 'B')
+        rle[[paste0(n, '_AB')]] <- mcols(regions)[, paste0(n, '_AB')]
+    }
+    write.csv(regions, sub('(bigWig|bw)', 'merged.csv', OUTFILE, ignore.case = TRUE))
+    tab <- table(mcols(regions)[paste0(colnames(mcols(regions))[seq_along(d)], '_AB')])
+    data.frame(tab)
+    write.csv(data.frame(tab), sub('(bigWig|bw)', 'AB.tab.csv', OUTFILE, ignore.case = TRUE))
+    if(length(rle)==2){
+        rle <- do.call(cbind, rle)
+        prle <- apply(rle, 1, paste, collapse='')
+        prle <- rle(prle)
+        prle <- table(prle[['values']])
+        prle <- data.frame(do.call(rbind, strsplit(names(prle), split = '')),
+                           prle)
+        colnames(prle)[c(1, 2)] <- colnames(rle)
+        prle <- prle[, c(colnames(rle), 'Freq')]
+        write.csv(prle, sub('(bigWig|bw)', 'AB.rle.tab.csv', OUTFILE))
+    }
     """
 }

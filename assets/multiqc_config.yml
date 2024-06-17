@@ -85,7 +85,7 @@ custom_data:
       id: "pairs_reads_detailed_summary_table"
       table_title: "PAIRS reads detailed summary"
       namespace: "PAIRS reads detailed summary"
-      format: "{:.2f}"
+      format: "{:,d}"
   pairs_reads_proportion:
     parent_id: "pairs_qc"
     section_name: "Proportion of read orientation versus genomic separation"
