@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v2.0.0dev - [10/10/2023]
 
+- turn on publish the filtered valid pairs.
 - update to nf-core-template-2.13.1
 - replace the dots by '\_' in the samples name
 - add support for MseI.

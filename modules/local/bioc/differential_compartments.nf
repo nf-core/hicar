@@ -120,7 +120,7 @@ process DIFFERENTIAL_COMPARTMENTS {
         prle <- rle(prle)
         prle <- table(prle[['values']])
         prle <- data.frame(do.call(rbind, strsplit(names(prle), split = '')),
-                           prle)
+                            prle)
         colnames(prle)[c(1, 2)] <- colnames(rle)
         prle <- prle[, c(colnames(rle), 'Freq')]
         write.csv(prle, sub('(bigWig|bw)', 'AB.rle.tab.csv', OUTFILE))
