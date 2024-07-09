@@ -27,7 +27,7 @@ process HICEXPLORER_CHICAGGREGATESTATISTIC {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(chicAggregateStatistic --version 2>&1 | sed 's/chicAggregateStatistic //')
+        hicexplorer: \$(chicAggregateStatistic --version | sed 's/chicAggregateStatistic //')
     END_VERSIONS
     """
 }

@@ -47,7 +47,7 @@ process HICEXPLORER_HICPCA {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(hicPCA --version 2>&1 | sed 's/hicPCA //')
+        hicexplorer: \$(hicPCA --version | sed 's/hicPCA //')
     END_VERSIONS
     """
 }

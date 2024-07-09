@@ -27,7 +27,7 @@ process HICEXPLORER_CHICVIEWPOINTBACKGROUNDMODEL {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(chicViewpointBackgroundModel --version 2>&1 | sed 's/chicViewpointBackgroundModel //')
+        hicexplorer: \$(chicViewpointBackgroundModel --version | sed 's/chicViewpointBackgroundModel //')
     END_VERSIONS
     """
 }

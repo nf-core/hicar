@@ -44,7 +44,7 @@ process HICEXPLORER_HICFINDTADS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(hicFindTADs --version 2>&1 | sed 's/hicFindTADs //')
+        hicexplorer: \$(hicFindTADs --version | sed 's/hicFindTADs //')
     END_VERSIONS
     """
 }

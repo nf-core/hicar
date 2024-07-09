@@ -31,7 +31,7 @@ process HICEXPLORER_HICTRANSFORM {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(hicTransform --version 2>&1 | sed 's/hicTransform //')
+        hicexplorer: \$(hicTransform --version | sed 's/hicTransform //')
     END_VERSIONS
     """
 }

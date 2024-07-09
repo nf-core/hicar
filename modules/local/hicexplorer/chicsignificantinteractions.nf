@@ -29,7 +29,7 @@ process HICEXPLORER_CHICSIGNIFICANTINTERACTIONS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(chicSignificantInteractions --version 2>&1 | sed 's/chicSignificantInteractions //')
+        hicexplorer: \$(chicSignificantInteractions --version | sed 's/chicSignificantInteractions //')
     END_VERSIONS
     """
 }

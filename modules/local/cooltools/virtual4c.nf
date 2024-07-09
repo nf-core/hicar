@@ -50,7 +50,7 @@ process VIRTUAL4C_BY_COOLTOOLS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        cooltools: \$(cooltools --version 2>&1 | sed 's/cooletools, version //')
+        cooltools: \$(cooltools --version | sed 's/cooletools, version //')
     END_VERSIONS
     """
 }
