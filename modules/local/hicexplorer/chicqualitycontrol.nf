@@ -27,7 +27,7 @@ process HICEXPLORER_CHICQUALITYCONTROL {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(chicQualityControl --version 2>&1 | sed 's/chicQualityControl //')
+        hicexplorer: \$(chicQualityControl --version | sed 's/chicQualityControl //')
     END_VERSIONS
     """
 }

@@ -73,6 +73,10 @@ def validate_input_data(input_data, long_bedpe_postfix, short_bed_postfix):
         params["SEX_CHROMS"] = input_data["SEX_CHROMS"][1]
     else:
         params["SEX_CHROMS"] = ""
+    if "PREPARE_TRANS" in input_data:
+        params["PREPARE_TRANS"] = input_data["PREPARE_TRANS"][1] == "True"
+    else:
+        params["PREPARE_TRANS"] = False
     return params
 
 
@@ -204,7 +208,11 @@ def init(p):
         )
         if peak_skip:
             continue
-        for CHR2 in chroms:
+        if not params["PREPARE_TRANS"]:
+            chr2_pool = [CHR1]
+        else:
+            chr2_pool = chroms
+        for CHR2 in chr2_pool:
             print("doing chromosome ", CHR1, " and ", CHR2, "\n")
             # handling MACS2 peaks
             print("-- handling MACS2 peaks")

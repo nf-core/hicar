@@ -2,7 +2,7 @@
  * Call TADs by CoolTools
  */
 
- include { COOLTOOLS_INSULATION } from '../../../modules/local/cooltools/insulation'
+include { COOLTOOLS_INSULATION } from '../../../modules/local/cooltools/insulation'
 
 workflow COOLTOOLS_TADS {
     take:

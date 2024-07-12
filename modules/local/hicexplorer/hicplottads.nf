@@ -50,7 +50,7 @@ process HICEXPLORER_HICPLOTTADS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(hicPlotTADs --version 2>&1 | sed 's/hicPlotTADs //')
+        hicexplorer: \$(hicPlotTADs --version | sed 's/hicPlotTADs //')
     END_VERSIONS
     """
 }

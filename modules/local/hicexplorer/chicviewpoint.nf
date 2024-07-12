@@ -28,7 +28,7 @@ process HICEXPLORER_CHICVIEWPOINT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(hicPlotViewpoint --version 2>&1 | sed 's/hicPlotViewpoint //')
+        hicexplorer: \$(hicPlotViewpoint --version | sed 's/hicPlotViewpoint //')
     END_VERSIONS
     """
 }

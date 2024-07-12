@@ -25,7 +25,7 @@ process HICEXPLORER_HICCORRECTMATRIX {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(hicCorrectMatrix --version 2>&1 | sed 's/hicCorrectMatrix //')
+        hicexplorer: \$(hicCorrectMatrix --version | sed 's/hicCorrectMatrix //')
     END_VERSIONS
     """
 }

@@ -26,7 +26,7 @@ process HICEXPLORER_CHICEXPORTDATA {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(chicExportData --version 2>&1 | sed 's/chicExportData //')
+        hicexplorer: \$(chicExportData --version | sed 's/chicExportData //')
     END_VERSIONS
     """
 }

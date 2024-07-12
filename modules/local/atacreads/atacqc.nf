@@ -99,7 +99,7 @@ process ATACQC {
 
         reads <- as(reads, "GAlignments")
         ## calculate Transcription Start Site Enrichment Score
-        tsse <- TSSEscore(reads, txs)
+        tsse <- TSSEscore(reads, txs, upstream=2000, downstream=2000)
 
         ## Promoter/Transcript body (PT) score
         pt <- PTscore(reads, txs)

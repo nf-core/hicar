@@ -20,7 +20,7 @@ process RECENTER_PEAK {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        awk: \$(echo \$(awk --version 2>&1 || awk -W version 2>&1) | sed 's/[[:alpha:]|(|)|[:space:]]//g; s/,.*\$//')
+        awk: \$(echo \$(awk --version || awk -W version) | sed 's/[[:alpha:]|(|)|[:space:]]//g; s/,.*\$//')
     END_VERSIONS
     """
 }

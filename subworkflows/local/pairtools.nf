@@ -5,6 +5,7 @@
 include { PAIRTOOLS_DEDUP        } from '../../modules/nf-core/pairtools/dedup/main'
 include { PAIRTOOLS_FLIP         } from '../../modules/nf-core/pairtools/flip/main'
 include { PAIRTOOLS_PARSE        } from '../../modules/nf-core/pairtools/parse/main'
+include { PAIRTOOLS_PARSE2       } from '../../modules/local/pairtools/parse2'
 include { PAIRTOOLS_RESTRICT     } from '../../modules/nf-core/pairtools/restrict/main'
 include { PAIRTOOLS_STATS        } from '../../modules/local/pairtools/stats'
 include { COVERAGE_SCALE         } from './coveragescale'
@@ -32,9 +33,19 @@ workflow PAIRTOOLS_PAIRE {
 
     main:
     //raw pairs, output raw.pairsam
-    PAIRTOOLS_PARSE(ch_bam, chromsizes)
+    if(params.pairtools_parse_version=='parse'){
+        PAIRTOOLS_PARSE(ch_bam, chromsizes)
+        rawsam = PAIRTOOLS_PARSE.out.pairsam
+        rawstat = PAIRTOOLS_PARSE.out.stat
+        ch_versions = PAIRTOOLS_PARSE.out.versions
+    }else{
+        PAIRTOOLS_PARSE2(ch_bam, chromsizes)
+        rawsam = PAIRTOOLS_PARSE2.out.pairsam
+        rawstat = PAIRTOOLS_PARSE2.out.stat
+        ch_versions = PAIRTOOLS_PARSE2.out.versions
+    }
     if(sub_sample){
-        counts = PAIRTOOLS_PARSE.out.stat.map{
+        counts = rawstat.map{
             count = it[1].readLines()
                 .findAll{it.contains('cis_20kb+')}
                 .first().replaceAll(/cis_20kb.\s+/, '')
@@ -42,13 +53,10 @@ workflow PAIRTOOLS_PAIRE {
         }
         COVERAGE_SCALE(counts)
         rawsam = PAIRTOOLS_SAMPLE(
-            PAIRTOOLS_PARSE.out.pairsam
+            rawsam
             .join(COVERAGE_SCALE.out.scale)
         ).pairsam
         rawstat = PAIRTOOLS_STATS(rawsam).stat
-    }else{
-        rawsam  = PAIRTOOLS_PARSE.out.pairsam
-        rawstat = PAIRTOOLS_PARSE.out.stat
     }
     // select valid pairs
     PAIRTOOLS_SELECT_VP(rawsam)
@@ -79,13 +87,13 @@ workflow PAIRTOOLS_PAIRE {
                                     .mix(PAIRSPLOT.out.csv.map{it[1]}).collect())
 
     emit:
-    pair = PAIRIX.out.index               // channel: [ val(meta), [valid.pair.gz], [valid.pair.gz.px] ]
-    stat = READS_SUMMARY.out.summary      // channel: [ path(summary) ]
-    qc   = PAIRSQC.out.qc                 // channel: [ val(meta), [qc]]
-    raw  = PAIRTOOLS_PARSE.out.pairsam    // channel: [ val(meta), [pairsam] ]
+    pair       = PAIRIX.out.index                        // channel: [ val(meta), [valid.pair.gz], [valid.pair.gz.px] ]
+    stat       = READS_SUMMARY.out.summary               // channel: [ path(summary) ]
+    qc         = PAIRSQC.out.qc                          // channel: [ val(meta), [qc]]
+    raw        = rawsam                                  // channel: [ val(meta), [pairsam] ]
     validpair  = PAIRTOOLS_SELECT_VP.out.selected        // channel: [val(meta), [validpair]]
-    distalpair = PAIRTOOLS_SELECT_LONG.out.unselected // channel: [val(meta), [valid.pair.gz]]
-    homerpair  = DUMP4HOMER.out.hicsummary            // channel: [val(meta), [hicsummary.txt.gz]]
-    hdf5 = BIOC_PAIRS2HDF5.out.hdf5       // channel: [ val(meta), [hdf5] ]
-    versions = PAIRTOOLS_PARSE.out.versions // channel: [ path(version) ]
+    distalpair = PAIRTOOLS_SELECT_LONG.out.unselected    // channel: [val(meta), [valid.pair.gz]]
+    homerpair  = DUMP4HOMER.out.hicsummary               // channel: [val(meta), [hicsummary.txt.gz]]
+    hdf5       = BIOC_PAIRS2HDF5.out.hdf5                // channel: [ val(meta), [hdf5] ]
+    versions = ch_versions                               // channel: [ path(version) ]
 }

@@ -26,7 +26,7 @@ process HICEXPLORER_HICPLOTMATRIX {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        hicexplorer: \$(hicPlotMatrix --version 2>&1 | sed 's/hicPlotMatrix //')
+        hicexplorer: \$(hicPlotMatrix --version | sed 's/hicPlotMatrix //')
     END_VERSIONS
     """
 }

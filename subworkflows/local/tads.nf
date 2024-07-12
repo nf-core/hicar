@@ -34,6 +34,7 @@ workflow TADS {
             ch_versions = COOLTOOLS_TADS.out.versions
             ch_multiqc_files = COOLTOOLS_TADS.out.mqc
             ch_circos_files = COOLTOOLS_TADS.out.tads.map{[it[0], it[2]]}
+            ch_track_files = COOLTOOLS_TADS.out.tads.map{[it[0], it[2]]}
             break
         case "hicexplorer":
             HICEXPLORER_TADS(
@@ -45,6 +46,7 @@ workflow TADS {
             ch_versions = HICEXPLORER_TADS.out.versions
             ch_multiqc_files = HICEXPLORER_TADS.out.mqc
             ch_circos_files = HICEXPLORER_TADS.out.tads.map{[it[0], it[2]]}
+            ch_track_files = HICEXPLORER_TADS.out.tads.map{[it[0], it[2]]}
             break
         case "homer":
             HOMER_TADS(
@@ -56,6 +58,7 @@ workflow TADS {
             ch_versions = HOMER_TADS.out.versions
             ch_multiqc_files = HOMER_TADS.out.mqc
             ch_circos_files = HOMER_TADS.out.tads.combine(cool_bin).map{[[id:it[0].id, bin:it[3]], it[2]]}
+            ch_track_files = HOMER_TADS.out.tads.map{[it[0], it[2]]}
             break
         default:
             HICEXPLORER_TADS(
@@ -67,6 +70,7 @@ workflow TADS {
             ch_versions = HICEXPLORER_TADS.out.versions
             ch_multiqc_files = HICEXPLORER_TADS.out.mqc
             ch_circos_files = HICEXPLORER_TADS.out.tads.map{[it[0], it[2]]}
+            ch_track_files = HICEXPLORER_TADS.out.tads.map{[it[0], it[2]]}
             break
     }
 
@@ -74,7 +78,7 @@ workflow TADS {
     emit:
     tads            = ch_tads              // channel: [ meta, bin_size, [TADs] ]
     circos          = ch_circos_files      // channel: [ meta, [TADs]]
-    igv             = ch_track_files
+    igv             = ch_track_files       // channel: [ meta, [TADs] ]
     anno            = ch_annotation_files
     versions        = ch_versions          // channel: [ versions.yml ]
     mqc             = ch_multiqc_files
