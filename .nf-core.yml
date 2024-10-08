@@ -1,2 +1,25 @@
+bump_version: null
+lint:
+  files_unchanged:
+    - .github/workflows/awsfulltest.yml
+    - .github/workflows/linting.yml
+    - .github/workflows/linting_comment.yml
+    - .github/workflows/branch.yml
+    - .github/workflows/ci.yml
+    - .github/ISSUE_TEMPLATE/bug_report.yml
+nf_core_version: 3.0.0
+org_path: null
 repository_type: pipeline
-nf_core_version: "2.14.1"
+template:
+  author: Jianhong Ou, Yu Xiang, Yarui Diao
+  description: This pipeline analyses data for HiCAR data, a robust and sensitive
+    multi-omic co-assay for simultaneous measurement of transcriptome, chromatin accessibility
+    and cis-regulatory chromatin contacts.
+  force: false
+  is_nfcore: true
+  name: hicar
+  org: nf-core
+  outdir: .
+  skip_features: null
+  version: 2.0.0
+update: null
