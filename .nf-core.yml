@@ -7,3 +7,5 @@ lint:
     - .github/workflows/branch.yml
     - .github/workflows/ci.yml
     - .github/ISSUE_TEMPLATE/bug_report.yml
+  files_exist:
+    - .github/workflows/linting_comment.yml
