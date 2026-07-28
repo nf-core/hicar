@@ -6,6 +6,7 @@
 # Source: https://github.com/ijuric/MAPS/blob/master/bin/MAPS/MAPS_regression_and_peak_caller.r
 # Source+commit: https://github.com/ijuric/MAPS/blob/e6d5fdee7241b8f9a466cc778be6d0769b984e81/bin/MAPS/MAPS_regression_and_peak_caller.r
 # Data: 11/08/2021, commit: e6d5fde
+# This source code is licensed under the GPL-3.0 license
 # modified by Jianhong:
 # ## 1. set the Rscript environment.
 # ## 2. export the COUNT_CUTOFF, RATIO_CUTOFF and FDR parameters
@@ -67,6 +68,7 @@ if (length(args) < 3 || length(args) > 8) {
     SET <- paste0(SET, ".", ceiling(RESOLUTION/1e3), "k")
     chroms <- dir(INFDIR, "reg_raw.*")
     chroms <- unique(sub("reg_raw\\.(.*?)\\..*$", "\\1", chroms))
+    chroms <- unique(unlist(strsplit(chroms, "_")))
     if(length(args)>3){
         COUNT_CUTOFF = as.numeric(args[4])
         RATIO_CUTOFF = as.numeric(args[5])
@@ -99,19 +101,22 @@ mm_combined_and = data.frame()
 mm_combined_xor = data.frame()
 outf_names = c()
 for (i in chroms) {
-    for (j in c('.and','.xor')) {
-        print(paste('loading chromosome ',i,' ',j,sep=''))
-        inf_name = paste(INFDIR,'reg_raw.',i,'.',SET,sep='')
-        if(file.exists(paste(inf_name,j,sep=''))){
-            outf_names = c(outf_names, paste(inf_name,j,'.MAPS2_',REG_TYPE,sep = ''))
-            mm = read.table(paste(inf_name,j,sep=''),header=T)
-            mm$chr = rep(i, nrow(mm))
-            mm = subset( mm, dist > 1) # removing adjacent bins
-            mm = subset(mm, !(mm$chr %in% fltr$chr & (mm$bin1_mid %in% fltr$bin | mm$bin2_mid %in% fltr$bin ))) ## filtering out bad bins
-            if (j == '.and') {
-                mm_combined_and = rbind(mm_combined_and, mm)
-            } else if (j == '.xor') {
-                mm_combined_xor = rbind(mm_combined_xor, mm)
+    for (k in chroms){
+        for (j in c('.and','.xor')) {
+            print(paste('loading chromosome ',i,' ', k, ' ',j,sep=''))
+            inf_name = paste(INFDIR,'reg_raw.',i,'_', k, '.',SET,sep='')
+            if(file.exists(paste(inf_name,j,sep=''))){
+                outf_names = c(outf_names, paste(inf_name,j,'.MAPS2_',REG_TYPE,sep = ''))
+                mm = read.table(paste(inf_name,j,sep=''),header=T)
+                mm$chr = rep(i, nrow(mm))
+                mm$chr2 = rep(k, nrow(mm))
+                mm = subset( mm, dist > 1) # removing adjacent bins
+                mm = subset(mm, !(mm$chr %in% fltr$chr & (mm$bin1_mid %in% fltr$bin | mm$bin2_mid %in% fltr$bin ))) ## filtering out bad bins
+                if (j == '.and') {
+                    mm_combined_and = rbind(mm_combined_and, mm)
+                } else if (j == '.xor') {
+                    mm_combined_xor = rbind(mm_combined_xor, mm)
+                }
             }
         }
     }
@@ -328,13 +333,13 @@ singletons_names = paste(chroms,'_0',sep='')
 for (r in runs) {
 ## in case you want to do resampling
 ## you'd put resampling code here
-    name_counter = 1
     for (i in chroms) {
+        for(j in chroms) {
             ## regression
             tryCatch({
-                print(paste('run',r,': regression on chromosome',i))
-                print(outf_names[name_counter])
-                mm = subset(mm_combined_and, chr == i)
+                print(paste('run',r,': regression on chromosome',i, ' and ', j))
+                outf_names <- paste(INFDIR, 'reg_raw.',i,'_', j, '.and.',SET,'.MAPS2_',REG_TYPE,sep = '')
+                mm = subset(mm_combined_and, chr == i & chr2 == j)
                 if(nrow(mm)>6){
                     if (REG_TYPE == 'pospoisson') {
                         mm = pospoisson_regression(mm, dataset_length)
@@ -343,10 +348,9 @@ for (r in runs) {
                     }
                     mx_combined_and = rbind(mx_combined_and, mm)
                 }
-                write.table(mm,outf_names[name_counter],row.names = TRUE,col.names = TRUE,quote=FALSE)
-                name_counter = name_counter + 1
-                print(outf_names[name_counter])
-                mm = subset(mm_combined_xor, chr == i)
+                write.table(mm,outf_names,row.names = TRUE,col.names = TRUE,quote=FALSE)
+                outf_names <- paste(INFDIR, 'reg_raw.',i,'_', j, '.xor.',SET,'.MAPS2_',REG_TYPE,sep = '')
+                mm = subset(mm_combined_xor, chr == i & chr2 == j)
                 if(nrow(mm)>6){
                     if (REG_TYPE == 'pospoisson') {
                         mm = pospoisson_regression(mm, dataset_length)
@@ -355,12 +359,12 @@ for (r in runs) {
                     }
                     mx_combined_xor = rbind(mx_combined_xor, mm)
                 }
-                write.table(mm,outf_names[name_counter],row.names = TRUE,col.names = TRUE,quote=FALSE)
+                write.table(mm,outf_names,row.names = TRUE,col.names = TRUE,quote=FALSE)
             }, error=function(.e){
                 message(.e)
             })
-            name_counter = name_counter + 1
             ## finding min FDR so I can set appropriate lower boundary for FDR
+        }
     }
     ## save QC file
     qc_out = paste(INFDIR,SET,'.maps.qc',sep = '')

@@ -10,7 +10,10 @@ on:
 
 env:
   NXF_ANSI_LOG: false
-  CAPSULE_LOG: none
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -20,31 +23,36 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Nextflow versions
-        profile: ["test", "test_multi", "test_hipeak", "test_hichip"]
-        include:
-          # Test pipeline minimum Nextflow version
-          - NXF_VER: "21.10.3"
-            NXF_EDGE: ""
-          # Test latest edge release of Nextflow
-          - NXF_VER: ""
-            NXF_EDGE: "1"
+        NXF_VER:
+          - "23.04.0"
+          - "latest-everything"
+        parameters:
+          - "--interactions_tool maps"
+          - "--interactions_tool hicdcplus"
+          - "--interactions_tool peakachu"
+          - "--tad_tool homer"
+          - "--compartments_tool homer"
+          - "--compartments_tool juicebox"
+          - "--do_apa --apa_tool juicebox"
+          - "--do_apa --apa_tool cooltools"
+          - "--da_tool edger"
+          - "--da_tool setOperation"
+          - "--da_tool hicexplorer"
+          - "--v4c_tool cooltools --v4c_max_events 3"
+          - "--v4c_tool trackviewer --v4c_max_events 3"
+          - "--method HiChIP --anchor_peaks 'https://raw.githubusercontent.com/aryeelab/hichipper/master/tests/chipseq/GM12878_SMC3_ChIPSeq_chr22.narrowPeak'"
+
     steps:
       - name: Check out pipeline code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Nextflow
-        env:
-          NXF_VER: ${{ matrix.NXF_VER }}
-          # Uncomment only if the edge release is more recent than the latest stable release
-          # See https://github.com/nextflow-io/nextflow/issues/2467
-          # NXF_EDGE: ${{ matrix.NXF_EDGE }}
-        run: |
-          wget -qO- get.nextflow.io | bash
-          sudo mv nextflow /usr/local/bin/
+        uses: nf-core/setup-nextflow@v1
+        with:
+          version: "${{ matrix.NXF_VER }}"
 
       - name: Run pipeline with test data
         run: |
-          nextflow run ${GITHUB_WORKSPACE} -profile ${{ matrix.profile }},docker --outdir ./results
+          nextflow run ${GITHUB_WORKSPACE} -profile test,docker --outdir ./results ${{ matrix.parameters }}
 
 #

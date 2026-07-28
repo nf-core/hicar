@@ -4,14 +4,14 @@ process BIOC_TRACKVIEWER {
     label 'process_long'
     label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
+    conda "bioconda::bioconductor-trackviewer=1.28.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0' :
-        'quay.io/biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0' }"
+        'biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0' }"
 
     input:
-    tuple val(bin_size), path(events), path(mcools)
+    tuple val(bin_size), path(cools), path(events), path(anchors)
     path raw_pairs // .unselected.pairs.gz of samfrag
     path gtf
     path chrom_sizes
@@ -22,7 +22,7 @@ process BIOC_TRACKVIEWER {
     path "versions.yml"           , emit: versions
 
     script:
-    prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "trackViewer_bin${bin_size}"
     def args = task.ext.args ?: ''
     """
     #!/usr/bin/env Rscript
@@ -31,6 +31,7 @@ process BIOC_TRACKVIEWER {
     #######################################################################
     ## Created on Aug. 24, 2021 for trackViewer parser
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
 
@@ -96,7 +97,7 @@ process BIOC_TRACKVIEWER {
     }
 
     # read the signals
-    cools <- dir(".", "mcool\$", full.names = TRUE, recursive = TRUE)
+    cools <- dir(".", "cool\$", full.names = TRUE, recursive = TRUE)
     pairfiles <- dir(".", ".h5\$", full.names = TRUE, recursive = TRUE)
     if(!is.null(opt\$events)){
         evts <- read.csv(opt\$events)
@@ -104,15 +105,31 @@ process BIOC_TRACKVIEWER {
             evts\$fdr <- rep(1, nrow(evts))
         }
     }else{
-        evts <- dir(".", ".anno.csv\$", full.names = TRUE, recursive = TRUE)
+        evts <- dir(".", ".bedpe\$", full.names = TRUE, recursive = TRUE)
         if(length(evts)<1) stop("No events file.")
-        evts <- lapply(evts, read.csv)
+        header <- lapply(evts, read.delim, header=FALSE, nrow=1)
+        evts <- mapply(evts, header, FUN=function(f, h){
+            hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
+                                h[1, , drop=TRUE])
+            .ele <- read.delim(f, header = hasHeader)
+            if(!hasHeader){
+                colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")
+                ## bedpe, [start, end)
+                .ele\$start1 <- .ele\$start1+1
+                .ele\$start2 <- .ele\$start2+1
+            }
+            .ele
+        }, SIMPLIFY = FALSE)
         evts <- do.call(rbind, evts)
     }
     stopifnot(nrow(evts)>0)
     colnames(evts) <- tolower(colnames(evts))
-    stopifnot(all(c("chr1", "chr2", "start1", "start2", "end1", "end2", "fdr") %in%
+    stopifnot(all(c("chr1", "chr2", "start1", "start2", "end1", "end2") %in%
         colnames(evts)))
+    if(!"fdr" %in% colnames(evts)){
+        ## count the reads, TODO
+        evts\$fdr <- 1
+    }
     evts <- evts[order(evts\$fdr), , drop=FALSE]
     if(nrow(evts)<1) stop("No events in files.")
     dir.create(output, recursive = TRUE, showWarnings = FALSE)

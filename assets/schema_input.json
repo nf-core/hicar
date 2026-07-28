@@ -10,11 +10,13 @@
             "group": {
                 "type": "string",
                 "pattern": "^\\S+$",
-                "errorMessage": "Sample group must be provided and cannot contain spaces"
+                "errorMessage": "Sample group must be provided and cannot contain spaces",
+                "meta": ["group"]
             },
             "replicate": {
                 "type": "integer",
-                "errorMessage": "Replicate must start from 1"
+                "errorMessage": "Replicate must start from 1",
+                "meta": ["replicate"]
             },
             "fastq_1": {
                 "type": "string",
@@ -35,10 +37,17 @@
                 ]
             },
             "md5_1": {
-                "type": "string"
+                "type": "string",
+                "meta": ["md5_1"]
             },
             "md5_2": {
-                "type": "string"
+                "type": "string",
+                "meta": ["md5_2"]
+            },
+            "techniquereplicate": {
+                "type": "integer",
+                "default": 1,
+                "meta": ["techniquereplicate"]
             }
         },
         "required": ["group", "replicate", "fastq_1", "fastq_2"]

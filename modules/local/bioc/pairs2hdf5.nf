@@ -2,11 +2,11 @@ process BIOC_PAIRS2HDF5 {
     tag "$meta.id"
     label 'process_high'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-trackviewer=1.28.0" : null)
+    conda "bioconda::bioconductor-trackviewer=1.28.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/bioconductor-trackviewer:1.28.0--r41h399db7b_0' :
-        'quay.io/biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0' }"
+        'biocontainers/bioconductor-trackviewer:1.28.0--r41h399db7b_0' }"
 
     input:
     tuple val(meta), path(pairs)
@@ -28,6 +28,7 @@ process BIOC_PAIRS2HDF5 {
     #######################################################################
     ## Created on Dec. 03, 2021 to convert pairs to hdf5
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     ## hdf5 format:
     ## - header, including total reads, chromosome name and sizes, tileWidth
     ##    * header/chrom_sizes COMPOUND
