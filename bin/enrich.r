@@ -4,6 +4,7 @@
 #######################################################################
 ## Created on Nov. 10, 2020 enrichment analysis
 ## Copyright (c) 2020 Jianhong Ou (jianhong.ou@gmail.com)
+## This source code is licensed under the MIT license
 #######################################################################
 #######################################################################
 c("optparse", "ChIPpeakAnno", "clusterProfiler", "pathview", "biomaRt")
@@ -185,7 +186,7 @@ for(file in files){
                     geom_text(vjust=-.1) +
                     xlab("") + ylab("-log10(p-value)") +
                     theme_classic() + theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5))
-                ggsave(file.path(pff, paste("GO.", .name, ".enrichment.for.padj0.05.top.pdf", sep = ".")), width = 6, height = 6)
+                ggsave(file.path(pff, paste("GO", .name, "enrichment.for.padj0.05.top.pdf", sep = ".")), width = 6, height = 6)
             }
         })
 

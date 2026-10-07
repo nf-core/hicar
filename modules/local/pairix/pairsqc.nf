@@ -3,11 +3,11 @@ process PAIRSQC {
     label 'process_low'
     errorStrategy { (task.exitStatus in 137..140 && task.attempt <= 3)  ? 'retry' : 'ignore' }
 
-    conda (params.enable_conda ? "bioconda::pairix=0.3.7" : null)
+    conda "bioconda::pairix=0.3.7"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/pairix:0.3.7--py36h30a8e3e_3' :
-        'quay.io/biocontainers/pairix:0.3.7--py36h30a8e3e_3' }"
+        'biocontainers/pairix:0.3.7--py36h30a8e3e_3' }"
 
     input:
     tuple val(meta), path(pair), path(index)

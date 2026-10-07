@@ -1,30 +1,33 @@
 process DIFFHICAR {
     tag "$bin_size"
     label 'process_medium'
-    label 'error_ignore'
 
-    conda (params.enable_conda ? "bioconda::bioconductor-edger=3.32.1" : null)
+    conda "bioconda::bioconductor-edger=3.36.0"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/bioconductor-edger:3.32.1--r40h399db7b_0' :
-        'quay.io/biocontainers/bioconductor-edger:3.32.1--r40h399db7b_0' }"
+        'https://depot.galaxyproject.org/singularity/bioconductor-edger:3.36.0--r41hc247a5b_2' :
+        'biocontainers/bioconductor-edger:3.36.0--r41hc247a5b_2' }"
 
     input:
     tuple val(bin_size), path(peaks, stageAs: "peaks/*"), path(long_bedpe, stageAs: "long/*")
+    val long_bedpe_postfix
 
     output:
-    tuple val(bin_size), path("${prefix}/*") , emit: diff
-    path "${prefix}/*.qc.json"               , emit: stats
-    path "versions.yml"                      , emit: versions
+    tuple val(bin_size), path("${prefix}/*")               , emit: diff
+    tuple val(bin_size), val("$prefix"), path("${prefix}/edgeR.DEtable*") , optional: true, emit: anno
+    tuple val(bin_size), val("$prefix"), path("${prefix}/*.bedpe") , optional: true, emit: bedpe
+    path "${prefix}/*.qc.json"                             , emit: stats
+    path "versions.yml"                                    , emit: versions
 
     script:
-    prefix   = task.ext.prefix ?: "diffhic_bin${bin_size}"
+    prefix   = task.ext.prefix ?: "edgeR_bin${bin_size}"
     """
     #!/usr/bin/env Rscript
     #######################################################################
     #######################################################################
     ## Created on April. 29, 2021 call edgeR
     ## Copyright (c) 2021 Jianhong Ou (jianhong.ou@gmail.com)
+    ## This source code is licensed under the MIT license
     #######################################################################
     #######################################################################
     library(edgeR)
@@ -37,7 +40,19 @@ process DIFFHICAR {
 
     ## get peaks
     pf <- dir("peaks", "bedpe", full.names = TRUE)
-    peaks <- lapply(pf, read.delim)
+    header <- lapply(pf, read.delim, header=FALSE, nrow=1)
+    peaks <- mapply(pf, header, FUN=function(f, h){
+        hasHeader <- all(c("chr1", "start1", "end1", "chr2", "start2", "end2") %in%
+                        h[1, , drop=TRUE])
+        .ele <- read.delim(f, header = hasHeader)
+        if(!hasHeader){
+            colnames(.ele)[1:6] <- c("chr1", "start1", "end1", "chr2", "start2", "end2")
+            ## bedpe, [start, end)
+            .ele\$start1 <- .ele\$start1+1
+            .ele\$start2 <- .ele\$start2+1
+        }
+        .ele
+        }, SIMPLIFY = FALSE)
     ### reduce the peaks
     peaks <- unique(do.call(rbind, peaks)[, c("chr1", "start1", "end1",
                                             "chr2", "start2", "end2")])
@@ -45,11 +60,21 @@ process DIFFHICAR {
     ## get counts
     pc <- dir("long", "bedpe", full.names = FALSE)
     cnts <- lapply(file.path("long", pc), read.table)
-    samples <- sub("(_REP\\\\d+)\\\\.(.*?)\\\\.long.intra.bedpe", "\\\\1", pc)
+    samples <- sub("(_REP\\\\d+)\\\\.(.*?)\\\\.${long_bedpe_postfix}", "\\\\1", pc)
     cnts <- lapply(split(cnts, samples), do.call, what=rbind)
     sizeFactor <- vapply(cnts, FUN=function(.ele) sum(.ele[, 7], na.rm = TRUE),
                         FUN.VALUE = numeric(1))
 
+    ## check coordinates style
+    ### bedpe, [start, end)
+    checkStyle <- function(x, y){
+        if(sum((x[, 2]+1) %in% y[, 2]) > sum(x[, 2] %in% y[, 2])) return(1)
+        if(sum((y[, 2]+1) %in% x[, 2]) > sum(y[, 2] %in% x[, 2])) return(-1)
+        return(0)
+    }
+    offset <- checkStyle(peaks, do.call(rbind, cnts))
+    peaks\$start1 <- peaks\$start1 + offset
+    peaks\$start2 <- peaks\$start2 + offset
     getID <- function(mat) gsub("\\\\s+", "", apply(mat[, seq.int(6)], 1, paste, collapse="_"))
     getID1 <- function(mat) gsub("\\\\s+", "", apply(mat[, seq.int(3)], 1, paste, collapse="_"))
     getID2 <- function(mat) gsub("\\\\s+", "", apply(mat[, 4:6], 1, paste, collapse="_"))
@@ -67,6 +92,9 @@ process DIFFHICAR {
     cnts[is.na(cnts)] <- 0
     names(peaks_id) <- paste0(rep("p", length(peaks_id)), seq_along(peaks_id))
     rownames(cnts) <- names(peaks_id)
+    if(all(colSums(cnts)==0)){
+        stop("Can not get counts table.")
+    }
 
     pf <- as.character(binsize)
     dir.create(pf, showWarnings = FALSE, recursive=TRUE)
@@ -118,7 +146,7 @@ process DIFFHICAR {
         ## PCA for multiQC
         try_res <- try({ ## try to output PCA results for multiQC
             json <- data.frame(x=mds\$x, y=mds\$y)
-            rownames(json) <- names(mds\$x)
+            rownames(json) <- colnames(y)
             json <- split(json, coldata[rownames(json), "condition"])
             json <- mapply(json, rainbow(n=length(json)), FUN=function(.ele, .color){
                 .ele <- cbind(.ele, "name"=rownames(.ele))
@@ -132,9 +160,7 @@ process DIFFHICAR {
                                 '"}')
                 })
                 .ele <- paste(.ele, collapse=", ")
-                .ele <- paste("[", .ele, "]")
             })
-            json <- paste0('"', names(json), '" :', json)
             json <- c(
                     "{",
                     '"id":"sample_pca",',
@@ -185,6 +211,11 @@ process DIFFHICAR {
             ## Volcano plot
             res\$qvalue <- -10*log10(res\$PValue)
             res.s\$qvalue <- -10*log10(res.s\$PValue)
+            res.s1 <- cbind(res.s[, c("chr1", "start1", "end1", "chr2", "start2", "end2", "qvalue"), drop = FALSE],
+                name = rep('.', nrow(res.s)),
+                res.s[, c("qvalue"), drop = FALSE],
+                strand1 = rep('.', nrow(res.s)), strand2 = rep('.', nrow(res.s)))
+            write.table(res.s1, fname(name, "bedpe", "edgeR.DEtable", name, "padj0.05.lfc1"), row.names=FALSE, col.names=FALSE, sep="\\t", quote=FALSE)
             pdf(fname(name, "pdf", "Volcano-plot", name))
             plot(x=res\$logFC, y=res\$qvalue,
                 main = paste("Volcano plot for", name),

@@ -1,80 +1,78 @@
-/*
- * Call interaction peaks by MAPS
- */
+//
+// Call HiPeak
+//
 
-include { PREPARE_COUNTS            } from '../../modules/local/hipeak/prepare_counts'
-include { POST_COUNTS               } from '../../modules/local/hipeak/post_counts'
-include { CALL_HIPEAK               } from '../../modules/local/hipeak/callpeak'
-include { ASSIGN_TYPE               } from '../../modules/local/hipeak/assign_type'
-include { DIFF_HIPEAK               } from '../../modules/local/hipeak/diff_hipeak'
-include { BIOC_CHIPPEAKANNO
-    as BIOC_CHIPPEAKANNO_HIPEAK     } from '../../modules/local/bioc/chippeakanno'
-include { BIOC_CHIPPEAKANNO
-    as BIOC_CHIPPEAKANNO_DIFFHIPEAK } from '../../modules/local/bioc/chippeakanno'
-include { PAIR2BAM                  } from '../../modules/local/bioc/pair2bam'
+include { R1_PEAK } from './hipeak/fragment_peak'
+include { HI_PEAK } from './hipeak/call_hipeak'
 
-workflow HI_PEAK {
+workflow HIPEAK {
     take:
-    peaks                // channel: [ meta, r2peak, r1peak, distalpair ]
-    chrom_size           // channel: [ path(chrom_size) ]
-    gtf                  // channel: [ path(gtf) ]
     fasta                // channel: [ path(fasta) ]
-    digest_genome        // channel: [ path(digest_genome) ]
+    chrom_sizes          // channel: [ path(chrom_size) ]
+    digest_genome        // channel: [ path(cut) ]
     mappability          // channel: [ path(mappability) ]
-    skip_peak_annotation // value: params.skip_peak_annotation
-    skip_diff_analysis   // value: params.skip_diff_analysis
-
+    gtf                  // channel: [ path(gtf) ]
+    distalpair           // channel: [ val(meta), [pairs] ]
+    hdf5                 // channel: [ val(meta), [hdf5] ]
+    peak                 // channel: [ val(meta), [peak] ]
+    r1_pval_thresh       // value
+    short_bed_postfix    // value
+    maps_3d_ext          // value
 
     main:
-    //create count table
-    //input=val(meta), path(r2peak), path(r1peak), path(distalpair), val(chrom1)
-    chrom1 = chrom_size.splitCsv(sep:"\t", header: false, strip: true).filter{ it[0] !=~ /[_M]/ }.map{it[0]}
-    ch_version = PREPARE_COUNTS(peaks.combine(chrom1)).versions
-    counts = PREPARE_COUNTS.out.counts.map{[it[0].id, it[1]]}
-                            .groupTuple()
-                            .map{[[id:it[0]], it[1]]}
-    POST_COUNTS(counts.combine(mappability).combine(fasta).combine(digest_genome))
-    ch_version = ch_version.mix(POST_COUNTS.out.versions)
-    //regression and peak calling
-    CALL_HIPEAK(POST_COUNTS.out.counts)
-    ch_version = ch_version.mix(CALL_HIPEAK.out.versions)
-    PAIR2BAM(CALL_HIPEAK.out.peak.join(peaks.map{[it[0], it[3]]}))
+    ch_versions             = Channel.empty()
+    ch_multiqc_files        = Channel.empty()
+    ch_circos_files         = Channel.empty()
+    ch_track_files          = Channel.empty()
+    ch_annotation_files     = Channel.empty()
 
-    //assign type for peak
-    ASSIGN_TYPE(CALL_HIPEAK.out.peak)
-    ch_version = ch_version.mix(ASSIGN_TYPE.out.versions)
-    // annotation
-    if(!skip_peak_annotation){
-        BIOC_CHIPPEAKANNO_HIPEAK(ASSIGN_TYPE.out.peak
-                                            .map{it[1]}
-                                            .filter{ it.readLines().size > 1 }
-                                            .collect()
-                                            .map{["HiPeak", it]}, gtf)
-        ch_version = ch_version.mix(BIOC_CHIPPEAKANNO_HIPEAK.out.versions.ifEmpty(null))
-    }
-    //differential analysis
-    stats = Channel.empty()
-    diff = Channel.empty()
-    if(!skip_diff_analysis){
-        hipeaks = ASSIGN_TYPE.out.peak.map{it[1]}.collect().filter{it.size()>1}
-        if(hipeaks){
-            DIFF_HIPEAK(hipeaks,
-                        peaks.map{it[3]}.collect())
-            ch_version = ch_version.mix(DIFF_HIPEAK.out.versions.ifEmpty(null))
-            stats = DIFF_HIPEAK.out.stats
-            diff = DIFF_HIPEAK.out.diff
-            if(!skip_peak_annotation){
-                BIOC_CHIPPEAKANNO_DIFFHIPEAK(DIFF_HIPEAK.out.diff
-                                                        .collect()
-                                                        .map{["DiffHiPeak", it]}, gtf)
-            }
-        }
-    }
+    R1_PEAK(
+        distalpair,
+        chrom_sizes,
+        digest_genome,
+        gtf,
+        r1_pval_thresh,
+        short_bed_postfix
+    )
+    ch_versions = ch_versions.mix(R1_PEAK.out.versions)
+    //ch_trackfiles = ch_trackfiles.mix(
+    //    R1_PEAK.out.bws.map{[it[0].id+"_R1",
+    //        RelativePublishFolder.getPublishedFolder(workflow,
+    //            'UCSC_BEDGRAPHTOBIGWIG_PER_R1_GROUP')+it[1].name]})
+
+    // merge ATAC_PEAK with R1_PEAK by group id
+    distalpair = hdf5.map{meta, bed -> [meta.group, bed]}
+                                        .groupTuple()
+    grouped_reads_peak = peak.map{[it[0].id, it[1]]}
+                            .join(R1_PEAK.out.peak.map{[it[0].id, it[1]]})
+                            .join(distalpair)
+                            .map{[[id:it[0]], it[1], it[2], it[3]]}
+    HI_PEAK(
+        grouped_reads_peak,
+        chrom_sizes,
+        gtf,
+        fasta,
+        digest_genome,
+        mappability,
+        params.skip_peak_annotation,
+        params.skip_diff_analysis,
+        maps_3d_ext
+    )
+    ch_versions = ch_versions.mix(HI_PEAK.out.versions)
+    //ch_trackfiles = ch_trackfiles.mix(
+    //    HI_PEAK.out.bedpe
+    //            .map{[it[0].id+"_HiPeak",
+    //                RelativePublishFolder.getPublishedFolder(workflow,
+    //                                    'ASSIGN_TYPE')+it[1].name]})
+
+    ch_circos_files = HI_PEAK.out.bedpe
 
     emit:
-    peak         = ASSIGN_TYPE.out.peak         // channel: [ path(peak) ]
-    bedpe        = ASSIGN_TYPE.out.bedpe        // channel: [ path(bedpe) ]
-    stats        = stats                        // channel: [ path(stats) ]
-    diff         = diff                         // channel: [ path(diff) ]
-    versions     = ch_version                   // channel: [ path(version) ]
+    fragmentPeak    = R1_PEAK.out.peak
+    bed4tfea        = HI_PEAK.out.bed4tfea
+    circos          = ch_circos_files
+    igv             = ch_track_files
+    anno            = ch_annotation_files
+    versions        = ch_versions          // channel: [ versions.yml ]
+    mqc             = ch_multiqc_files
 }

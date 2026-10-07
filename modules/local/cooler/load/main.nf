@@ -2,11 +2,11 @@ process COOLER_LOAD {
     tag "$meta.id"
     label 'process_high'
 
-    conda (params.enable_conda ? "bioconda::cooler=0.8.11" : null)
+    conda "bioconda::cooler=0.8.11"
     container "${ workflow.containerEngine == 'singularity' &&
                     !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/cooler:0.8.11--pyh3252c3a_0' :
-        'quay.io/biocontainers/cooler:0.8.11--pyh3252c3a_0' }"
+        'biocontainers/cooler:0.8.11--pyh3252c3a_0' }"
 
     input:
     tuple val(meta), val(cool_bin), path(pairs)
